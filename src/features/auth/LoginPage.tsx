@@ -53,8 +53,19 @@ export const LoginPage: React.FC = () => {
   ];
 
   return (
-    <Box minH="100vh" bg="#0f172a" display="flex" alignItems="center" justifyContent="center" p={4}>
-      <Card.Root bg="white" maxW="480px" w="100%" borderRadius="20px" p={{ base: 6, md: 8 }} boxShadow="2xl">
+    <Box minH="100vh" bg="#f1f5f9" display="flex" flexDirection="column" alignItems="center" justifyContent="center" p={4}>
+      <Flex justify="center" mb={4}>
+        <Button
+          size="xs"
+          variant="ghost"
+          color="#64748b"
+          _hover={{ color: '#0f172a', bg: '#e2e8f0' }}
+          onClick={() => navigate('/landing')}
+        >
+          ← Return to Public ERP Site
+        </Button>
+      </Flex>
+      <Card.Root bg="white" maxW="480px" w="100%" borderRadius="20px" p={{ base: 6, md: 8 }} border="1px solid #cbd5e1" boxShadow="0 20px 25px -5px rgba(0, 0, 0, 0.08)">
         {/* Brand Header */}
         <Flex direction="column" align="center" textAlign="center" mb={6}>
           <Box

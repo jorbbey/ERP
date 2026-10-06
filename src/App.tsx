@@ -23,6 +23,8 @@ import { DocumentsPage } from './features/documents/DocumentsPage';
 import { EquipmentPage } from './features/equipment/EquipmentPage';
 import { SettingsPage } from './features/settings/SettingsPage';
 import { LoginPage } from './features/auth/LoginPage';
+import { LandingPage } from './features/landing/LandingPage';
+import { AIAssistantPage } from './features/assistant/AIAssistantPage';
 
 export default function App() {
   return (
@@ -30,27 +32,29 @@ export default function App() {
       <ERPProvider>
         <BrowserRouter>
           <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/landing" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/" element={<AppLayout />}>
-              <Route index element={<Navigate to="/dashboard" replace />} />
-              <Route path="dashboard" element={<DashboardPage />} />
-              <Route path="projects" element={<ProjectsPage />} />
-              <Route path="projects/new" element={<ProjectCreatePage />} />
-              <Route path="projects/:id" element={<ProjectDetailPage />} />
-              <Route path="requisitions" element={<RequisitionsPage />} />
-              <Route path="inventory" element={<InventoryPage />} />
-              <Route path="procurement" element={<ProcurementPage />} />
-              <Route path="hr" element={<HRPage />} />
-              <Route path="payroll" element={<PayrollPage />} />
-              <Route path="rmc" element={<RmcPage />} />
-              <Route path="contract-admin" element={<ContractAdminPage />} />
-              <Route path="accounting" element={<AccountingPage />} />
-              <Route path="equipment" element={<EquipmentPage />} />
-              <Route path="documents" element={<DocumentsPage />} />
-              <Route path="chat" element={<ChatPage />} />
-              <Route path="workflow" element={<WorkflowPage />} />
-              <Route path="portals" element={<PortalsPage />} />
-              <Route path="settings" element={<SettingsPage />} />
+            <Route element={<AppLayout />}>
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/assistant" element={<AIAssistantPage />} />
+              <Route path="/projects" element={<ProjectsPage />} />
+              <Route path="/projects/new" element={<ProjectCreatePage />} />
+              <Route path="/projects/:id" element={<ProjectDetailPage />} />
+              <Route path="/requisitions" element={<RequisitionsPage />} />
+              <Route path="/inventory" element={<InventoryPage />} />
+              <Route path="/procurement" element={<ProcurementPage />} />
+              <Route path="/hr" element={<HRPage />} />
+              <Route path="/payroll" element={<PayrollPage />} />
+              <Route path="/rmc" element={<RmcPage />} />
+              <Route path="/contract-admin" element={<ContractAdminPage />} />
+              <Route path="/accounting" element={<AccountingPage />} />
+              <Route path="/equipment" element={<EquipmentPage />} />
+              <Route path="/documents" element={<DocumentsPage />} />
+              <Route path="/chat" element={<ChatPage />} />
+              <Route path="/workflow" element={<WorkflowPage />} />
+              <Route path="/portals" element={<PortalsPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Route>
           </Routes>
