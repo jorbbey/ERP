@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Flex, Text, Button, Badge, Stack, NativeSelect } from '@chakra-ui/react';
 import { useERP } from '../context/ERPContext';
@@ -25,11 +25,16 @@ import {
   Scale,
   FolderKanban,
   Bot,
-  ChevronDown,
   Home,
-  CheckCircle2
+  CheckCircle2,
+  Search,
+  Menu,
+  X,
+  ExternalLink
 } from 'lucide-react';
 import { FloatingAIAssistant } from '../features/assistant/components/FloatingAIAssistant';
+import { EnterpriseSearchModal } from '../components/common/EnterpriseSearchModal';
+import { NotificationsPopover } from '../components/common/NotificationsPopover';
 
 const ROLES: UserRole[] = [
   'Managing Director',
@@ -48,6 +53,9 @@ export const AppLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const { 
     companies, 
@@ -61,12 +69,25 @@ export const AppLayout: React.FC = () => {
     requisitions,
     inventory,
     leaves,
-    salaryAdvances
+    salaryAdvances,
+    projects
   } = useERP();
 
   const pendingReqsCount = requisitions.filter(r => r.status === 'Pending Review' || (r.status as string).includes('Pending')).length;
   const lowStockCount = inventory.filter(i => i.currentStock <= i.minLevel).length;
   const pendingHRActionsCount = leaves.filter(l => l.status === 'Pending').length + salaryAdvances.filter(a => a.status === 'Pending').length;
+
+  // Global keyboard shortcut: Cmd+K / Ctrl+K
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchModalOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const navGroups = [
     {
@@ -146,7 +167,7 @@ export const AppLayout: React.FC = () => {
 
   return (
     <Box minH="100vh" bg="#f8fafc" display="flex" flexDirection="column" color="#0f172a">
-      {/* Light Topbar */}
+      {/* Light Enterprise Topbar */}
       <Box 
         as="header" 
         position="sticky" 
@@ -160,11 +181,25 @@ export const AppLayout: React.FC = () => {
         borderBottom="1px solid #e2e8f0"
       >
         <Flex align="center" justify="space-between" gap={3}>
-          {/* Left: Company Brand & Workspace Switcher */}
-          <Flex align="center" gap={3}>
+          {/* Left: Mobile Toggle & Company Brand */}
+          <Flex align="center" gap={{ base: 2, sm: 3 }}>
+            {/* Mobile Hamburger Menu */}
             <Box 
-              w="38px" 
-              h="38px" 
+              as="button"
+              display={{ base: 'flex', md: 'none' }}
+              p={1.5}
+              borderRadius="6px"
+              color="#64748b"
+              _hover={{ bg: '#f1f5f9', color: '#0f172a' }}
+              onClick={() => setMobileNavOpen(true)}
+              aria-label="Open Navigation Menu"
+            >
+              <Menu size={20} />
+            </Box>
+
+            <Box 
+              w="36px" 
+              h="36px" 
               borderRadius="10px" 
               display="flex" 
               alignItems="center" 
@@ -173,11 +208,13 @@ export const AppLayout: React.FC = () => {
               color="white"
               boxShadow="0 2px 6px rgba(37, 99, 235, 0.25)"
               flexShrink={0}
+              cursor="pointer"
+              onClick={() => navigate('/dashboard')}
             >
-              <Building2 size={20} />
+              <Building2 size={19} />
             </Box>
             <Box>
-              <Flex align="center" gap={2}>
+              <Flex align="center" gap={1.5}>
                 <Text fontWeight="bold" fontSize="sm" lineHeight="shorter" color="#0f172a">
                   {activeCompany.name}
                 </Text>
@@ -185,8 +222,8 @@ export const AppLayout: React.FC = () => {
                   {activeCompany.code}
                 </Badge>
               </Flex>
-              <Text fontSize="11px" color="#64748b" mt="1px">
-                Commercial Construction ERP
+              <Text fontSize="11px" color="#64748b" mt="1px" display={{ base: 'none', sm: 'block' }}>
+                Commercial Construction Suite
               </Text>
             </Box>
 
@@ -214,10 +251,84 @@ export const AppLayout: React.FC = () => {
                 </NativeSelect.Field>
               </NativeSelect.Root>
             </Box>
+
+            {/* Procore-Style Active Project Quick Switcher */}
+            <Box ml={2} pl={3} borderLeft="1px solid #e2e8f0" display={{ base: 'none', xl: 'block' }}>
+              <Flex align="center" gap={1.5}>
+                <HardHat size={14} color="#ea580c" />
+                <NativeSelect.Root size="xs">
+                  <NativeSelect.Field 
+                    aria-label="Active Construction Project Workspace"
+                    value={location.pathname.startsWith('/projects/') ? location.pathname.split('/')[2] : ''}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        navigate(`/projects/${e.target.value}`);
+                      }
+                    }}
+                    bg="#fff7ed" 
+                    color="#c2410c" 
+                    borderColor="#fed7aa"
+                    fontSize="xs"
+                    cursor="pointer"
+                    px={2}
+                    py={1}
+                    fontWeight="semibold"
+                    maxW="220px"
+                  >
+                    <option value="">Project: Select Workspace...</option>
+                    {projects.map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.projectNumber}: {p.name}
+                      </option>
+                    ))}
+                  </NativeSelect.Field>
+                </NativeSelect.Root>
+              </Flex>
+            </Box>
           </Flex>
 
-          {/* Right Controls: Impersonation, Role Switcher, Notifications, Profile */}
-          <Flex align="center" gap={2.5}>
+          {/* Middle: Universal Search Bar Trigger */}
+          <Box display={{ base: 'none', md: 'block' }} flex="1" maxW="360px" mx={2}>
+            <Button
+              variant="outline"
+              size="xs"
+              w="100%"
+              justifyContent="space-between"
+              bg="#f8fafc"
+              borderColor="#e2e8f0"
+              color="#64748b"
+              _hover={{ borderColor: '#94a3b8', bg: '#ffffff', color: '#0f172a' }}
+              onClick={() => setSearchModalOpen(true)}
+              px={3}
+              h="32px"
+              borderRadius="8px"
+            >
+              <Flex align="center" gap={2}>
+                <Search size={14} color="#64748b" />
+                <Text fontSize="xs" fontWeight="normal">Quick Search ERP...</Text>
+              </Flex>
+              <Badge size="xs" variant="subtle" color="#64748b" fontSize="10px" px={1.5} py={0.5} borderRadius="4px">
+                Ctrl+K
+              </Badge>
+            </Button>
+          </Box>
+
+          {/* Right Controls: Impersonation, Role Switcher, Search (mobile), Notifications, Profile */}
+          <Flex align="center" gap={2}>
+            {/* Mobile Search Button */}
+            <Box 
+              as="button"
+              display={{ base: 'flex', md: 'none' }}
+              p={2}
+              borderRadius="8px"
+              color="#64748b"
+              _hover={{ bg: '#f1f5f9', color: '#0f172a' }}
+              onClick={() => setSearchModalOpen(true)}
+              aria-label="Search ERP"
+            >
+              <Search size={18} />
+            </Box>
+
             {/* Impersonation Stop Alert */}
             {isImpersonating && (
               <Button 
@@ -227,7 +338,7 @@ export const AppLayout: React.FC = () => {
                 onClick={stopImpersonation}
                 fontWeight="bold"
               >
-                Return to Super Admin
+                Return to Admin
               </Button>
             )}
 
@@ -240,8 +351,9 @@ export const AppLayout: React.FC = () => {
               py={1} 
               borderRadius="8px" 
               border="1px solid #e2e8f0"
+              display={{ base: 'none', sm: 'flex' }}
             >
-              <Text fontSize="xs" color="#64748b" display={{ base: 'none', sm: 'inline' }}>
+              <Text fontSize="xs" color="#64748b" display={{ base: 'none', md: 'inline' }}>
                 Role:
               </Text>
               <NativeSelect.Root size="xs">
@@ -265,7 +377,7 @@ export const AppLayout: React.FC = () => {
               </NativeSelect.Root>
             </Flex>
 
-            {/* Requisitions Bell Alert */}
+            {/* Notifications Alert Bell */}
             <Box 
               position="relative" 
               cursor="pointer" 
@@ -273,11 +385,12 @@ export const AppLayout: React.FC = () => {
               borderRadius="8px" 
               color="#64748b"
               _hover={{ bg: '#f1f5f9', color: '#0f172a' }}
-              onClick={() => navigate('/requisitions')}
-              title={`${pendingReqsCount} pending requisitions`}
+              onClick={() => setNotificationsOpen(true)}
+              title="Operations Notifications"
+              aria-label="Notifications"
             >
               <Bell size={18} />
-              {pendingReqsCount > 0 && (
+              {(pendingReqsCount > 0 || lowStockCount > 0) && (
                 <Box 
                   position="absolute" 
                   top="2px" 
@@ -294,7 +407,7 @@ export const AppLayout: React.FC = () => {
                   justifyContent="center"
                   boxShadow="0 1px 3px rgba(0,0,0,0.15)"
                 >
-                  {pendingReqsCount}
+                  {pendingReqsCount + (lowStockCount > 0 ? 1 : 0)}
                 </Box>
               )}
             </Box>
@@ -306,7 +419,7 @@ export const AppLayout: React.FC = () => {
               borderColor="#e2e8f0"
               color="#475569"
               _hover={{ color: '#0f172a', bg: '#f1f5f9', borderColor: '#cbd5e1' }}
-              display={{ base: 'none', md: 'inline-flex' }}
+              display={{ base: 'none', lg: 'inline-flex' }}
               onClick={() => navigate('/landing')}
               title="View Public ERP Portal"
             >
@@ -345,14 +458,14 @@ export const AppLayout: React.FC = () => {
 
       {/* Main Layout Area */}
       <Flex flex="1" overflow="hidden">
-        {/* Light Enterprise Sidebar */}
+        {/* Desktop Light Enterprise Sidebar */}
         <Box 
           as="aside" 
           w={collapsed ? '68px' : '255px'} 
           bg="#ffffff" 
           borderRight="1px solid #e2e8f0" 
           transition="width 0.2s cubic-bezier(0.4, 0, 0.2, 1)"
-          display="flex"
+          display={{ base: 'none', md: 'flex' }}
           flexDirection="column"
           flexShrink={0}
         >
@@ -464,19 +577,127 @@ export const AppLayout: React.FC = () => {
               <Flex align="center" gap={1.5} mb={0.5}>
                 <CheckCircle2 size={12} color="#10b981" />
                 <Text fontSize="11px" fontWeight="bold" color="#0f172a">
-                  Enterprise v4.8
+                  Enterprise Suite v4.8
                 </Text>
               </Flex>
               <Text fontSize="10px" color="#64748b">
-                Production Light Suite
+                Production Light ERP
               </Text>
             </Box>
           )}
         </Box>
 
+        {/* Mobile Slide-Over Drawer Navigation */}
+        {mobileNavOpen && (
+          <Box
+            position="fixed"
+            top="0"
+            left="0"
+            right="0"
+            bottom="0"
+            bg="rgba(15, 23, 42, 0.45)"
+            backdropFilter="blur(2px)"
+            zIndex="200"
+            onClick={() => setMobileNavOpen(false)}
+          >
+            <Box
+              w="280px"
+              maxW="85vw"
+              h="100%"
+              bg="#ffffff"
+              boxShadow="0 25px 50px -12px rgba(0, 0, 0, 0.25)"
+              display="flex"
+              flexDirection="column"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Drawer Top */}
+              <Flex justify="space-between" align="center" p={4} borderBottom="1px solid #e2e8f0">
+                <Flex align="center" gap={2}>
+                  <Box w="30px" h="30px" borderRadius="8px" bg="#2563eb" color="white" display="flex" alignItems="center" justifyContent="center">
+                    <Building2 size={16} />
+                  </Box>
+                  <Box>
+                    <Text fontSize="xs" fontWeight="bold" color="#0f172a">{activeCompany.name}</Text>
+                    <Text fontSize="10px" color="#64748b">Navigation Menu</Text>
+                  </Box>
+                </Flex>
+                <Box as="button" onClick={() => setMobileNavOpen(false)} p={1} color="#64748b">
+                  <X size={18} />
+                </Box>
+              </Flex>
+
+              {/* Navigation list */}
+              <Box flex="1" overflowY="auto" p={3}>
+                <Stack gap={4}>
+                  {navGroups.map((group, gIdx) => (
+                    <Box key={gIdx}>
+                      <Text fontSize="10px" fontWeight="bold" textTransform="uppercase" color="#94a3b8" px={2} mb={1}>
+                        {group.group}
+                      </Text>
+                      <Stack gap={1}>
+                        {group.items.map((item) => {
+                          const Icon = item.icon;
+                          const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path + '/'));
+                          return (
+                            <Box
+                              key={item.path}
+                              as="button"
+                              onClick={() => {
+                                navigate(item.path);
+                                setMobileNavOpen(false);
+                              }}
+                              display="flex"
+                              alignItems="center"
+                              justifyContent="space-between"
+                              w="100%"
+                              px={3}
+                              py={2.5}
+                              borderRadius="8px"
+                              fontSize="xs"
+                              fontWeight={isActive ? "bold" : "medium"}
+                              color={isActive ? "#1d4ed8" : "#475569"}
+                              bg={isActive ? "#eff6ff" : "transparent"}
+                            >
+                              <Flex align="center" gap={2.5}>
+                                <Icon size={16} color={isActive ? '#2563eb' : '#64748b'} />
+                                <Text>{item.label}</Text>
+                              </Flex>
+                              {item.badge && (
+                                <Badge size="xs" colorPalette={item.badgeColor as any} variant="solid">
+                                  {item.badge}
+                                </Badge>
+                              )}
+                            </Box>
+                          );
+                        })}
+                      </Stack>
+                    </Box>
+                  ))}
+                </Stack>
+              </Box>
+
+              {/* Drawer Bottom */}
+              <Box p={3} borderTop="1px solid #e2e8f0" bg="#f8fafc">
+                <Button 
+                  size="xs" 
+                  w="100%" 
+                  variant="outline" 
+                  borderColor="#cbd5e1" 
+                  onClick={() => {
+                    navigate('/landing');
+                    setMobileNavOpen(false);
+                  }}
+                >
+                  Visit Public Landing Page <ExternalLink size={12} style={{ marginLeft: '4px' }} />
+                </Button>
+              </Box>
+            </Box>
+          </Box>
+        )}
+
         {/* Content Area */}
-        <Box as="main" flex="1" overflowY="auto" p={{ base: 4, md: 6, lg: 8 }} bg="#f8fafc">
-          <Box maxW="1440px" mx="auto">
+        <Box as="main" flex="1" overflowY="auto" p={{ base: 3, md: 5, lg: 7 }} bg="#f8fafc">
+          <Box maxW="1520px" mx="auto">
             {/* Elegant Breadcrumb Header */}
             <Flex align="center" justify="space-between" mb={5} pb={3} borderBottom="1px solid #e2e8f0">
               <Flex align="center" gap={2} fontSize="xs" color="#64748b">
@@ -505,6 +726,18 @@ export const AppLayout: React.FC = () => {
 
       {/* Floating ERP Assistant Widget */}
       <FloatingAIAssistant />
+
+      {/* Enterprise Search & Command Palette Modal */}
+      <EnterpriseSearchModal 
+        isOpen={searchModalOpen} 
+        onClose={() => setSearchModalOpen(false)} 
+      />
+
+      {/* Operations Notifications Popover */}
+      <NotificationsPopover 
+        isOpen={notificationsOpen} 
+        onClose={() => setNotificationsOpen(false)} 
+      />
     </Box>
   );
 };

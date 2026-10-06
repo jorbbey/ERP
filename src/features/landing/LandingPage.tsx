@@ -76,6 +76,8 @@ export const LandingPage: React.FC = () => {
 
   // Interactive Dashboard Preview Tab
   const [activePreviewTab, setActivePreviewTab] = useState<'overview' | 'projects' | 'procurement' | 'fleet' | 'financials'>('overview');
+  // Procore-Style Persona Solution Selector
+  const [selectedPersona, setSelectedPersona] = useState<'gc' | 'specialty' | 'owners' | 'civil'>('gc');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -620,6 +622,301 @@ export const LandingPage: React.FC = () => {
               );
             })}
           </SimpleGrid>
+        </Box>
+      </Box>
+
+      {/* PROCORE-INSPIRED: AUDIENCE & SECTOR SOLUTIONS MATRIX */}
+      <Box py={{ base: 14, md: 20 }} px={{ base: 4, md: 8 }} bg="#ffffff">
+        <Box maxW="1280px" mx="auto">
+          <Box textAlign="center" maxW="800px" mx="auto" mb={10}>
+            <Badge size="sm" colorPalette="orange" variant="solid" mb={2}>
+              PROCORE-INSPIRED ARCHITECTURE
+            </Badge>
+            <Heading size={{ base: 'xl', md: '3xl' }} fontWeight="black" color="#0f172a">
+              Built for Every Stakeholder Across the Construction Lifecycle.
+            </Heading>
+            <Text fontSize="sm" color="#475569" mt={2.5}>
+              Whether you are coordinating multi-tier subcontractors, managing capital draws for institutional owners, or pouring ready-mix concrete on a highway bridge, our platform delivers purpose-built tools.
+            </Text>
+          </Box>
+
+          {/* Persona Switcher Tabs */}
+          <Flex 
+            justify="center" 
+            gap={2} 
+            flexWrap="wrap" 
+            mb={8} 
+            p={1.5} 
+            bg="#f8fafc" 
+            borderRadius="14px" 
+            border="1px solid #e2e8f0"
+            maxW="820px"
+            mx="auto"
+          >
+            {[
+              { id: 'gc', label: 'General Contractors', icon: Building2 },
+              { id: 'specialty', label: 'Specialty & Subcontractors', icon: HardHat },
+              { id: 'owners', label: 'Owners & Developers', icon: Layers },
+              { id: 'civil', label: 'Civil & Heavy Infrastructure', icon: Truck },
+            ].map(tab => {
+              const Icon = tab.icon;
+              const isSelected = selectedPersona === tab.id;
+              return (
+                <Button
+                  key={tab.id}
+                  size="sm"
+                  variant={isSelected ? 'solid' : 'ghost'}
+                  bg={isSelected ? '#2563eb' : 'transparent'}
+                  color={isSelected ? 'white' : '#475569'}
+                  _hover={{ bg: isSelected ? '#1d4ed8' : '#f1f5f9', color: isSelected ? 'white' : '#0f172a' }}
+                  borderRadius="10px"
+                  px={4}
+                  py={2}
+                  fontWeight="bold"
+                  fontSize="xs"
+                  onClick={() => setSelectedPersona(tab.id as any)}
+                >
+                  <Icon size={15} style={{ marginRight: '6px' }} />
+                  {tab.label}
+                </Button>
+              );
+            })}
+          </Flex>
+
+          {/* Persona Content Card */}
+          <Box 
+            p={{ base: 6, md: 8 }} 
+            bg="#f8fafc" 
+            borderRadius="18px" 
+            border="1px solid #e2e8f0" 
+            boxShadow="xs"
+            maxW="1100px" 
+            mx="auto"
+          >
+            {selectedPersona === 'gc' && (
+              <SimpleGrid columns={{ base: 1, lg: 2 }} gap={8} alignItems="center">
+                <Box>
+                  <Badge size="xs" colorPalette="blue" variant="subtle" mb={2}>GENERAL CONTRACTOR SUITE</Badge>
+                  <Heading size="lg" color="#0f172a" fontWeight="black" mb={3}>
+                    Protect Project Margins & Connect Field Superintendents with Office Accounts.
+                  </Heading>
+                  <Text fontSize="sm" color="#475569" mb={5} lineHeight="relaxed">
+                    General contractors need absolute predictability. Eliminate information lag between site engineers submitting daily logs and finance verifying certified interim payment certificates (IPCs).
+                  </Text>
+                  <Stack gap={3}>
+                    {[
+                      { title: 'Real-Time Job Costing', desc: 'Committed costs vs approved budget updated with every purchase order and change order.' },
+                      { title: 'Electronic RFIs & Field Observations', desc: 'Track ball-in-court response deadlines with engineers, architects, and quantity surveyors.' },
+                      { title: 'Automated 3-Way Invoice Matching', desc: 'Prevent over-billing by matching purchase orders against signed site Goods Received Notes (GRN).' }
+                    ].map((pt, i) => (
+                      <Flex key={i} gap={3} align="start">
+                        <Box p={1} bg="#dbeafe" color="#2563eb" borderRadius="6px" mt={0.5}>
+                          <Check size={14} />
+                        </Box>
+                        <Box>
+                          <Text fontSize="xs" fontWeight="bold" color="#0f172a">{pt.title}</Text>
+                          <Text fontSize="xs" color="#64748b">{pt.desc}</Text>
+                        </Box>
+                      </Flex>
+                    ))}
+                  </Stack>
+                  <Button size="sm" colorPalette="blue" mt={6} onClick={() => navigate('/projects')}>
+                    Open Projects Catalog <ArrowRight size={14} style={{ marginLeft: '6px' }} />
+                  </Button>
+                </Box>
+                <Box bg="#ffffff" p={5} borderRadius="14px" border="1px solid #e2e8f0" boxShadow="xs">
+                  <Text fontSize="xs" fontWeight="bold" color="#64748b" textTransform="uppercase" mb={3}>GC Operational Snapshot</Text>
+                  <SimpleGrid columns={2} gap={3} mb={4}>
+                    <Box p={3} bg="#eff6ff" borderRadius="10px">
+                      <Text fontSize="2xs" color="#2563eb" textTransform="uppercase">Margin Retention</Text>
+                      <Text fontSize="xl" fontWeight="black" color="#1e40af">+3.4%</Text>
+                      <Text fontSize="2xs" color="#64748b">Direct bottom-line gain</Text>
+                    </Box>
+                    <Box p={3} bg="#ecfdf5" borderRadius="10px">
+                      <Text fontSize="2xs" color="#059669" textTransform="uppercase">Rework Reduction</Text>
+                      <Text fontSize="xl" fontWeight="black" color="#047857">-28%</Text>
+                      <Text fontSize="2xs" color="#64748b">Verified drawing control</Text>
+                    </Box>
+                  </SimpleGrid>
+                  <Box p={3} bg="#f8fafc" borderRadius="8px" border="1px solid #e2e8f0">
+                    <Flex justify="space-between" align="center" mb={1}>
+                      <Text fontSize="xs" fontWeight="bold" color="#0f172a">Daily Super Log Verification</Text>
+                      <Badge size="xs" colorPalette="green">Live Field Sync</Badge>
+                    </Flex>
+                    <Text fontSize="11px" color="#64748b">28 workers logged, full safety briefing passed, concrete pour verified.</Text>
+                  </Box>
+                </Box>
+              </SimpleGrid>
+            )}
+
+            {selectedPersona === 'specialty' && (
+              <SimpleGrid columns={{ base: 1, lg: 2 }} gap={8} alignItems="center">
+                <Box>
+                  <Badge size="xs" colorPalette="purple" variant="subtle" mb={2}>SPECIALTY & SUBCONTRACTORS</Badge>
+                  <Heading size="lg" color="#0f172a" fontWeight="black" mb={3}>
+                    Verify Labor Productivity & Prevent Unpaid Out-of-Scope Change Orders.
+                  </Heading>
+                  <Text fontSize="sm" color="#475569" mb={5} lineHeight="relaxed">
+                    Subcontractors operate on razor-thin margins. Track daily biometric crew hours, material stage deliveries, and submit photographic evidence for work variations immediately.
+                  </Text>
+                  <Stack gap={3}>
+                    {[
+                      { title: 'Biometric Labor Clock-In', desc: 'Eliminate buddy punching and verify hours on site per trade code and foreman.' },
+                      { title: 'Immediate Variation Notice', desc: 'Submit client change orders directly from the field before executing out-of-scope tasks.' },
+                      { title: 'Milestone Progress Invoicing', desc: 'Generate AIA and FIDIC progress billing documentation backed by completed site logs.' }
+                    ].map((pt, i) => (
+                      <Flex key={i} gap={3} align="start">
+                        <Box p={1} bg="#f3e8ff" color="#7c3aed" borderRadius="6px" mt={0.5}>
+                          <Check size={14} />
+                        </Box>
+                        <Box>
+                          <Text fontSize="xs" fontWeight="bold" color="#0f172a">{pt.title}</Text>
+                          <Text fontSize="xs" color="#64748b">{pt.desc}</Text>
+                        </Box>
+                      </Flex>
+                    ))}
+                  </Stack>
+                  <Button size="sm" colorPalette="purple" mt={6} onClick={() => navigate('/hr')}>
+                    View Labor Productivity <ArrowRight size={14} style={{ marginLeft: '6px' }} />
+                  </Button>
+                </Box>
+                <Box bg="#ffffff" p={5} borderRadius="14px" border="1px solid #e2e8f0" boxShadow="xs">
+                  <Text fontSize="xs" fontWeight="bold" color="#64748b" textTransform="uppercase" mb={3}>Trade Performance</Text>
+                  <SimpleGrid columns={2} gap={3} mb={4}>
+                    <Box p={3} bg="#fdf4ff" borderRadius="10px">
+                      <Text fontSize="2xs" color="#a21caf" textTransform="uppercase">Payroll Efficiency</Text>
+                      <Text fontSize="xl" fontWeight="black" color="#86198f">99.8%</Text>
+                      <Text fontSize="2xs" color="#64748b">Verified biometric hours</Text>
+                    </Box>
+                    <Box p={3} bg="#fff7ed" borderRadius="10px">
+                      <Text fontSize="2xs" color="#c2410c" textTransform="uppercase">Paid Variation Claims</Text>
+                      <Text fontSize="xl" fontWeight="black" color="#9a3412">100%</Text>
+                      <Text fontSize="2xs" color="#64748b">Digital paper trail</Text>
+                    </Box>
+                  </SimpleGrid>
+                  <Box p={3} bg="#f8fafc" borderRadius="8px" border="1px solid #e2e8f0">
+                    <Flex justify="space-between" align="center" mb={1}>
+                      <Text fontSize="xs" fontWeight="bold" color="#0f172a">Subcontractor Work Package #4B</Text>
+                      <Badge size="xs" colorPalette="purple">Certified</Badge>
+                    </Flex>
+                    <Text fontSize="11px" color="#64748b">Rebar installation 100% QA inspected and approved for slab pour.</Text>
+                  </Box>
+                </Box>
+              </SimpleGrid>
+            )}
+
+            {selectedPersona === 'owners' && (
+              <SimpleGrid columns={{ base: 1, lg: 2 }} gap={8} alignItems="center">
+                <Box>
+                  <Badge size="xs" colorPalette="emerald" variant="subtle" mb={2}>OWNERS & DEVELOPERS</Badge>
+                  <Heading size="lg" color="#0f172a" fontWeight="black" mb={3}>
+                    Full Portfolio Capital Visibility & Transparent Milestone Verification.
+                  </Heading>
+                  <Text fontSize="sm" color="#475569" mb={5} lineHeight="relaxed">
+                    Real estate owners and public institutions need complete governance over multimillion-dollar capital programs. Review contractor valuation claims against verified site milestones.
+                  </Text>
+                  <Stack gap={3}>
+                    {[
+                      { title: 'Capital Draw Verification', desc: 'Certify construction milestones with photographic site inspection logs before releasing funding.' },
+                      { title: 'Contingency & Budget Burn Tracking', desc: 'Monitor committed cost burn curves and contingency balances in real time.' },
+                      { title: 'Executive Portfolio Rollup', desc: 'Consolidated dashboard across dozens of commercial developments and active infrastructure tenders.' }
+                    ].map((pt, i) => (
+                      <Flex key={i} gap={3} align="start">
+                        <Box p={1} bg="#dcfce7" color="#16a34a" borderRadius="6px" mt={0.5}>
+                          <Check size={14} />
+                        </Box>
+                        <Box>
+                          <Text fontSize="xs" fontWeight="bold" color="#0f172a">{pt.title}</Text>
+                          <Text fontSize="xs" color="#64748b">{pt.desc}</Text>
+                        </Box>
+                      </Flex>
+                    ))}
+                  </Stack>
+                  <Button size="sm" colorPalette="green" mt={6} onClick={() => navigate('/accounting')}>
+                    Review Financial Ledger <ArrowRight size={14} style={{ marginLeft: '6px' }} />
+                  </Button>
+                </Box>
+                <Box bg="#ffffff" p={5} borderRadius="14px" border="1px solid #e2e8f0" boxShadow="xs">
+                  <Text fontSize="xs" fontWeight="bold" color="#64748b" textTransform="uppercase" mb={3}>Portfolio Capital Controls</Text>
+                  <SimpleGrid columns={2} gap={3} mb={4}>
+                    <Box p={3} bg="#f0fdf4" borderRadius="10px">
+                      <Text fontSize="2xs" color="#16a34a" textTransform="uppercase">Capital Transparency</Text>
+                      <Text fontSize="xl" fontWeight="black" color="#15803d">100%</Text>
+                      <Text fontSize="2xs" color="#64748b">Audit-ready documentation</Text>
+                    </Box>
+                    <Box p={3} bg="#eff6ff" borderRadius="10px">
+                      <Text fontSize="2xs" color="#2563eb" textTransform="uppercase">Schedule Adherence</Text>
+                      <Text fontSize="xl" fontWeight="black" color="#1e40af">94.2%</Text>
+                      <Text fontSize="2xs" color="#64748b">Milestone completion</Text>
+                    </Box>
+                  </SimpleGrid>
+                  <Box p={3} bg="#f8fafc" borderRadius="8px" border="1px solid #e2e8f0">
+                    <Flex justify="space-between" align="center" mb={1}>
+                      <Text fontSize="xs" fontWeight="bold" color="#0f172a">Interim Payment Certificate #08</Text>
+                      <Badge size="xs" colorPalette="green">Resident QS Signed</Badge>
+                    </Flex>
+                    <Text fontSize="11px" color="#64748b">$420,000 drawdown approved against certified physical structural completion.</Text>
+                  </Box>
+                </Box>
+              </SimpleGrid>
+            )}
+
+            {selectedPersona === 'civil' && (
+              <SimpleGrid columns={{ base: 1, lg: 2 }} gap={8} alignItems="center">
+                <Box>
+                  <Badge size="xs" colorPalette="amber" variant="subtle" mb={2}>CIVIL & HEAVY INFRASTRUCTURE</Badge>
+                  <Heading size="lg" color="#0f172a" fontWeight="black" mb={3}>
+                    Quarry to Pour: Heavy Plant Telematics, RMC Concrete & Bulk Stockpiles.
+                  </Heading>
+                  <Text fontSize="sm" color="#475569" mb={5} lineHeight="relaxed">
+                    Civil infrastructure projects face extreme logistics hurdles. Manage quarry aggregate deliveries, cement batching plants, mixer transit trucks, and heavy earthmoving machinery in real time.
+                  </Text>
+                  <Stack gap={3}>
+                    {[
+                      { title: 'Automated RMC Concrete Batching', desc: 'Mix designs, slump test QA checks, and dispatch tickets with truck cycle times.' },
+                      { title: 'Heavy Fleet & Plant Maintenance', desc: 'Hour-meter logging, preventive maintenance schedules, and diesel fuel consumption tracking.' },
+                      { title: 'FIDIC Contract Administration', desc: 'Formal extension of time (EOT) claims, weather delay logs, and certified variation accounts.' }
+                    ].map((pt, i) => (
+                      <Flex key={i} gap={3} align="start">
+                        <Box p={1} bg="#fef3c7" color="#d97706" borderRadius="6px" mt={0.5}>
+                          <Check size={14} />
+                        </Box>
+                        <Box>
+                          <Text fontSize="xs" fontWeight="bold" color="#0f172a">{pt.title}</Text>
+                          <Text fontSize="xs" color="#64748b">{pt.desc}</Text>
+                        </Box>
+                      </Flex>
+                    ))}
+                  </Stack>
+                  <Button size="sm" colorPalette="orange" mt={6} onClick={() => navigate('/rmc')}>
+                    Inspect RMC Batching <ArrowRight size={14} style={{ marginLeft: '6px' }} />
+                  </Button>
+                </Box>
+                <Box bg="#ffffff" p={5} borderRadius="14px" border="1px solid #e2e8f0" boxShadow="xs">
+                  <Text fontSize="xs" fontWeight="bold" color="#64748b" textTransform="uppercase" mb={3}>Plant & Logistics Telematics</Text>
+                  <SimpleGrid columns={2} gap={3} mb={4}>
+                    <Box p={3} bg="#fffbeb" borderRadius="10px">
+                      <Text fontSize="2xs" color="#b45309" textTransform="uppercase">Mixer Dispatch Volume</Text>
+                      <Text fontSize="xl" fontWeight="black" color="#92400e">840 m³</Text>
+                      <Text fontSize="2xs" color="#64748b">C35 Concrete Poured</Text>
+                    </Box>
+                    <Box p={3} bg="#ecfdf5" borderRadius="10px">
+                      <Text fontSize="2xs" color="#059669" textTransform="uppercase">Fleet Active Uptime</Text>
+                      <Text fontSize="xl" fontWeight="black" color="#047857">96.5%</Text>
+                      <Text fontSize="2xs" color="#64748b">Telematics connected</Text>
+                    </Box>
+                  </SimpleGrid>
+                  <Box p={3} bg="#f8fafc" borderRadius="8px" border="1px solid #e2e8f0">
+                    <Flex justify="space-between" align="center" mb={1}>
+                      <Text fontSize="xs" fontWeight="bold" color="#0f172a">Batch Ticket #BT-8890</Text>
+                      <Badge size="xs" colorPalette="orange">Poured at Site</Badge>
+                    </Flex>
+                    <Text fontSize="11px" color="#64748b">Transit Truck TRK-04 delivered 8m³ C35 slump 120mm to Bridge Abutment 2.</Text>
+                  </Box>
+                </Box>
+              </SimpleGrid>
+            )}
+          </Box>
         </Box>
       </Box>
 

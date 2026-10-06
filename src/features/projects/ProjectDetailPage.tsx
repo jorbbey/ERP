@@ -77,7 +77,8 @@ import {
   FolderKanban,
   AlertCircle,
   X,
-  Search
+  Search,
+  Sun
 } from 'lucide-react';
 
 export const ProjectDetailPage: React.FC = () => {
@@ -793,6 +794,57 @@ export const ProjectDetailPage: React.FC = () => {
             )}
           </Box>
         </Flex>
+      </Card.Root>
+
+      {/* Procore-Style Site Operations & Environmental Conditions Strip */}
+      <Card.Root bg="#ffffff" borderRadius="14px" p={3.5} border="1px solid #e2e8f0" boxShadow="xs">
+        <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} gap={3}>
+          <Flex align="center" gap={3} p={2.5} bg="#f8fafc" borderRadius="10px" border="1px solid #f1f5f9">
+            <Box p={2} bg="#fff7ed" color="#ea580c" borderRadius="8px">
+              <Sun size={18} />
+            </Box>
+            <Box>
+              <Text fontSize="10px" fontWeight="bold" color="#64748b" textTransform="uppercase">Site Weather & Wind</Text>
+              <Text fontSize="xs" fontWeight="bold" color="#0f172a">Clear, 29°C • 9 km/h NE</Text>
+              <Text fontSize="10px" color="#16a34a">Optimal for Crane & Pour</Text>
+            </Box>
+          </Flex>
+
+          <Flex align="center" gap={3} p={2.5} bg="#f8fafc" borderRadius="10px" border="1px solid #f1f5f9">
+            <Box p={2} bg="#eff6ff" color="#2563eb" borderRadius="8px">
+              <Users size={18} />
+            </Box>
+            <Box>
+              <Text fontSize="10px" fontWeight="bold" color="#64748b" textTransform="uppercase">Active Field Labor</Text>
+              <Text fontSize="xs" fontWeight="bold" color="#0f172a">{(project.assignedEngineers?.length || 2) * 8 + 12} Craft Workers Today</Text>
+              <Text fontSize="10px" color="#2563eb">Biometrics Checked</Text>
+            </Box>
+          </Flex>
+
+          <Flex align="center" gap={3} p={2.5} bg="#f8fafc" borderRadius="10px" border="1px solid #f1f5f9">
+            <Box p={2} bg="#f0fdf4" color="#16a34a" borderRadius="8px">
+              <ShieldCheck size={18} />
+            </Box>
+            <Box>
+              <Text fontSize="10px" fontWeight="bold" color="#64748b" textTransform="uppercase">EHS Safety Record</Text>
+              <Text fontSize="xs" fontWeight="bold" color="#0f172a">142 Days Zero Lost-Time</Text>
+              <Text fontSize="10px" color="#16a34a">PPE Protocol Compliant</Text>
+            </Box>
+          </Flex>
+
+          <Flex align="center" gap={3} p={2.5} bg="#f8fafc" borderRadius="10px" border="1px solid #f1f5f9">
+            <Box p={2} bg="#fef3c7" color="#d97706" borderRadius="8px">
+              <Clock size={18} />
+            </Box>
+            <Box>
+              <Text fontSize="10px" fontWeight="bold" color="#64748b" textTransform="uppercase">Action Items & Ball-in-Court</Text>
+              <Text fontSize="xs" fontWeight="bold" color="#0f172a">
+                {currentRFIs.filter(r => r.status === 'Open').length} Open RFIs • {currentRequisitions.filter(r => r.status.includes('Pending')).length} Pending MRs
+              </Text>
+              <Text fontSize="10px" color="#d97706">Items Requiring Review</Text>
+            </Box>
+          </Flex>
+        </SimpleGrid>
       </Card.Root>
 
       {/* Financial Variance Overview KPIs */}
