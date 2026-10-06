@@ -1,0 +1,8 @@
+{
+  "name": "Construction ERP System",
+  "description": "Enterprise-grade ERP platform for construction companies featuring project tracking, HR & payroll, procurement & inventory, and requisition workflows.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ],
+  "permissions": []
+}
