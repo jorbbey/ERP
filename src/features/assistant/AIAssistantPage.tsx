@@ -11,7 +11,6 @@ import {
   SimpleGrid
 } from '@chakra-ui/react';
 import {
-  Sparkles,
   Send,
   Trash2,
   HardHat,
@@ -24,6 +23,7 @@ import {
   ExternalLink,
   DollarSign
 } from 'lucide-react';
+import { PiShootingStarDuotone } from 'react-icons/pi';
 import { useERP } from '../../context/ERPContext';
 import { ChatMessage } from '../../services/chatbot/types';
 import { chatbotService } from '../../services/chatbot/chatbotService';
@@ -167,7 +167,7 @@ export const AIAssistantPage: React.FC = () => {
         <Box>
           <Flex align="center" gap={3}>
             <Box p={2.5} bg="brand.50" borderRadius="lg" color="brand.600" border="1px solid" borderColor="brand.200">
-              <Sparkles size={24} />
+              <PiShootingStarDuotone size={24} />
             </Box>
             <Box>
               <Heading size="lg" color="gray.900" fontWeight="bold">
@@ -353,7 +353,7 @@ export const AIAssistantPage: React.FC = () => {
               <Flex align="center" gap={3}>
                 <Box position="relative">
                   <Box w="36px" h="36px" borderRadius="lg" bg="brand.600" display="flex" alignItems="center" justifyContent="center" color="white" boxShadow="xs">
-                    <Sparkles size={18} />
+                    <PiShootingStarDuotone size={18} />
                   </Box>
                   <Box 
                     position="absolute" 
@@ -419,7 +419,7 @@ export const AIAssistantPage: React.FC = () => {
                           {isUser ? (
                             <Text fontSize="xs" fontWeight="bold">You</Text>
                           ) : (
-                            <Sparkles size={16} />
+                            <PiShootingStarDuotone size={16} />
                           )}
                         </Box>
 
@@ -526,7 +526,7 @@ export const AIAssistantPage: React.FC = () => {
                       alignItems="center" 
                       justifyContent="center"
                     >
-                      <Sparkles size={16} />
+                      <PiShootingStarDuotone size={16} />
                     </Box>
                     <Box 
                       p={3.5} 

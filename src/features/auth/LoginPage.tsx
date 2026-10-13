@@ -20,8 +20,7 @@ import {
   Mail,
   ShieldCheck,
   ArrowRight,
-  HardHat,
-  Sparkles
+  HardHat
 } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {

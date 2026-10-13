@@ -18,7 +18,6 @@ import {
   Users,
   Search,
   Hash,
-  Sparkles,
   Circle,
   Paperclip,
   Download,

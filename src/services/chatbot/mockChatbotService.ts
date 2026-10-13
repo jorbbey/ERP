@@ -50,7 +50,7 @@ export class MockChatbotService {
       activeCompany
     } = context;
 
-    const currency = activeCompany?.currency || 'USD';
+    const currency = activeCompany?.currency || '₦';
 
     // 1. WHICH PROJECTS ARE BEHIND SCHEDULE?
     if (

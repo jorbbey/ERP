@@ -10,8 +10,8 @@ import {
   IconButton,
   Textarea
 } from '@chakra-ui/react';
+import { PiShootingStarDuotone } from 'react-icons/pi';
 import {
-  Sparkles,
   X,
   Maximize2,
   Minimize2,
@@ -191,7 +191,7 @@ export const FloatingAIAssistant: React.FC = () => {
               color="white"
               boxShadow="0 2px 5px rgba(37,99,235,0.3)"
             >
-              <Sparkles size={16} />
+              <PiShootingStarDuotone size={16} />
             </Box>
             <Box textAlign="left">
               <Text fontSize="xs" fontWeight="bold" lineHeight="1.1" color="#0f172a">
@@ -256,7 +256,7 @@ export const FloatingAIAssistant: React.FC = () => {
                 justifyContent="center"
                 boxShadow="0 2px 5px rgba(37,99,235,0.25)"
               >
-                <Sparkles size={17} color="white" />
+                <PiShootingStarDuotone size={17} color="white" />
               </Box>
               <Box>
                 <Flex align="center" gap={2}>

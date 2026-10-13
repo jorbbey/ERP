@@ -32,7 +32,7 @@ interface Props {
 export const StructuredResponseView: React.FC<Props> = ({ data, onActionClick }) => {
   const navigate = useNavigate();
   const { activeCompany } = useERP();
-  const currency = activeCompany?.currency || 'USD';
+  const currency = activeCompany?.currency || '₦';
 
   const handleNavigate = (path: string) => {
     if (onActionClick) {

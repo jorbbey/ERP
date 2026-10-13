@@ -14,7 +14,6 @@ import {
 import { useERP } from '../../context/ERPContext';
 import { UserRole } from '../../types';
 import {
-  Sparkles,
   HardHat,
   Calculator,
   ShoppingCart,
@@ -25,6 +24,7 @@ import {
   ArrowRight,
   CheckCircle2
 } from 'lucide-react';
+import { PiShootingStarDuotone } from "react-icons/pi";
 
 interface PortalInfo {
   role: UserRole;
@@ -175,7 +175,7 @@ export const PortalsPage: React.FC = () => {
         <Box>
           <Flex align="center" gap={3}>
             <Box p={2.5} bg="#2563eb" color="white" borderRadius="12px">
-              <Sparkles size={24} />
+              <PiShootingStarDuotone size={24} />
             </Box>
             <Box>
               <Heading size="lg" color="#0f172a">

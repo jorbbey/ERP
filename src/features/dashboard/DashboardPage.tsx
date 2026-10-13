@@ -17,7 +17,7 @@ import {
   HardHat, 
   ClipboardList, 
   Boxes, 
-  DollarSign, 
+  Wallet, 
   TrendingUp, 
   Clock, 
   AlertTriangle, 
@@ -32,7 +32,6 @@ import {
   ArrowRight,
   ShieldCheck,
   Calendar,
-  Sparkles,
   Bot,
   ExternalLink,
   Layers,
@@ -69,7 +68,7 @@ export const DashboardPage: React.FC = () => {
   const openPOs = purchaseOrders.filter(po => po.status !== 'received' && po.status !== 'cancelled');
 
   const canApprove = ['Managing Director', 'Finance Manager', 'Super Admin'].includes(activeRole);
-  const currency = activeCompany?.currency || 'USD';
+  const currency = activeCompany?.currency || '₦';
 
   return (
     <Stack gap={6}>
@@ -94,38 +93,47 @@ export const DashboardPage: React.FC = () => {
           </Box>
 
           {/* Quick Action Launchpad */}
-          <Flex gap={2} wrap="wrap">
+          <Flex gap={2.5} wrap="wrap" align="center" flexShrink={0}>
             <Button 
               size="sm" 
+              h="38px"
+              px={4}
               bg="#2563eb" 
               color="white"
               _hover={{ bg: '#1d4ed8' }}
               onClick={() => navigate('/requisitions')}
               fontWeight="semibold"
+              whiteSpace="nowrap"
             >
-              <PlusCircle size={15} style={{ marginRight: '4px' }} /> New Requisition
+              <PlusCircle size={16} /> New Requisition
             </Button>
             <Button 
               size="sm" 
+              h="38px"
+              px={4}
               variant="outline"
               borderColor="#cbd5e1"
               color="#0f172a"
               _hover={{ bg: '#f8fafc', borderColor: '#94a3b8' }}
               onClick={() => navigate('/projects')}
               fontWeight="semibold"
+              whiteSpace="nowrap"
             >
-              <HardHat size={15} style={{ marginRight: '4px' }} /> All Projects
+              <HardHat size={16} /> All Projects
             </Button>
             <Button 
               size="sm" 
+              h="38px"
+              px={4}
               variant="outline"
               borderColor="#cbd5e1"
               color="#2563eb"
               _hover={{ bg: '#eff6ff', borderColor: '#93c5fd' }}
               onClick={() => navigate('/assistant')}
               fontWeight="semibold"
+              whiteSpace="nowrap"
             >
-              <Bot size={15} style={{ marginRight: '4px' }} /> AI Assistant
+              <Bot size={16} /> AI Assistant
             </Button>
           </Flex>
         </Flex>
@@ -159,7 +167,7 @@ export const DashboardPage: React.FC = () => {
               Contract Book
             </Text>
             <Box p={1.5} bg="#ecfdf5" color="#059669" borderRadius="8px">
-              <DollarSign size={16} />
+              <Wallet size={16} />
             </Box>
           </Flex>
           <Text fontSize="2xl" fontWeight="black" color="#059669" mt={2}>
@@ -256,7 +264,7 @@ export const DashboardPage: React.FC = () => {
       <SimpleGrid columns={{ base: 1, lg: 3 }} gap={6}>
         {/* Active Projects (2 Columns on lg) */}
         <Card.Root gridColumn={{ lg: 'span 2' }} bg="#ffffff" borderRadius="16px" p={{ base: 4, md: 5 }} border="1px solid #e2e8f0" boxShadow="xs">
-          <Flex justify="space-between" align="center" mb={4}>
+          <Flex direction={{ base: 'column', sm: 'row' }} justify="space-between" align={{ base: 'flex-start', sm: 'center' }} gap={2} mb={4}>
             <Box>
               <Heading size="md" color="#0f172a" fontWeight="bold">
                 Civil Infrastructure Projects Execution
@@ -265,12 +273,16 @@ export const DashboardPage: React.FC = () => {
             </Box>
             <Button 
               size="xs" 
+              h="30px"
+              px={3}
               variant="ghost" 
               color="#2563eb"
               onClick={() => navigate('/projects')}
               fontWeight="bold"
+              whiteSpace="nowrap"
+              flexShrink={0}
             >
-              Open Projects Catalog <ArrowUpRight size={13} style={{ marginLeft: '4px' }} />
+              Open Projects Catalog <ArrowUpRight size={14} />
             </Button>
           </Flex>
 
@@ -377,26 +389,35 @@ export const DashboardPage: React.FC = () => {
                     </Text>
 
                     {canApprove && (
-                      <Flex gap={2} mt={2.5}>
+                      <Flex gap={2} mt={3}>
                         <Button 
                           size="xs" 
+                          h="32px"
+                          px={3}
                           bg="#10b981"
                           color="white"
                           _hover={{ bg: '#059669' }}
                           flex="1"
+                          whiteSpace="nowrap"
+                          fontWeight="semibold"
                           onClick={() => updateRequisitionStatus(req.id, 'Approved')}
                         >
-                          <Check size={12} style={{ marginRight: '3px' }} /> Approve
+                          <Check size={13} /> Approve
                         </Button>
                         <Button 
                           size="xs" 
+                          h="32px"
+                          px={3}
                           variant="outline" 
                           borderColor="#fca5a5"
                           color="#dc2626"
                           _hover={{ bg: '#fef2f2' }}
+                          flex="1"
+                          whiteSpace="nowrap"
+                          fontWeight="semibold"
                           onClick={() => updateRequisitionStatus(req.id, 'Rejected')}
                         >
-                          <X size={12} style={{ marginRight: '3px' }} /> Reject
+                          <X size={13} /> Reject
                         </Button>
                       </Flex>
                     )}
@@ -410,11 +431,13 @@ export const DashboardPage: React.FC = () => {
             variant="outline" 
             borderColor="#cbd5e1"
             size="sm" 
+            h="38px"
             mt={4} 
             w="100%" 
             onClick={() => navigate('/requisitions')}
             fontWeight="bold"
             color="#0f172a"
+            whiteSpace="nowrap"
           >
             Manage Requisition Chain →
           </Button>
@@ -430,7 +453,7 @@ export const DashboardPage: React.FC = () => {
               <Truck size={17} color="#2563eb" />
               <Heading size="sm" color="#0f172a" fontWeight="bold">Ready-Mix Concrete Dispatches</Heading>
             </Flex>
-            <Button size="xs" variant="ghost" color="#2563eb" onClick={() => navigate('/rmc')}>
+            <Button size="xs" h="28px" px={2.5} variant="ghost" color="#2563eb" onClick={() => navigate('/rmc')} whiteSpace="nowrap" flexShrink={0}>
               View RMC →
             </Button>
           </Flex>
@@ -469,7 +492,7 @@ export const DashboardPage: React.FC = () => {
               <AlertTriangle size={17} color="#ef4444" />
               <Heading size="sm" color="#0f172a" fontWeight="bold">Material Reorder Alerts</Heading>
             </Flex>
-            <Button size="xs" variant="ghost" color="#2563eb" onClick={() => navigate('/inventory')}>
+            <Button size="xs" h="28px" px={2.5} variant="ghost" color="#2563eb" onClick={() => navigate('/inventory')} whiteSpace="nowrap" flexShrink={0}>
               All Stores →
             </Button>
           </Flex>

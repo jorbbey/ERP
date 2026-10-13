@@ -527,7 +527,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       user: currentUserName,
       role: activeRole,
       activityType: 'BOQ Change',
-      description: `Added BOQ Item "${bData.budgetName}" (${bData.quantity} ${bData.unitOfMeasure} @ $${bData.unitCost.toLocaleString()})`
+      description: `Added BOQ Item "${bData.budgetName}" (${bData.quantity} ${bData.unitOfMeasure} @ ₦${bData.unitCost.toLocaleString()})`
     });
   };
 
@@ -714,7 +714,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       user: currentUserName,
       role: activeRole,
       activityType: 'BOQ Change',
-      description: `Added Labour Budget: "${lData.taskName}" (${lData.quantity} units @ $${lData.unitRate})`
+      description: `Added Labour Budget: "${lData.taskName}" (${lData.quantity} units @ ₦${lData.unitRate})`
     });
   };
 
@@ -740,7 +740,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       user: currentUserName,
       role: activeRole,
       activityType: 'BOQ Change',
-      description: `Added Material Budget: "${mData.materialName}" (${mData.quantity} ${mData.unit} @ $${mData.unitCost})`
+      description: `Added Material Budget: "${mData.materialName}" (${mData.quantity} ${mData.unit} @ ₦${mData.unitCost})`
     });
   };
 
@@ -930,7 +930,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       user: currentUserName,
       role: activeRole,
       activityType: 'BOQ Change',
-      description: `Generated Invoice: ${iData.invoiceNumber} ($${iData.totalAmount.toLocaleString()})`
+      description: `Generated Invoice: ${iData.invoiceNumber} (₦${iData.totalAmount.toLocaleString()})`
     });
   };
 

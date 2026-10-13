@@ -172,16 +172,17 @@ export const RmcPage: React.FC = () => {
         <SimpleGrid columns={{ base: 1, md: 2 }} gap={4}>
           {batchRecords.map((batch) => (
             <Card.Root key={batch.id} bg="white" borderRadius="16px" p={5} border="1px solid #e2e8f0" boxShadow="xs">
-              <Flex justify="space-between" align="center">
-                <Badge size="xs" colorPalette="blue" fontFamily="mono">{batch.ticketNo}</Badge>
-                <Badge colorPalette={batch.status === 'Poured' ? 'green' : 'cyan'}>
-                  {batch.status}
-                </Badge>
+              <Flex justify="space-between" align="center" mb={1}>
+                <Heading size="md" color="#0f172a" display="flex" alignItems="center" gap={2}>
+                  <Truck size={18} color="#2563eb" /> {batch.truckNo}
+                </Heading>
+                <Flex align="center" gap={2}>
+                  <Badge size="xs" colorPalette="blue" fontFamily="mono">{batch.ticketNo}</Badge>
+                  <Badge colorPalette={batch.status === 'Poured' ? 'green' : 'cyan'}>
+                    {batch.status}
+                  </Badge>
+                </Flex>
               </Flex>
-
-              <Heading size="md" color="#0f172a" mt={2} display="flex" alignItems="center" gap={2}>
-                <Truck size={18} color="#2563eb" /> {batch.truckNo}
-              </Heading>
 
               <Text fontSize="xs" color="#64748b" mt={1}>
                 Site Destination: <Text as="span" fontWeight="bold" color="#0f172a">{batch.clientProject}</Text>
@@ -212,9 +213,8 @@ export const RmcPage: React.FC = () => {
         <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>
           {mixDesigns.map((mix) => (
             <Card.Root key={mix.id} bg="white" borderRadius="16px" p={5} border="1px solid #e2e8f0" boxShadow="xs">
-              <Badge size="xs" colorPalette="blue" fontFamily="mono">{mix.code}</Badge>
-              <Heading size="md" color="#0f172a" mt={1}>{mix.grade}</Heading>
-              <Text fontSize="xs" color="#64748b">Target Slump: {mix.slumpTarget}</Text>
+              <Heading size="md" color="#0f172a">{mix.grade}</Heading>
+              <Text fontSize="xs" color="#64748b" mt={0.5}>Code: {mix.code} • Target Slump: {mix.slumpTarget}</Text>
 
               <Stack gap={1.5} my={3} p={3} bg="#f8fafc" borderRadius="10px" fontSize="xs">
                 <Text fontWeight="bold" color="#334155" borderBottom="1px solid #e2e8f0" pb={1}>

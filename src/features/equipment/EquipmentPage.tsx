@@ -428,7 +428,7 @@ export const EquipmentPage: React.FC = () => {
                   </Table.Cell>
                   <Table.Cell fontSize="xs" color="#334155">{eq.projectName || 'Central Depot / Available'}</Table.Cell>
                   <Table.Cell fontSize="xs" color="#334155">{eq.operatorName}</Table.Cell>
-                  <Table.Cell fontSize="xs" fontFamily="mono" fontWeight="bold">${eq.hourlyRate}/hr</Table.Cell>
+                  <Table.Cell fontSize="xs" fontFamily="mono" fontWeight="bold">₦{(eq.hourlyRate ?? 0).toLocaleString()}/hr</Table.Cell>
                   <Table.Cell fontSize="xs" fontFamily="mono" color="#64748b">{eq.serialNumber}</Table.Cell>
                 </Table.Row>
               ))}
@@ -501,7 +501,7 @@ export const EquipmentPage: React.FC = () => {
                   <Table.Cell fontSize="xs" color="#64748b">{m.maintenanceDate}</Table.Cell>
                   <Table.Cell fontSize="xs" color="#334155" maxW="280px">{m.description}</Table.Cell>
                   <Table.Cell fontSize="xs" color="#64748b" maxW="200px">{m.partsReplaced || 'N/A'}</Table.Cell>
-                  <Table.Cell fontSize="xs" fontWeight="bold" fontFamily="mono">${m.cost.toLocaleString()}</Table.Cell>
+                  <Table.Cell fontSize="xs" fontWeight="bold" fontFamily="mono">₦{m.cost.toLocaleString()}</Table.Cell>
                   <Table.Cell fontSize="xs" color="#334155">{m.performedBy}</Table.Cell>
                   <Table.Cell fontSize="xs" color="#16a34a">{m.nextServiceDate}</Table.Cell>
                 </Table.Row>
@@ -535,7 +535,7 @@ export const EquipmentPage: React.FC = () => {
                   </Table.Cell>
                   <Table.Cell fontSize="xs" color="#64748b">{f.fuelDate}</Table.Cell>
                   <Table.Cell fontSize="xs" fontWeight="bold" fontFamily="mono" color="#2563eb">{f.liters} L</Table.Cell>
-                  <Table.Cell fontSize="xs" fontWeight="bold" fontFamily="mono">${f.cost.toLocaleString()}</Table.Cell>
+                  <Table.Cell fontSize="xs" fontWeight="bold" fontFamily="mono">₦{f.cost.toLocaleString()}</Table.Cell>
                   <Table.Cell fontSize="xs" fontFamily="mono">{(f.odometerKm || 0).toLocaleString()} km</Table.Cell>
                   <Table.Cell fontSize="xs" color="#334155">{f.driverName}</Table.Cell>
                   <Table.Cell fontSize="xs" color="#64748b">{f.fuelStation}</Table.Cell>
@@ -606,7 +606,7 @@ export const EquipmentPage: React.FC = () => {
 
                 <SimpleGrid columns={2} gap={3}>
                   <Box>
-                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Hourly Operating Rate ($)</Text>
+                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Hourly Operating Rate (₦)</Text>
                     <Input size="sm" type="number" value={equipmentForm.hourlyRate} onChange={(e) => setEquipmentForm({ ...equipmentForm, hourlyRate: Number(e.target.value) })} />
                   </Box>
                   <Box>
@@ -729,7 +729,7 @@ export const EquipmentPage: React.FC = () => {
 
                 <SimpleGrid columns={2} gap={3}>
                   <Box>
-                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Service Cost ($)</Text>
+                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Service Cost (₦)</Text>
                     <Input size="sm" type="number" value={maintenanceForm.cost} onChange={(e) => setMaintenanceForm({ ...maintenanceForm, cost: Number(e.target.value) })} />
                   </Box>
                   <Box>
@@ -776,10 +776,10 @@ export const EquipmentPage: React.FC = () => {
                 <SimpleGrid columns={2} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Fuel Liters (L)</Text>
-                    <Input size="sm" type="number" value={fuelForm.liters} onChange={(e) => setFuelForm({ ...fuelForm, liters: Number(e.target.value), cost: Number(e.target.value) * 1.5 })} required />
+                    <Input size="sm" type="number" value={fuelForm.liters} onChange={(e) => setFuelForm({ ...fuelForm, liters: Number(e.target.value), cost: Number(e.target.value) * 1200 })} required />
                   </Box>
                   <Box>
-                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Total Cost ($)</Text>
+                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Total Cost (₦)</Text>
                     <Input size="sm" type="number" value={fuelForm.cost} onChange={(e) => setFuelForm({ ...fuelForm, cost: Number(e.target.value) })} required />
                   </Box>
                 </SimpleGrid>

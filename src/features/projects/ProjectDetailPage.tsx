@@ -796,7 +796,7 @@ export const ProjectDetailPage: React.FC = () => {
         </Flex>
       </Card.Root>
 
-      {/* Procore-Style Site Operations & Environmental Conditions Strip */}
+      {/* Site Operations & Environmental Conditions Strip */}
       <Card.Root bg="#ffffff" borderRadius="14px" p={3.5} border="1px solid #e2e8f0" boxShadow="xs">
         <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} gap={3}>
           <Flex align="center" gap={3} p={2.5} bg="#f8fafc" borderRadius="10px" border="1px solid #f1f5f9">

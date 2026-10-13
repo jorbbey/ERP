@@ -326,13 +326,12 @@ export const AccountingPage: React.FC = () => {
       {activeTab === 'balancesheet' && (
         <Card.Root bg="white" border="1px solid #e2e8f0" borderRadius="14px" p={6} maxW="800px" mx="auto">
           <Box textAlign="center" pb={4} borderBottom="1px solid #e2e8f0" mb={4}>
-            <Text fontSize="xs" fontWeight="bold" color="#64748b" textTransform="uppercase">
-              {activeCompany.name}
-            </Text>
-            <Heading size="md" color="#0f172a" mt={1}>
+            <Heading size="md" color="#0f172a">
               Statement of Financial Position (Balance Sheet)
             </Heading>
-            <Text fontSize="xs" color="#94a3b8">As at Current Date ({activeCompany.currency})</Text>
+            <Text fontSize="xs" color="#64748b" mt={1}>
+              {activeCompany.name} • As at Current Date ({activeCompany.currency})
+            </Text>
           </Box>
 
           <Stack gap={4} fontSize="xs">

@@ -23,7 +23,6 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-  Star,
   Plus,
   Search,
   Filter,
@@ -33,6 +32,7 @@ import {
   ShieldCheck,
   Award
 } from 'lucide-react';
+import { PiShootingStarDuotone } from "react-icons/pi";
 
 export const RecruitmentTab: React.FC = () => {
   const {
@@ -406,7 +406,7 @@ export const RecruitmentTab: React.FC = () => {
                       <Table.Cell>
                         {app.rating ? (
                           <Flex align="center" gap={1} color="#d97706" fontSize="xs">
-                            <Star size={12} fill="#d97706" />
+                            <PiShootingStarDuotone size={14} color="#d97706" />
                             <Text fontWeight="bold">{app.rating}/5</Text>
                           </Flex>
                         ) : (

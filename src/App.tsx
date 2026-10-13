@@ -24,6 +24,12 @@ import { EquipmentPage } from './features/equipment/EquipmentPage';
 import { SettingsPage } from './features/settings/SettingsPage';
 import { LoginPage } from './features/auth/LoginPage';
 import { LandingPage } from './features/landing/LandingPage';
+import { FeaturesPage } from './features/landing/pages/FeaturesPage';
+import { ModulesPage } from './features/landing/pages/ModulesPage';
+import { WorkflowPublicPage } from './features/landing/pages/WorkflowPublicPage';
+import { BenefitsPage } from './features/landing/pages/BenefitsPage';
+import { SecurityPage } from './features/landing/pages/SecurityPage';
+import { PreviewPublicPage } from './features/landing/pages/PreviewPublicPage';
 import { AIAssistantPage } from './features/assistant/AIAssistantPage';
 
 export default function App() {
@@ -34,6 +40,12 @@ export default function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/landing" element={<LandingPage />} />
+            <Route path="/features" element={<FeaturesPage />} />
+            <Route path="/modules" element={<ModulesPage />} />
+            <Route path="/workflows" element={<WorkflowPublicPage />} />
+            <Route path="/benefits" element={<BenefitsPage />} />
+            <Route path="/security" element={<SecurityPage />} />
+            <Route path="/preview" element={<PreviewPublicPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route element={<AppLayout />}>
               <Route path="/dashboard" element={<DashboardPage />} />

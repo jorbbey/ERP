@@ -21,7 +21,6 @@ import {
   ShieldAlert,
   Bell,
   Workflow,
-  Sparkles,
   Scale,
   FolderKanban,
   Bot,
@@ -32,6 +31,7 @@ import {
   X,
   ExternalLink
 } from 'lucide-react';
+import { PiShootingStarDuotone } from 'react-icons/pi';
 import { FloatingAIAssistant } from '../features/assistant/components/FloatingAIAssistant';
 import { EnterpriseSearchModal } from '../components/common/EnterpriseSearchModal';
 import { NotificationsPopover } from '../components/common/NotificationsPopover';
@@ -89,7 +89,20 @@ export const AppLayout: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const navGroups = [
+  interface NavItem {
+    path: string;
+    label: string;
+    icon: any;
+    badge?: string;
+    badgeColor?: string;
+  }
+
+  interface NavGroup {
+    group: string;
+    items: NavItem[];
+  }
+
+  const navGroups: NavGroup[] = [
     {
       group: 'Core Operations',
       items: [
@@ -152,7 +165,7 @@ export const AppLayout: React.FC = () => {
       items: [
         { path: '/workflow', label: 'Approval Workflows', icon: Workflow },
         { path: '/chat', label: 'Team Live Chat', icon: MessageSquare },
-        { path: '/portals', label: 'Role Portals Hub', icon: Sparkles },
+        { path: '/portals', label: 'Role Portals Hub', icon: PiShootingStarDuotone },
         { path: '/settings', label: 'ERP Settings', icon: Sliders }
       ]
     }
@@ -183,9 +196,10 @@ export const AppLayout: React.FC = () => {
         <Flex align="center" justify="space-between" gap={3}>
           {/* Left: Mobile Toggle & Company Brand */}
           <Flex align="center" gap={{ base: 2, sm: 3 }}>
-            {/* Mobile Hamburger Menu */}
+            {/* Mobile Hamburger Menu (STRICTLY HIDDEN ON DESKTOP) */}
             <Box 
               as="button"
+              className="app-mobile-menu-toggle md:hidden"
               display={{ base: 'flex', md: 'none' }}
               p={1.5}
               borderRadius="6px"
@@ -252,7 +266,7 @@ export const AppLayout: React.FC = () => {
               </NativeSelect.Root>
             </Box>
 
-            {/* Procore-Style Active Project Quick Switcher */}
+            {/* Active Project Quick Switcher */}
             <Box ml={2} pl={3} borderLeft="1px solid #e2e8f0" display={{ base: 'none', xl: 'block' }}>
               <Flex align="center" gap={1.5}>
                 <HardHat size={14} color="#ea580c" />
