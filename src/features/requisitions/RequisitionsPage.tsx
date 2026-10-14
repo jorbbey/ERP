@@ -59,9 +59,14 @@ export const RequisitionsPage: React.FC = () => {
   const [voucherReq, setVoucherReq] = useState<Requisition | null>(null);
 
   const pendingCount = requisitions.filter(r => r.status === 'Pending Review').length;
+  const flaggedCount = requisitions.filter(r => r.status === 'Flagged for Clarification').length;
   const approvedCount = requisitions.filter(r => r.status === 'Approved').length;
   const dispatchedCount = requisitions.filter(r => r.status === 'Dispatched' || r.status === 'Delivered').length;
   const totalRequisitionValue = requisitions.reduce((acc, r) => acc + (r.totalEstimatedAmount || 0), 0);
+
+  const activeSelectedReq = selectedReq
+    ? (requisitions.find(r => r.id === selectedReq.id) || selectedReq)
+    : null;
 
   const filteredRequisitions = requisitions.filter(r => {
     const matchesStatus = filterStatus === 'All' || r.status === filterStatus;
@@ -80,6 +85,8 @@ export const RequisitionsPage: React.FC = () => {
     switch (status) {
       case 'Approved':
         return <Badge size="xs" colorPalette="green">APPROVED</Badge>;
+      case 'Flagged for Clarification':
+        return <Badge size="xs" colorPalette="yellow">FLAGGED FOR CLARIFICATION</Badge>;
       case 'Pending Review':
         return <Badge size="xs" colorPalette="orange">PENDING REVIEW</Badge>;
       case 'Dispatched':
@@ -213,6 +220,7 @@ export const RequisitionsPage: React.FC = () => {
                     >
                       <option value="All">All Statuses</option>
                       <option value="Pending Review">Pending Review</option>
+                      <option value="Flagged for Clarification">Flagged for Clarification</option>
                       <option value="Approved">Approved</option>
                       <option value="Dispatched">Dispatched</option>
                       <option value="Delivered">Delivered</option>
@@ -285,13 +293,15 @@ export const RequisitionsPage: React.FC = () => {
                           </Badge>
                         </Table.Cell>
                         <Table.Cell fontSize="xs">
-                          <Text color="#475569">{req.items.length} materials</Text>
+                          <Text color="#475569">{req.items.length} item{req.items.length !== 1 ? 's' : ''}</Text>
                           <Text fontSize="10px" color="#94a3b8" truncate maxW="150px">
-                            {req.items.map(i => `${i.itemName} (${i.quantityRequired})`).join(', ')}
+                            {req.items.map(i => `${i.itemName} (${i.quantityRequired} ${i.unit})`).join(', ')}
                           </Text>
                         </Table.Cell>
-                        <Table.Cell fontSize="xs" fontWeight="bold" color="#16a34a">
-                          {activeCompany.currency} {req.totalEstimatedAmount.toLocaleString()}
+                        <Table.Cell fontSize="xs" fontWeight="bold" color={req.totalEstimatedAmount ? '#16a34a' : '#64748b'}>
+                          {req.totalEstimatedAmount !== undefined && req.totalEstimatedAmount !== null
+                            ? `${activeCompany.currency} ${req.totalEstimatedAmount.toLocaleString()}`
+                            : <Badge size="xs" colorPalette="gray" variant="subtle">Unpriced</Badge>}
                         </Table.Cell>
                         <Table.Cell fontSize="xs">
                           {getStatusBadge(req.status)}
@@ -332,9 +342,9 @@ export const RequisitionsPage: React.FC = () => {
       )}
 
       {/* REQUISITION DETAIL & APPROVAL MODAL */}
-      {selectedReq && (
+      {activeSelectedReq && (
         <RequisitionDetailModal
-          requisition={selectedReq}
+          requisition={activeSelectedReq}
           onClose={() => setSelectedReq(null)}
           onOpenPrintVoucher={(req) => { setSelectedReq(null); setVoucherReq(req); }}
           onOpenDispatch={() => { setSelectedReq(null); setMainTab('dispatch'); }}

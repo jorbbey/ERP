@@ -548,7 +548,7 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({ onOpenCrea
                   <Heading size="md" color="#0f172a">{activeCompany.name}</Heading>
                   <Text fontSize="xs" color="#64748b">Headquarters & Central Procurement Division</Text>
                   <Text fontSize="xs" color="#64748b">{activeCompany.address || '742 Industrial Boulevard, Sector 4'}</Text>
-                  <Text fontSize="xs" color="#64748b">Email: procurement@group.com • Tel: +1 (555) 019-2834</Text>
+                  <Text fontSize="xs" color="#64748b">Email: {activeCompany.email || 'procurement@apexconstruction.ng'} • Tel: {activeCompany.phone || '+234 803 234 8900'}</Text>
                 </Box>
                 <Box textAlign="right">
                   <Heading size="lg" color="#2563eb" letterSpacing="tight">PURCHASE ORDER</Heading>

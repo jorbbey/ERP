@@ -270,7 +270,7 @@ export const PreviewPublicPage: React.FC = () => {
                       <Text fontSize="xs" color="#334155" mt={0.5}>{req.projectName} — Requested by {req.requestedBy}</Text>
                     </Box>
                     <Text fontSize="xs" fontWeight="bold" color="#0f172a">
-                      {currency} {req.totalEstimatedAmount.toLocaleString()}
+                      {req.totalEstimatedAmount !== undefined ? `${currency} ${req.totalEstimatedAmount.toLocaleString()}` : 'Unpriced'}
                     </Text>
                   </Flex>
                 ))}

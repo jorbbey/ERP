@@ -60,12 +60,16 @@ export const WarehousesTab: React.FC<WarehousesTabProps> = ({ onInitiateTransfer
     status: 'active'
   });
 
-  const filteredWarehouses = warehouses.filter(w =>
-    w.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    w.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    w.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    w.storeKeeperName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const term = (searchTerm || '').trim().toLowerCase();
+  const filteredWarehouses = warehouses.filter(w => {
+    if (!w) return false;
+    return (
+      (w.name && w.name.toLowerCase().includes(term)) ||
+      (w.code && w.code.toLowerCase().includes(term)) ||
+      (w.location && w.location.toLowerCase().includes(term)) ||
+      (w.storeKeeperName && w.storeKeeperName.toLowerCase().includes(term))
+    );
+  });
 
   const handleOpenAdd = () => {
     setFormData({
@@ -107,11 +111,14 @@ export const WarehousesTab: React.FC<WarehousesTabProps> = ({ onInitiateTransfer
   };
 
   const getItemsForWarehouse = (w: Warehouse): InventoryItem[] => {
-    return inventory.filter(i => 
-      i.warehouseId === w.id ||
-      i.warehouseLocation.toLowerCase().includes(w.name.toLowerCase()) ||
-      i.warehouseLocation.toLowerCase().includes(w.code.toLowerCase())
-    );
+    const wName = (w?.name || '').toLowerCase();
+    const wCode = (w?.code || '').toLowerCase();
+    return inventory.filter(i => {
+      if (!i) return false;
+      if (w?.id !== undefined && i.warehouseId === w.id) return true;
+      const loc = (i.warehouseLocation || '').toLowerCase();
+      return Boolean((wName && loc.includes(wName)) || (wCode && loc.includes(wCode)));
+    });
   };
 
   return (
@@ -278,7 +285,7 @@ export const WarehousesTab: React.FC<WarehousesTabProps> = ({ onInitiateTransfer
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Storekeeper Name *</Text>
                     <Input
                       size="sm"
-                      placeholder="e.g. David O'Connor"
+                      placeholder="e.g. Ibrahim Musa"
                       value={formData.storeKeeperName}
                       onChange={(e) => setFormData({ ...formData, storeKeeperName: e.target.value })}
                       required
@@ -288,7 +295,7 @@ export const WarehousesTab: React.FC<WarehousesTabProps> = ({ onInitiateTransfer
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Contact Phone</Text>
                     <Input
                       size="sm"
-                      placeholder="+1 (555) 234-8904"
+                      placeholder="+234 803 234 8904"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     />

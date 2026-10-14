@@ -143,6 +143,7 @@ export const ProjectDetailPage: React.FC = () => {
   const [showAddBudgetModal, setShowAddBudgetModal] = useState(false);
   const [editingBudget, setEditingBudget] = useState<ProjectBudget | null>(null);
   const [showAddDailyLogModal, setShowAddDailyLogModal] = useState(false);
+  const [triggerAddStaffModal, setTriggerAddStaffModal] = useState(false);
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [editingTask, setEditingTask] = useState<ProjectScheduleTask | null>(null);
   const [showAddDelayModal, setShowAddDelayModal] = useState(false);
@@ -678,6 +679,19 @@ export const ProjectDetailPage: React.FC = () => {
             onClick={() => setShowAddDailyLogModal(true)}
           >
             <Clock size={15} /> Log Site Progress
+          </Button>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            borderColor="#cbd5e1" 
+            color="#334155" 
+            onClick={() => {
+              setActiveTab('staff');
+              setTriggerAddStaffModal(true);
+            }}
+            title="Deploy and assign staff members to this project site"
+          >
+            <Users size={15} /> Add Staff to Site
           </Button>
           <Button 
             size="sm" 
@@ -1700,6 +1714,35 @@ export const ProjectDetailPage: React.FC = () => {
             </SimpleGrid>
           )}
         </Stack>
+      )}
+
+      {/* TAB: SITE STAFF & TEAM */}
+      {activeTab === 'staff' && (
+        <StaffManagementTab
+          project={project}
+          initialShowAssignModal={triggerAddStaffModal}
+          onModalClosed={() => setTriggerAddStaffModal(false)}
+        />
+      )}
+
+      {/* TAB: DELAYS & EOT */}
+      {activeTab === 'delays' && (
+        <SiteDelaysNotesTab project={project} />
+      )}
+
+      {/* TAB: QUALITY ASSURANCE */}
+      {activeTab === 'qa' && (
+        <QualityAssuranceTab project={project} />
+      )}
+
+      {/* TAB: FINANCIALS & BILLING */}
+      {activeTab === 'financials' && (
+        <FinancialsTab project={project} />
+      )}
+
+      {/* TAB: SITE PROCUREMENT */}
+      {activeTab === 'procurement' && (
+        <SiteProcurementTab project={project} />
       )}
 
       {/* MODAL: EDIT PROJECT */}

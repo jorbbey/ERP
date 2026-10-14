@@ -85,9 +85,15 @@ export const RequisitionVoucherModal: React.FC<RequisitionVoucherModalProps> = (
                 <Table.Cell fontSize="xs">{item.unit}</Table.Cell>
                 <Table.Cell fontSize="xs" fontWeight="bold">{item.quantityRequired}</Table.Cell>
                 <Table.Cell fontSize="xs">{item.quantityToPurchase}</Table.Cell>
-                <Table.Cell fontSize="xs">{activeCompany.currency} {item.price.toFixed(2)}</Table.Cell>
+                <Table.Cell fontSize="xs">
+                  {item.price !== undefined ? `${activeCompany.currency} ${item.price.toFixed(2)}` : '—'}
+                </Table.Cell>
                 <Table.Cell fontSize="xs" fontWeight="bold">
-                  {activeCompany.currency} {(item.value || (item.quantityRequired * item.price)).toLocaleString()}
+                  {item.value !== undefined
+                    ? `${activeCompany.currency} ${item.value.toLocaleString()}`
+                    : item.price !== undefined
+                    ? `${activeCompany.currency} ${(item.quantityRequired * item.price).toLocaleString()}`
+                    : '—'}
                 </Table.Cell>
               </Table.Row>
             ))}
@@ -100,7 +106,7 @@ export const RequisitionVoucherModal: React.FC<RequisitionVoucherModalProps> = (
           <Box textAlign="right">
             <Text fontSize="10px" textTransform="uppercase" color="#64748b" fontWeight="bold">Total Requisition Cost</Text>
             <Text fontSize="lg" fontWeight="black" color="#16a34a">
-              {activeCompany.currency} {requisition.totalEstimatedAmount.toLocaleString()}
+              {requisition.totalEstimatedAmount !== undefined ? `${activeCompany.currency} ${requisition.totalEstimatedAmount.toLocaleString()}` : 'Unpriced'}
             </Text>
           </Box>
         </Flex>

@@ -53,19 +53,24 @@ export const StockMovementsTab: React.FC = () => {
   const [transferFeedback, setTransferFeedback] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
 
   const filteredMovements = stockMovements.filter((m) => {
+    if (!m) return false;
     const matchesType = typeFilter === 'all' || m.movementType === typeFilter;
-    const matchesWarehouse = warehouseFilter === 'all' || 
-      m.warehouseName.toLowerCase().includes(warehouseFilter.toLowerCase()) ||
-      m.source.toLowerCase().includes(warehouseFilter.toLowerCase()) ||
-      m.destination.toLowerCase().includes(warehouseFilter.toLowerCase());
+    const whFilter = (warehouseFilter || '').trim().toLowerCase();
+    const matchesWarehouse = whFilter === 'all' || !whFilter ||
+      Boolean(m.warehouseName && m.warehouseName.toLowerCase().includes(whFilter)) ||
+      Boolean(m.source && m.source.toLowerCase().includes(whFilter)) ||
+      Boolean(m.destination && m.destination.toLowerCase().includes(whFilter));
+
+    const sTerm = (searchTerm || '').trim().toLowerCase();
     const matchesSearch = 
-      m.referenceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.itemCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.source.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.performedBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.reason.toLowerCase().includes(searchTerm.toLowerCase());
+      !sTerm ||
+      Boolean(m.referenceNumber && m.referenceNumber.toLowerCase().includes(sTerm)) ||
+      Boolean(m.itemName && m.itemName.toLowerCase().includes(sTerm)) ||
+      Boolean(m.itemCode && m.itemCode.toLowerCase().includes(sTerm)) ||
+      Boolean(m.source && m.source.toLowerCase().includes(sTerm)) ||
+      Boolean(m.destination && m.destination.toLowerCase().includes(sTerm)) ||
+      Boolean(m.performedBy && m.performedBy.toLowerCase().includes(sTerm)) ||
+      Boolean(m.reason && m.reason.toLowerCase().includes(sTerm));
 
     return matchesType && matchesWarehouse && matchesSearch;
   });

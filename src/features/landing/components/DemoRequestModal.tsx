@@ -120,7 +120,7 @@ export const DemoRequestModal: React.FC<DemoRequestModalProps> = ({ isOpen, onCl
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Direct Phone</Text>
                     <Input
                       size="sm"
-                      placeholder="+1 (555) 234-5678"
+                      placeholder="+234 803 234 5678"
                       bg="#f8fafc"
                       borderColor="#cbd5e1"
                       color="#0f172a"

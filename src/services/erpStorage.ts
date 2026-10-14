@@ -122,8 +122,25 @@ import {
   initialSystemLogs
 } from '../mock/initialData';
 
+const STORAGE_VERSION = 'v4_safe_sync';
+
 function getStored<T>(key: string, defaultVal: T): T {
   try {
+    const currentVer = localStorage.getItem('erp_schema_version');
+    if (currentVer !== STORAGE_VERSION) {
+      // Clear out outdated non-Nigerian mock state in localStorage
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('erp_')) {
+          keysToRemove.push(k);
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+      localStorage.setItem('erp_schema_version', STORAGE_VERSION);
+      return defaultVal;
+    }
+
     const item = localStorage.getItem(`erp_${key}`);
     return item ? JSON.parse(item) : defaultVal;
   } catch {

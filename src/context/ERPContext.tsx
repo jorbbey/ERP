@@ -77,6 +77,9 @@ import { attendanceService } from '../services/attendanceService';
 import { leaveService } from '../services/leaveService';
 import { recruitmentService } from '../services/recruitmentService';
 import { payrollService } from '../services/payrollService';
+import { supabaseService } from '../services/supabaseService';
+import { getSupabaseConfig } from '../services/supabaseClient';
+import { supabaseAuth } from '../services/supabaseAuth';
 
 interface ERPContextType {
   // Multi-Company
@@ -92,6 +95,14 @@ interface ERPContextType {
   isImpersonating: boolean;
   loginAsEmployee: (emp: Employee) => void;
   stopImpersonation: () => void;
+
+  // Supabase Authentication
+  supabaseUser: any;
+  supabaseSession: any;
+  authLoading: boolean;
+  signInWithSupabase: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signUpWithSupabase: (email: string, password: string, fullName?: string) => Promise<{ success: boolean; error?: string; session?: any }>;
+  signOutWithSupabase: () => Promise<void>;
 
   // Projects
   projects: Project[];
@@ -195,11 +206,53 @@ interface ERPContextType {
     projectId?: number;
     projectName?: string;
   }) => { success: boolean; error?: string };
+  receiveStock: (params: {
+    itemId: number;
+    quantity: number;
+    date?: string;
+    supplierMode?: 'existing' | 'new' | 'none';
+    supplierId?: number;
+    supplierName?: string;
+    newSupplier?: {
+      companyName: string;
+      contactPerson?: string;
+      phone?: string;
+      email?: string;
+      address?: string;
+      category?: string;
+    };
+    warehouseId?: number;
+    warehouseName: string;
+    referenceNumber?: string;
+    notes?: string;
+  }) => { success: boolean; error?: string; updatedItem?: InventoryItem; movement?: StockMovement };
+  issueStock: (params: {
+    itemId: number;
+    quantity: number;
+    destinationType: 'project' | 'site' | 'warehouse' | 'department' | 'employee';
+    projectId?: number;
+    projectName?: string;
+    targetWarehouseId?: number;
+    targetWarehouseName?: string;
+    department?: string;
+    employeeId?: number;
+    employeeName?: string;
+    destinationDetails?: string;
+    recipientName: string;
+    date?: string;
+    purpose: string;
+    referenceNumber?: string;
+    notes?: string;
+    requisitionId?: number;
+    requisitionNo?: string;
+  }) => { success: boolean; error?: string; updatedItem?: InventoryItem; movement?: StockMovement };
 
   // Requisitions & Dispatches
   requisitions: Requisition[];
   createRequisition: (r: Omit<Requisition, 'id' | 'requisitionNo' | 'status' | 'requisitionDate'>) => void;
   updateRequisitionStatus: (id: number, status: Requisition['status'], comments?: string) => void;
+  flagRequisitionForClarification: (id: number, reason: string) => void;
+  provideRequisitionClarification: (id: number, response: string) => void;
   addRequisitionMessage: (requisitionId: number, message: string) => void;
   dispatchRequests: RequisitionDispatchRequest[];
   createDispatchRequest: (data: Omit<RequisitionDispatchRequest, 'id' | 'requestedAt' | 'status'>) => void;
@@ -226,7 +279,7 @@ interface ERPContextType {
 
   // Procurement & Suppliers
   suppliers: Supplier[];
-  addSupplier: (data: Omit<Supplier, 'id' | 'createdAt'>) => void;
+  addSupplier: (data: Omit<Supplier, 'id' | 'createdAt'>) => Supplier;
   updateSupplier: (id: number, data: Partial<Supplier>) => void;
   deleteSupplier: (id: number) => void;
   purchaseOrders: PurchaseOrder[];
@@ -454,6 +507,107 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setActiveRoleState('Managing Director');
     setCurrentUserName('John Adebayo');
   };
+
+  // Supabase Auth State
+  const [supabaseUser, setSupabaseUser] = useState<any>(null);
+  const [supabaseSession, setSupabaseSession] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    let mounted = true;
+
+    // Check initial active session
+    supabaseAuth.getSession().then((session: any) => {
+      if (!mounted) return;
+      if (session) {
+        setSupabaseSession(session);
+        setSupabaseUser(session.user);
+        const name = session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0];
+        if (name) {
+          setCurrentUserName(name);
+        }
+      }
+      setAuthLoading(false);
+    });
+
+    // Subscribe to auth state changes
+    const subscription = supabaseAuth.onAuthStateChange((_event: any, session: any) => {
+      if (!mounted) return;
+      setSupabaseSession(session);
+      setSupabaseUser(session?.user || null);
+      if (session?.user) {
+        const name = session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0];
+        if (name) {
+          setCurrentUserName(name);
+        }
+      }
+      setAuthLoading(false);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const signInWithSupabase = async (email: string, password: string) => {
+    const res = await supabaseAuth.signIn(email, password);
+    if (res.success && res.session) {
+      setSupabaseSession(res.session);
+      setSupabaseUser(res.user);
+      const name = res.user?.user_metadata?.full_name || res.user?.user_metadata?.name || email.split('@')[0];
+      if (name) setCurrentUserName(name);
+    }
+    return res;
+  };
+
+  const signUpWithSupabase = async (email: string, password: string, fullName?: string) => {
+    const res = await supabaseAuth.signUp(email, password, fullName);
+    if (res.success && res.session) {
+      setSupabaseSession(res.session);
+      setSupabaseUser(res.user);
+      if (fullName) setCurrentUserName(fullName);
+    }
+    return res;
+  };
+
+  const signOutWithSupabase = async () => {
+    await supabaseAuth.signOut();
+    setSupabaseSession(null);
+    setSupabaseUser(null);
+  };
+
+  // Remote Hydration from Supabase when credentials are configured
+  useEffect(() => {
+    if (supabaseService.isConfigured()) {
+      (async () => {
+        try {
+          const remoteCompanies = await supabaseService.fetchTable<Company>('companies');
+          if (remoteCompanies && remoteCompanies.length > 0) {
+            setCompanies(remoteCompanies);
+            erpStorage.saveCompanies(remoteCompanies);
+          }
+          const remoteProjects = await supabaseService.fetchTable<Project>('projects');
+          if (remoteProjects && remoteProjects.length > 0) {
+            setProjects(remoteProjects);
+            erpStorage.saveProjects(remoteProjects);
+          }
+          const remoteInventory = await supabaseService.fetchTable<InventoryItem>('inventory_items');
+          if (remoteInventory && remoteInventory.length > 0) {
+            setInventory(remoteInventory);
+            erpStorage.saveInventory(remoteInventory);
+          }
+          const remoteSuppliers = await supabaseService.fetchTable<Supplier>('suppliers');
+          if (remoteSuppliers && remoteSuppliers.length > 0) {
+            setSuppliers(remoteSuppliers);
+            erpStorage.saveSuppliers(remoteSuppliers);
+          }
+        } catch (err) {
+          console.warn('Initial Supabase sync notice:', err);
+        }
+      })();
+    }
+  }, []);
 
   // Projects
   const addProjectActivity = (aData: Omit<ProjectActivity, 'id' | 'timestamp'>) => {
@@ -1035,6 +1189,66 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return res;
   };
 
+  const receiveStock = (params: {
+    itemId: number;
+    quantity: number;
+    date?: string;
+    supplierMode?: 'existing' | 'new' | 'none';
+    supplierId?: number;
+    supplierName?: string;
+    newSupplier?: {
+      companyName: string;
+      contactPerson?: string;
+      phone?: string;
+      email?: string;
+      address?: string;
+      category?: string;
+    };
+    warehouseId?: number;
+    warehouseName: string;
+    referenceNumber?: string;
+    notes?: string;
+  }) => {
+    const res = inventoryService.receiveStock({ ...params, actor: currentUserName });
+    if (res.success) {
+      setInventory(erpStorage.getInventory());
+      setStockMovements(erpStorage.getStockMovements());
+      setSuppliers(erpStorage.getSuppliers());
+      setWarehouses(warehouseService.getWarehouses());
+    }
+    return res;
+  };
+
+  const issueStock = (params: {
+    itemId: number;
+    quantity: number;
+    destinationType: 'project' | 'site' | 'warehouse' | 'department' | 'employee';
+    projectId?: number;
+    projectName?: string;
+    targetWarehouseId?: number;
+    targetWarehouseName?: string;
+    department?: string;
+    employeeId?: number;
+    employeeName?: string;
+    destinationDetails?: string;
+    recipientName: string;
+    date?: string;
+    purpose: string;
+    referenceNumber?: string;
+    notes?: string;
+    requisitionId?: number;
+    requisitionNo?: string;
+  }) => {
+    const res = inventoryService.issueStock({ ...params, actor: currentUserName });
+    if (res.success) {
+      setInventory(erpStorage.getInventory());
+      setStockMovements(erpStorage.getStockMovements());
+      setRequisitions(erpStorage.getRequisitions());
+      setWarehouses(warehouseService.getWarehouses());
+    }
+    return res;
+  };
+
   // Requisitions
   const createRequisition = (rData: Omit<Requisition, 'id' | 'requisitionNo' | 'status' | 'requisitionDate'>) => {
     const proj = projects.find(p => p.id === rData.projectId);
@@ -1044,16 +1258,31 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       actorRole: activeRole
     });
     setRequisitions(erpStorage.getRequisitions());
+    setChatMessages(erpStorage.getChatMessages());
   };
 
   const updateRequisitionStatus = (id: number, status: Requisition['status'], comments?: string) => {
     requisitionService.updateStatus(id, status, currentUserName, activeRole, comments);
     setRequisitions(erpStorage.getRequisitions());
+    setChatMessages(erpStorage.getChatMessages());
+  };
+
+  const flagRequisitionForClarification = (id: number, reason: string) => {
+    requisitionService.flagForClarification(id, currentUserName, activeRole, reason);
+    setRequisitions(erpStorage.getRequisitions());
+    setChatMessages(erpStorage.getChatMessages());
+  };
+
+  const provideRequisitionClarification = (id: number, response: string) => {
+    requisitionService.provideClarification(id, currentUserName, activeRole, response);
+    setRequisitions(erpStorage.getRequisitions());
+    setChatMessages(erpStorage.getChatMessages());
   };
 
   const addRequisitionMessage = (requisitionId: number, msgText: string) => {
     requisitionService.addMessage(requisitionId, currentUserName, activeRole, msgText);
     setRequisitions(erpStorage.getRequisitions());
+    setChatMessages(erpStorage.getChatMessages());
   };
 
   // Dispatch Requests
@@ -1105,9 +1334,10 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Suppliers
-  const addSupplier = (data: Omit<Supplier, 'id' | 'createdAt'>) => {
-    supplierService.addSupplier(data);
+  const addSupplier = (data: Omit<Supplier, 'id' | 'createdAt'>): Supplier => {
+    const created = supplierService.addSupplier(data);
     setSuppliers(erpStorage.getSuppliers());
+    return created;
   };
 
   const updateSupplier = (id: number, data: Partial<Supplier>) => {
@@ -1630,9 +1860,13 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         stockMovements,
         recordStockMovement,
         transferStock,
+        receiveStock,
+        issueStock,
         requisitions,
         createRequisition,
         updateRequisitionStatus,
+        flagRequisitionForClarification,
+        provideRequisitionClarification,
         addRequisitionMessage,
         dispatchRequests,
         createDispatchRequest,
@@ -1727,7 +1961,13 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         auditLogs,
         systemLogs,
         addAuditLog,
-        addSystemLog
+        addSystemLog,
+        supabaseUser,
+        supabaseSession,
+        authLoading,
+        signInWithSupabase,
+        signUpWithSupabase,
+        signOutWithSupabase
       }}
     >
       {children}

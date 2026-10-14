@@ -413,6 +413,7 @@ export interface InventoryItem {
   supplierName?: string;
   supplierContact?: string;
   supplierPhone?: string;
+  supplierEmail?: string;
   supplierAddress?: string;
   costPrice: number;
   sellingPrice: number;
@@ -450,6 +451,10 @@ export interface StockMovement {
   unit: string;
   source: string;
   destination: string;
+  destinationType?: 'project' | 'site' | 'warehouse' | 'department' | 'employee';
+  recipientName?: string;
+  employeeId?: number;
+  department?: string;
   warehouseId?: number;
   warehouseName: string;
   targetWarehouseId?: number;
@@ -472,15 +477,17 @@ export interface RequisitionItem {
   inventoryItemId?: number;
   itemCode?: string;
   itemName: string;
+  itemType?: 'material' | 'service' | 'equipment' | 'other';
   description?: string;
   unit: string;
   quantityRequired: number;
-  quantityInStock: number;
-  quantityToPurchase: number;
+  quantityInStock?: number;
+  quantityToPurchase?: number;
   quantityApproved?: number;
   quantityDispatched?: number;
-  price: number;
-  value: number;
+  price?: number;
+  value?: number;
+  isCustomItem?: boolean;
   status?: 'pending' | 'approved' | 'partially_dispatched' | 'dispatched' | 'rejected';
 }
 
@@ -510,7 +517,7 @@ export interface RequisitionDispatchRequest {
 export interface RequisitionApprovalStep {
   id: number;
   level: string;
-  action: 'Created' | 'Submitted' | 'Approved' | 'Partially Approved' | 'Rejected' | 'Dispatched' | 'Cancelled';
+  action: 'Created' | 'Submitted' | 'Approved' | 'Flagged for Clarification' | 'Clarification Provided' | 'Partially Approved' | 'Rejected' | 'Dispatched' | 'Cancelled';
   actorName: string;
   actorRole: string;
   comments?: string;
@@ -524,6 +531,14 @@ export interface RequisitionMessage {
   role: string;
   message: string;
   createdAt: string;
+  isSystemEvent?: boolean;
+}
+
+export interface RequisitionApprover {
+  id: number;
+  name: string;
+  role: string;
+  email?: string;
 }
 
 export interface Requisition {
@@ -536,17 +551,24 @@ export interface Requisition {
   department: string;
   requisitionDate: string;
   priority: 'Normal' | 'High' | 'Urgent';
-  status: 'Draft' | 'Pending Review' | 'Approved' | 'Partially Approved' | 'Ready for Dispatch' | 'Dispatched' | 'Delivered' | 'Rejected' | 'Cancelled';
+  status: 'Draft' | 'Pending Review' | 'Flagged for Clarification' | 'Approved' | 'Partially Approved' | 'Ready for Dispatch' | 'Dispatched' | 'Delivered' | 'Rejected' | 'Cancelled';
   title: string;
   trade?: string;
   supplier?: string;
   supplierAddress?: string;
   description?: string;
   items: RequisitionItem[];
-  totalEstimatedAmount: number;
+  totalEstimatedAmount?: number;
   approvedBy?: string;
   approvalDate?: string;
   rejectionReason?: string;
+  flagReason?: string;
+  flaggedBy?: string;
+  flaggedDate?: string;
+  approverIds?: number[];
+  approvers?: RequisitionApprover[];
+  chatChannelId?: string;
+  attachments?: { name: string; size?: string; type?: string; data?: string }[];
   dispatchNote?: string;
   remarks?: string;
   messages?: RequisitionMessage[];

@@ -8,12 +8,15 @@ export const warehouseService = {
 
     // Dynamically calculate itemCount and totalValuation for each warehouse
     return warehouses.map(w => {
-      const itemsInWarehouse = inventory.filter(i => 
-        i.warehouseId === w.id || 
-        i.warehouseLocation.toLowerCase().includes(w.name.toLowerCase()) ||
-        i.warehouseLocation.toLowerCase().includes(w.code.toLowerCase())
-      );
-      const totalVal = itemsInWarehouse.reduce((acc, item) => acc + (item.currentStock * item.costPrice), 0);
+      const wName = (w?.name || '').toLowerCase();
+      const wCode = (w?.code || '').toLowerCase();
+      const itemsInWarehouse = inventory.filter(i => {
+        if (!i) return false;
+        if (w?.id !== undefined && i.warehouseId === w.id) return true;
+        const loc = (i.warehouseLocation || '').toLowerCase();
+        return Boolean((wName && loc.includes(wName)) || (wCode && loc.includes(wCode)));
+      });
+      const totalVal = itemsInWarehouse.reduce((acc, item) => acc + ((item.currentStock || 0) * (item.costPrice || 0)), 0);
       return {
         ...w,
         itemCount: itemsInWarehouse.length,

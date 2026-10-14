@@ -27,7 +27,7 @@ export const SiteProcurementTab: React.FC<SiteProcurementTabProps> = ({ project 
   const currentRequisitions = requisitions.filter(r => r.projectId === project.id || r.projectName === project.name);
   const currentPOs = purchaseOrders.filter(p => p.projectId === project.id || p.projectName === project.name);
 
-  const totalReqValue = currentRequisitions.reduce((sum, r) => sum + r.totalEstimatedAmount, 0);
+  const totalReqValue = currentRequisitions.reduce((sum, r) => sum + (r.totalEstimatedAmount || 0), 0);
   const totalPOValue = currentPOs.reduce((sum, p) => sum + p.totalAmount, 0);
 
   const [activeSubTab, setActiveSubTab] = useState<'requisitions' | 'purchaseOrders'>('requisitions');
@@ -168,7 +168,7 @@ export const SiteProcurementTab: React.FC<SiteProcurementTabProps> = ({ project 
                       {req.requestedBy}
                     </Table.Cell>
                     <Table.Cell fontSize="xs" fontWeight="bold" color="#2563eb" textAlign="right">
-                      {activeCompany.currency} {req.totalEstimatedAmount.toLocaleString()}
+                      {req.totalEstimatedAmount !== undefined ? `${activeCompany.currency} ${req.totalEstimatedAmount.toLocaleString()}` : 'Unpriced'}
                     </Table.Cell>
                     <Table.Cell>
                       <Badge size="xs" colorPalette={req.priority === 'Urgent' ? 'red' : req.priority === 'High' ? 'orange' : 'gray'}>

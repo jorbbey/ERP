@@ -160,7 +160,7 @@ export const WorkflowPage: React.FC = () => {
                         {r.title} ({r.items.length} line items)
                       </Table.Cell>
                       <Table.Cell fontSize="xs" textAlign="right" fontWeight="bold" color="#0f172a">
-                        {activeCompany.currency} {r.totalEstimatedAmount.toLocaleString()}
+                        {r.totalEstimatedAmount !== undefined ? `${activeCompany.currency} ${r.totalEstimatedAmount.toLocaleString()}` : 'Unpriced'}
                       </Table.Cell>
                       <Table.Cell textAlign="right">
                         <Flex justify="flex-end" gap={2}>

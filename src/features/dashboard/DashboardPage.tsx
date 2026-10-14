@@ -385,7 +385,7 @@ export const DashboardPage: React.FC = () => {
                       {req.projectName}
                     </Text>
                     <Text fontSize="11px" color="#64748b" mt={0.5}>
-                      Req: {req.requestedBy} • {currency} {req.totalEstimatedAmount.toLocaleString()}
+                      Req: {req.requestedBy} • {req.totalEstimatedAmount !== undefined ? `${currency} ${req.totalEstimatedAmount.toLocaleString()}` : 'Unpriced'}
                     </Text>
 
                     {canApprove && (

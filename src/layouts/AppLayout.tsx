@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Flex, Text, Button, Badge, Stack, NativeSelect } from '@chakra-ui/react';
 import { useERP } from '../context/ERPContext';
-import { UserRole } from '../types';
 import { 
   Building2, 
   LayoutDashboard, 
@@ -29,25 +28,13 @@ import {
   Search,
   Menu,
   X,
-  ExternalLink
+  ExternalLink,
+  LogOut
 } from 'lucide-react';
 import { PiShootingStarDuotone } from 'react-icons/pi';
 import { FloatingAIAssistant } from '../features/assistant/components/FloatingAIAssistant';
 import { EnterpriseSearchModal } from '../components/common/EnterpriseSearchModal';
 import { NotificationsPopover } from '../components/common/NotificationsPopover';
-
-const ROLES: UserRole[] = [
-  'Managing Director',
-  'Site Engineer',
-  'Site Quantity Surveyor',
-  'Procurement Officer',
-  'Finance Manager',
-  'HR Manager',
-  'Accountant',
-  'Department Head',
-  'Staff',
-  'Super Admin'
-];
 
 export const AppLayout: React.FC = () => {
   const navigate = useNavigate();
@@ -60,9 +47,7 @@ export const AppLayout: React.FC = () => {
   const { 
     companies, 
     activeCompany, 
-    setActiveCompanyId, 
     activeRole, 
-    setActiveRole, 
     currentUserName,
     isImpersonating,
     stopImpersonation,
@@ -70,8 +55,18 @@ export const AppLayout: React.FC = () => {
     inventory,
     leaves,
     salaryAdvances,
-    projects
+    projects,
+    supabaseUser,
+    authLoading,
+    signOutWithSupabase
   } = useERP();
+
+  // Enforce authentication on all protected ERP routes
+  useEffect(() => {
+    if (!authLoading && !supabaseUser) {
+      navigate('/login?mode=signin', { replace: true });
+    }
+  }, [authLoading, supabaseUser, navigate]);
 
   const pendingReqsCount = requisitions.filter(r => r.status === 'Pending Review' || (r.status as string).includes('Pending')).length;
   const lowStockCount = inventory.filter(i => i.currentStock <= i.minLevel).length;
@@ -178,6 +173,35 @@ export const AppLayout: React.FC = () => {
   );
   const currentTitle = currentNav?.label || 'Overview';
 
+  if (authLoading) {
+    return (
+      <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" bg="#f8fafc">
+        <Flex direction="column" align="center" gap={3}>
+          <Box 
+            w="48px" 
+            h="48px" 
+            borderRadius="12px" 
+            bg="#2563eb" 
+            color="white" 
+            display="flex" 
+            alignItems="center" 
+            justifyContent="center"
+            boxShadow="0 4px 12px rgba(37,99,235,0.25)"
+          >
+            <Building2 size={24} />
+          </Box>
+          <Text fontSize="sm" color="#64748b" fontWeight="medium">
+            Verifying account credentials...
+          </Text>
+        </Flex>
+      </Box>
+    );
+  }
+
+  if (!supabaseUser) {
+    return null;
+  }
+
   return (
     <Box minH="100vh" bg="#f8fafc" display="flex" flexDirection="column" color="#0f172a">
       {/* Light Enterprise Topbar */}
@@ -241,30 +265,7 @@ export const AppLayout: React.FC = () => {
               </Text>
             </Box>
 
-            {/* Multi-Company Workspace Switcher */}
-            <Box ml={2} pl={3} borderLeft="1px solid #e2e8f0" display={{ base: 'none', lg: 'block' }}>
-              <NativeSelect.Root size="xs">
-                <NativeSelect.Field 
-                  aria-label="Select Active Company"
-                  value={activeCompany.id} 
-                  onChange={(e) => setActiveCompanyId(Number(e.target.value))}
-                  bg="#f8fafc" 
-                  color="#0f172a" 
-                  borderColor="#cbd5e1"
-                  fontSize="xs"
-                  cursor="pointer"
-                  px={2}
-                  py={1}
-                  fontWeight="medium"
-                >
-                  {companies.map(c => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} ({c.code})
-                    </option>
-                  ))}
-                </NativeSelect.Field>
-              </NativeSelect.Root>
-            </Box>
+
 
             {/* Active Project Quick Switcher */}
             <Box ml={2} pl={3} borderLeft="1px solid #e2e8f0" display={{ base: 'none', xl: 'block' }}>
@@ -356,40 +357,7 @@ export const AppLayout: React.FC = () => {
               </Button>
             )}
 
-            {/* Role Switcher */}
-            <Flex 
-              align="center" 
-              gap={1.5} 
-              bg="#f8fafc" 
-              px={2.5} 
-              py={1} 
-              borderRadius="8px" 
-              border="1px solid #e2e8f0"
-              display={{ base: 'none', sm: 'flex' }}
-            >
-              <Text fontSize="xs" color="#64748b" display={{ base: 'none', md: 'inline' }}>
-                Role:
-              </Text>
-              <NativeSelect.Root size="xs">
-                <NativeSelect.Field 
-                  aria-label="Active Role"
-                  value={activeRole} 
-                  onChange={(e) => setActiveRole(e.target.value as UserRole)}
-                  bg="transparent" 
-                  color="#2563eb" 
-                  fontWeight="bold"
-                  borderColor="transparent"
-                  cursor="pointer"
-                  p={0}
-                >
-                  {ROLES.map(r => (
-                    <option key={r} value={r}>
-                      {r}
-                    </option>
-                  ))}
-                </NativeSelect.Field>
-              </NativeSelect.Root>
-            </Flex>
+
 
             {/* Notifications Alert Bell */}
             <Box 
@@ -462,9 +430,26 @@ export const AppLayout: React.FC = () => {
                   {currentUserName}
                 </Text>
                 <Text fontSize="10px" color="#64748b">
-                  {activeRole}
+                  {supabaseUser?.email || activeRole}
                 </Text>
               </Box>
+
+              <Button
+                size="xs"
+                variant="ghost"
+                color="#64748b"
+                _hover={{ bg: '#fef2f2', color: '#b91c1c' }}
+                onClick={async () => {
+                  await signOutWithSupabase();
+                  navigate('/login');
+                }}
+                title="Sign out of ERP account"
+                px={2}
+                h="28px"
+              >
+                <LogOut size={14} style={{ marginRight: '4px' }} />
+                <Text fontSize="11px" display={{ base: 'none', lg: 'inline' }}>Sign Out</Text>
+              </Button>
             </Flex>
           </Flex>
         </Flex>
@@ -584,21 +569,6 @@ export const AppLayout: React.FC = () => {
               ))}
             </Stack>
           </Box>
-
-          {/* Sidebar Footer Info */}
-          {!collapsed && (
-            <Box m={3} p={3} bg="#f8fafc" borderRadius="10px" border="1px solid #e2e8f0">
-              <Flex align="center" gap={1.5} mb={0.5}>
-                <CheckCircle2 size={12} color="#10b981" />
-                <Text fontSize="11px" fontWeight="bold" color="#0f172a">
-                  Enterprise Suite v4.8
-                </Text>
-              </Flex>
-              <Text fontSize="10px" color="#64748b">
-                Production Light ERP
-              </Text>
-            </Box>
-          )}
         </Box>
 
         {/* Mobile Slide-Over Drawer Navigation */}

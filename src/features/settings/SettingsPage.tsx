@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Box,
   Flex,
@@ -33,6 +34,7 @@ import {
   Search,
   Filter
 } from 'lucide-react';
+import { SupabaseSettingsTab } from './components/SupabaseSettingsTab';
 
 export const SettingsPage: React.FC = () => {
   const {
@@ -45,7 +47,20 @@ export const SettingsPage: React.FC = () => {
     systemLogs
   } = useERP();
 
-  const [activeTab, setActiveTab] = useState<'company' | 'modules' | 'audit' | 'system' | 'database'>('company');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlTab = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState<'company' | 'modules' | 'audit' | 'system' | 'database'>(() => {
+    if (urlTab && ['company', 'modules', 'audit', 'system', 'database'].includes(urlTab)) {
+      return urlTab as any;
+    }
+    return 'company';
+  });
+
+  useEffect(() => {
+    if (urlTab && ['company', 'modules', 'audit', 'system', 'database'].includes(urlTab)) {
+      setActiveTab(urlTab as any);
+    }
+  }, [urlTab]);
   const [auditFilter, setAuditFilter] = useState('all');
   const [auditSearch, setAuditSearch] = useState('');
   const [formData, setFormData] = useState({
@@ -198,7 +213,7 @@ export const SettingsPage: React.FC = () => {
           fontSize="sm"
           onClick={() => setActiveTab('database')}
         >
-          Architecture Diagnostics
+          <Database size={15} style={{ display: 'inline', marginRight: '6px' }} /> Supabase Database & SQL
         </Button>
       </Flex>
 
@@ -626,51 +641,9 @@ export const SettingsPage: React.FC = () => {
         </Stack>
       )}
 
-      {/* Database & Runtime Diagnostics */}
+      {/* Supabase Database & SQL Console */}
       {activeTab === 'database' && (
-        <Card.Root bg="white" border="1px solid #e2e8f0" borderRadius="14px" p={6}>
-          <Heading size="sm" color="#0f172a" mb={1} display="flex" alignItems="center" gap={2}>
-            <Database size={20} color="#2563eb" /> Application Architecture Diagnostics
-          </Heading>
-          <Text fontSize="xs" color="#64748b" mb={4}>
-            Environment configuration and runtime integrity metrics.
-          </Text>
-
-          <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} gap={4} mb={4}>
-            <Box p={4} bg="#f8fafc" borderRadius="12px" border="1px solid #e2e8f0">
-              <Text fontSize="10px" textTransform="uppercase" fontWeight="bold" color="#64748b">
-                Frontend Framework
-              </Text>
-              <Text fontSize="sm" fontWeight="bold" color="#0f172a" mt={1}>
-                React 19 + TypeScript
-              </Text>
-            </Box>
-            <Box p={4} bg="#f8fafc" borderRadius="12px" border="1px solid #e2e8f0">
-              <Text fontSize="10px" textTransform="uppercase" fontWeight="bold" color="#64748b">
-                UI Component System
-              </Text>
-              <Text fontSize="sm" fontWeight="bold" color="#0f172a" mt={1}>
-                Chakra UI v3.x
-              </Text>
-            </Box>
-            <Box p={4} bg="#f8fafc" borderRadius="12px" border="1px solid #e2e8f0">
-              <Text fontSize="10px" textTransform="uppercase" fontWeight="bold" color="#64748b">
-                Routing Architecture
-              </Text>
-              <Text fontSize="sm" fontWeight="bold" color="#0f172a" mt={1}>
-                React Router v7
-              </Text>
-            </Box>
-            <Box p={4} bg="#f8fafc" borderRadius="12px" border="1px solid #e2e8f0">
-              <Text fontSize="10px" textTransform="uppercase" fontWeight="bold" color="#64748b">
-                State Hydration
-              </Text>
-              <Text fontSize="sm" fontWeight="bold" color="#16a34a" mt={1}>
-                LocalStorage Sync Active
-              </Text>
-            </Box>
-          </SimpleGrid>
-        </Card.Root>
+        <SupabaseSettingsTab />
       )}
     </Box>
   );

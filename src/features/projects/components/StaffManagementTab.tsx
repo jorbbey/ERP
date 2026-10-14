@@ -19,9 +19,15 @@ import { Plus, Users, UserCheck, UserX, Shield, Briefcase, History } from 'lucid
 
 interface StaffManagementTabProps {
   project: Project;
+  initialShowAssignModal?: boolean;
+  onModalClosed?: () => void;
 }
 
-export const StaffManagementTab: React.FC<StaffManagementTabProps> = ({ project }) => {
+export const StaffManagementTab: React.FC<StaffManagementTabProps> = ({
+  project,
+  initialShowAssignModal,
+  onModalClosed
+}) => {
   const {
     projectStaff,
     projectStaffHistory,
@@ -37,6 +43,17 @@ export const StaffManagementTab: React.FC<StaffManagementTabProps> = ({ project 
 
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (initialShowAssignModal) {
+      setShowAssignModal(true);
+    }
+  }, [initialShowAssignModal]);
+
+  const handleClose = () => {
+    setShowAssignModal(false);
+    onModalClosed?.();
+  };
 
   const [form, setForm] = useState({
     employeeId: employees[0]?.id || 1,
@@ -78,7 +95,7 @@ export const StaffManagementTab: React.FC<StaffManagementTabProps> = ({ project 
       status: 'Active'
     });
 
-    setShowAssignModal(false);
+    handleClose();
   };
 
   return (
@@ -153,13 +170,13 @@ export const StaffManagementTab: React.FC<StaffManagementTabProps> = ({ project 
             </Text>
           </Box>
           <Button size="sm" bg="#2563eb" color="white" onClick={handleOpenAssign}>
-            <Plus size={15} /> Assign Personnel to Site
+            <Plus size={15} /> Add Staff to Site
           </Button>
         </Flex>
 
         {currentStaff.length === 0 ? (
           <Box py={8} textAlign="center" color="#94a3b8" fontSize="xs">
-            No personnel assigned to this site yet. Click "Assign Personnel to Site" to mobilize engineers.
+            No personnel assigned to this site yet. Click "Add Staff to Site" to mobilize engineers.
           </Box>
         ) : (
           <Table.Root size="sm" striped>
@@ -325,7 +342,7 @@ export const StaffManagementTab: React.FC<StaffManagementTabProps> = ({ project 
                 </Box>
 
                 <Flex justify="flex-end" gap={2} mt={2}>
-                  <Button size="sm" variant="outline" onClick={() => setShowAssignModal(false)}>
+                  <Button size="sm" variant="outline" onClick={handleClose}>
                     Cancel
                   </Button>
                   <Button size="sm" bg="#2563eb" color="white" type="submit">

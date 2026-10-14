@@ -176,19 +176,19 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ onOpenDemo }) => {
                 bg: isScrolled ? '#f8fafc' : 'rgba(255, 255, 255, 0.12)',
                 borderColor: isScrolled ? '#94a3b8' : 'rgba(255, 255, 255, 0.45)',
               }}
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/login?mode=signin')}
               fontWeight="semibold"
               px={4}
               h="36px"
             >
-              Sign In
+              Sign in
             </Button>
             <Button
               size="sm"
               bg="#2563eb"
               color="white"
               _hover={{ bg: '#1d4ed8' }}
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/login?mode=signup')}
               fontWeight="semibold"
               px={4}
               h="36px"
