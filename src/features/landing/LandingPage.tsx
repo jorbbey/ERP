@@ -313,45 +313,50 @@ export const LandingPage: React.FC = () => {
           </Box>
 
           {/* Persona Switcher Tabs */}
-          <Flex 
-            justify="center" 
-            gap={2} 
-            flexWrap="wrap" 
-            mb={8} 
-            p={1.5} 
-            bg="#f8fafc" 
-            borderRadius="14px" 
-            border="1px solid #e2e8f0"
-            maxW="860px"
-            mx="auto"
-          >
-            {[
-              { id: 'gc', label: 'General Contractors', icon: Building2 },
-              { id: 'specialty', label: 'Specialty & Subcontractors', icon: HardHat },
-              { id: 'owners', label: 'Owners & Developers', icon: Layers },
-              { id: 'civil', label: 'Civil & Heavy Infrastructure', icon: Truck },
-            ].map(tab => {
-              const Icon = tab.icon;
-              const isSelected = selectedPersona === tab.id;
-              return (
-                <Button
-                  key={tab.id}
-                  size="sm"
-                  h="38px"
-                  px={4}
-                  borderRadius="10px"
-                  bg={isSelected ? '#2563eb' : 'transparent'}
-                  color={isSelected ? '#ffffff' : '#64748b'}
-                  _hover={{ bg: isSelected ? '#1d4ed8' : '#f1f5f9', color: isSelected ? '#ffffff' : '#0f172a' }}
-                  onClick={() => setSelectedPersona(tab.id as any)}
-                  fontWeight="semibold"
-                >
-                  <Icon size={16} />
-                  {tab.label}
-                </Button>
-              );
-            })}
-          </Flex>
+          <Box maxW="100%" mx="auto" mb={8} overflowX="auto" py={1} px={1} textAlign="center">
+            <Flex 
+              display="inline-flex"
+              justify="center" 
+              align="center"
+              gap={2} 
+              flexWrap="nowrap" 
+              p={1.5} 
+              bg="#f8fafc" 
+              borderRadius="14px" 
+              border="1px solid #e2e8f0"
+              mx="auto"
+              whiteSpace="nowrap"
+            >
+              {[
+                { id: 'gc', label: 'General Contractors', icon: Building2 },
+                { id: 'specialty', label: 'Specialty & Subcontractors', icon: HardHat },
+                { id: 'owners', label: 'Owners & Developers', icon: Layers },
+                { id: 'civil', label: 'Civil & Heavy Infrastructure', icon: Truck },
+              ].map(tab => {
+                const Icon = tab.icon;
+                const isSelected = selectedPersona === tab.id;
+                return (
+                  <Button
+                    key={tab.id}
+                    size="sm"
+                    h="38px"
+                    px={{ base: 3.5, md: 4 }}
+                    borderRadius="10px"
+                    bg={isSelected ? '#2563eb' : 'transparent'}
+                    color={isSelected ? '#ffffff' : '#64748b'}
+                    _hover={{ bg: isSelected ? '#1d4ed8' : '#f1f5f9', color: isSelected ? '#ffffff' : '#0f172a' }}
+                    onClick={() => setSelectedPersona(tab.id as any)}
+                    fontWeight="semibold"
+                    whiteSpace="nowrap"
+                    flexShrink={0}
+                  >
+                    <Icon size={16} />
+                    {tab.label}
+                  </Button>
+                );
+              })}
+            </Flex>
+          </Box>
 
           {/* Persona Content Box */}
           <Box maxW="1100px" mx="auto" bg="#f8fafc" p={{ base: 6, md: 8 }} borderRadius="18px" border="1px solid #e2e8f0">
