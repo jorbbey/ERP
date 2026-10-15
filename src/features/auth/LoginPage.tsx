@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import {
   Box,
   Flex,
@@ -24,6 +24,7 @@ import {
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { 
     activeCompany, 
@@ -34,15 +35,18 @@ export const LoginPage: React.FC = () => {
 
   // Mode: 'signin' or 'signup'
   const modeParam = searchParams.get('mode');
+  const isSignupPath = location.pathname === '/signup';
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>(() => {
-    return modeParam === 'signup' ? 'signup' : 'signin';
+    return isSignupPath || modeParam === 'signup' ? 'signup' : 'signin';
   });
 
   useEffect(() => {
-    if (modeParam === 'signup' || modeParam === 'signin') {
-      setAuthMode(modeParam);
+    if (isSignupPath || modeParam === 'signup') {
+      setAuthMode('signup');
+    } else if (modeParam === 'signin') {
+      setAuthMode('signin');
     }
-  }, [modeParam]);
+  }, [isSignupPath, modeParam]);
 
   // Form fields
   const [email, setEmail] = useState('');
@@ -331,7 +335,7 @@ export const LoginPage: React.FC = () => {
                 mt={2}
                 disabled={loading}
               >
-                {loading ? 'Signing in...' : 'Sign in'}
+                Sign in
               </Button>
 
               <Text fontSize="xs" color="#64748b" textAlign="center" mt={2}>
@@ -434,7 +438,7 @@ export const LoginPage: React.FC = () => {
                 mt={2}
                 disabled={loading}
               >
-                {loading ? 'Signing up...' : 'Sign up'}
+                Sign up
               </Button>
 
               <Text fontSize="xs" color="#64748b" textAlign="center" mt={2}>

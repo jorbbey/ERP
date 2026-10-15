@@ -57,8 +57,14 @@ import {
   MaintenanceRecord,
   FuelConsumption,
   AuditLog,
-  SystemLog
+  SystemLog,
+  SupplierInvoice,
+  AuthSessionLog,
+  CompanyLeavePolicy
 } from '../types';
+import { initialAuthLogs } from './authAuditService';
+import { initialSupplierInvoices } from './supplierInvoiceService';
+import { defaultCompanyLeavePolicy } from './leaveService';
 
 import {
   initialCompanies,
@@ -339,4 +345,13 @@ export const erpStorage = {
 
   getSystemLogs: () => getStored<SystemLog[]>('system_logs', initialSystemLogs),
   saveSystemLogs: (s: SystemLog[]) => setStored('system_logs', s),
+
+  getAuthSessionLogs: () => getStored<AuthSessionLog[]>('auth_audit_logs', initialAuthLogs),
+  saveAuthSessionLogs: (l: AuthSessionLog[]) => setStored('auth_audit_logs', l),
+
+  getSupplierInvoices: () => getStored<SupplierInvoice[]>('supplier_invoices', initialSupplierInvoices),
+  saveSupplierInvoices: (i: SupplierInvoice[]) => setStored('supplier_invoices', i),
+
+  getCompanyLeavePolicy: () => getStored<CompanyLeavePolicy>('company_leave_policy', defaultCompanyLeavePolicy),
+  saveCompanyLeavePolicy: (p: CompanyLeavePolicy) => setStored('company_leave_policy', p),
 };

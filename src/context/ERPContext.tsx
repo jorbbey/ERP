@@ -59,7 +59,10 @@ import {
   MaintenanceRecord,
   FuelConsumption,
   AuditLog,
-  SystemLog
+  SystemLog,
+  SupplierInvoice,
+  AuthSessionLog,
+  CompanyLeavePolicy
 } from '../types';
 import { erpStorage } from '../services/erpStorage';
 import { inventoryService } from '../services/inventoryService';
@@ -80,6 +83,8 @@ import { payrollService } from '../services/payrollService';
 import { supabaseService } from '../services/supabaseService';
 import { getSupabaseConfig } from '../services/supabaseClient';
 import { supabaseAuth } from '../services/supabaseAuth';
+import { authAuditService } from '../services/authAuditService';
+import { supplierInvoiceService } from '../services/supplierInvoiceService';
 
 interface ERPContextType {
   // Multi-Company
@@ -386,6 +391,23 @@ interface ERPContextType {
   systemLogs: SystemLog[];
   addAuditLog: (l: Omit<AuditLog, 'id' | 'createdAt'>) => void;
   addSystemLog: (s: Omit<SystemLog, 'id' | 'createdAt'>) => void;
+
+  // Supplier Invoices
+  supplierInvoices: SupplierInvoice[];
+  addSupplierInvoice: (data: Omit<SupplierInvoice, 'id' | 'createdAt'>) => { invoice: SupplierInvoice; isDuplicate: boolean };
+  updateSupplierInvoice: (id: number, data: Partial<SupplierInvoice>) => void;
+
+  // Individual Payroll Entry
+  createIndividualPayrollEntry: (params: Parameters<typeof payrollService.createIndividualPayrollEntry>[0]) => ReturnType<typeof payrollService.createIndividualPayrollEntry>;
+
+  // Company Leave Policy & Custom Entitlement
+  companyLeavePolicy: CompanyLeavePolicy;
+  updateCompanyLeavePolicy: (policy: Partial<CompanyLeavePolicy>) => void;
+  setEmployeeCustomEntitlement: (employeeId: number, customDays: number, notes?: string) => void;
+
+  // Authentication & Session Integrity Logs
+  authLogs: AuthSessionLog[];
+  recordAuthEvent: (event: Parameters<typeof authAuditService.recordAuthEvent>[0]) => AuthSessionLog;
 }
 
 const ERPContext = createContext<ERPContextType | undefined>(undefined);
@@ -472,6 +494,11 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Audit Trail & System Logs State
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(() => erpStorage.getAuditLogs());
   const [systemLogs, setSystemLogs] = useState<SystemLog[]>(() => erpStorage.getSystemLogs());
+  const [authLogs, setAuthLogs] = useState<AuthSessionLog[]>(() => authAuditService.getAuthLogs());
+
+  // Supplier Invoices & Leave Policy
+  const [supplierInvoices, setSupplierInvoices] = useState<SupplierInvoice[]>(() => supplierInvoiceService.getInvoices());
+  const [companyLeavePolicy, setCompanyLeavePolicyState] = useState<CompanyLeavePolicy>(() => leaveService.getCompanyLeavePolicy(activeCompanyId));
 
   const activeCompany = companies.find(c => c.id === activeCompanyId) || companies[0];
 
@@ -550,6 +577,12 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, []);
 
+  const recordAuthEvent = (event: Parameters<typeof authAuditService.recordAuthEvent>[0]) => {
+    const newLog = authAuditService.recordAuthEvent(event);
+    setAuthLogs(prev => [newLog, ...prev]);
+    return newLog;
+  };
+
   const signInWithSupabase = async (email: string, password: string) => {
     const res = await supabaseAuth.signIn(email, password);
     if (res.success && res.session) {
@@ -557,6 +590,22 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setSupabaseUser(res.user);
       const name = res.user?.user_metadata?.full_name || res.user?.user_metadata?.name || email.split('@')[0];
       if (name) setCurrentUserName(name);
+      recordAuthEvent({
+        userId: res.user?.id ? (Number(res.user.id) || 1) : 1,
+        userEmail: email,
+        userName: name || email.split('@')[0],
+        userRole: activeRole,
+        eventType: 'successful_login',
+        notes: 'Corporate email credentials authenticated'
+      });
+    } else {
+      recordAuthEvent({
+        userEmail: email,
+        userRole: activeRole,
+        eventType: 'failed_login',
+        failureReason: res.error || 'Password rejected by authentication provider',
+        notes: 'Unsuccessful login attempt'
+      });
     }
     return res;
   };
@@ -567,14 +616,96 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setSupabaseSession(res.session);
       setSupabaseUser(res.user);
       if (fullName) setCurrentUserName(fullName);
+      recordAuthEvent({
+        userId: res.user?.id ? (Number(res.user.id) || 1) : 1,
+        userEmail: email,
+        userName: fullName || email.split('@')[0],
+        userRole: activeRole,
+        eventType: 'successful_login',
+        notes: 'New account registered and session authenticated'
+      });
     }
     return res;
   };
 
   const signOutWithSupabase = async () => {
+    recordAuthEvent({
+      userEmail: supabaseUser?.email,
+      userName: currentUserName,
+      userRole: activeRole,
+      eventType: 'logout',
+      notes: 'Explicit user-initiated sign out'
+    });
     await supabaseAuth.signOut();
     setSupabaseSession(null);
     setSupabaseUser(null);
+  };
+
+  // Supplier Invoices Handlers
+  const addSupplierInvoice = (data: Omit<SupplierInvoice, 'id' | 'createdAt'>) => {
+    const res = supplierInvoiceService.addInvoice(data);
+    setSupplierInvoices(supplierInvoiceService.getInvoices());
+
+    // Mirror to Central Document Vault if attachment metadata is present
+    if (data.fileName || data.fileData) {
+      const docPayload: Omit<ProjectDocument, 'id'> = {
+        title: `Supplier Invoice #${data.invoiceNumber} — ${data.supplierName}`,
+        fileName: data.fileName || `${data.invoiceNumber.toLowerCase().replace(/[^a-z0-9]/g, '_')}.pdf`,
+        category: 'Financial / Invoicing',
+        uploadDate: data.uploadDate || new Date().toISOString().split('T')[0],
+        size: data.fileSize || '1.2 MB',
+        fileType: data.fileType || 'application/pdf',
+        fileData: data.fileData,
+        uploadedBy: data.uploadedBy || currentUserName,
+        sourceModule: 'Procurement',
+        relatedType: 'PurchaseOrder',
+        relatedId: data.purchaseOrderId,
+        relatedName: data.poNumber || `Supplier: ${data.supplierName}`,
+        referenceNumber: data.invoiceNumber,
+        confidentiality: 'Confidential',
+        description: `Preserved procurement invoice for PO ${data.poNumber || 'N/A'}. Amount: ${data.currency} ${data.amount.toLocaleString()}. Notes: ${data.notes || 'None'}`
+      };
+      const newDoc: ProjectDocument = { ...docPayload, id: Date.now() };
+      setDocuments(prev => {
+        const updated = [newDoc, ...prev];
+        erpStorage.saveDocuments(updated);
+        return updated;
+      });
+    }
+
+    return res;
+  };
+
+  const updateSupplierInvoice = (id: number, data: Partial<SupplierInvoice>) => {
+    const updated = supplierInvoiceService.updateInvoice(id, data);
+    if (updated) {
+      setSupplierInvoices(supplierInvoiceService.getInvoices());
+    }
+  };
+
+  // Individual Direct Payroll Entry Handler
+  const createIndividualPayrollEntry = (params: Parameters<typeof payrollService.createIndividualPayrollEntry>[0]) => {
+    const res = payrollService.createIndividualPayrollEntry({
+      ...params,
+      createdBy: params.createdBy || currentUserName
+    });
+    if (res.success) {
+      setPayrollRuns(erpStorage.getPayrollRuns());
+      setPayslips(erpStorage.getPayslips());
+    }
+    return res;
+  };
+
+  // Company Leave Policy & Custom Entitlement Handlers
+  const updateCompanyLeavePolicy = (policy: Partial<CompanyLeavePolicy>) => {
+    const updated = leaveService.updateCompanyLeavePolicy(policy, activeCompanyId);
+    setCompanyLeavePolicyState(updated);
+    setLeaveBalances(erpStorage.getLeaveBalances());
+  };
+
+  const setEmployeeCustomEntitlement = (employeeId: number, customDays: number, notes?: string) => {
+    leaveService.setEmployeeCustomEntitlement(employeeId, customDays, notes, activeCompanyId);
+    setLeaveBalances(erpStorage.getLeaveBalances());
   };
 
   // Remote Hydration from Supabase when credentials are configured
@@ -1967,7 +2098,16 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         authLoading,
         signInWithSupabase,
         signUpWithSupabase,
-        signOutWithSupabase
+        signOutWithSupabase,
+        supplierInvoices,
+        addSupplierInvoice,
+        updateSupplierInvoice,
+        createIndividualPayrollEntry,
+        companyLeavePolicy,
+        updateCompanyLeavePolicy,
+        setEmployeeCustomEntitlement,
+        authLogs,
+        recordAuthEvent
       }}
     >
       {children}

@@ -695,11 +695,7 @@ export const AppLayout: React.FC = () => {
                 </Text>
               </Flex>
 
-              <Flex align="center" gap={2}>
-                <Badge size="xs" colorPalette="gray" variant="outline">
-                  Live Synced
-                </Badge>
-              </Flex>
+
             </Flex>
 
             {/* Active Route Content */}

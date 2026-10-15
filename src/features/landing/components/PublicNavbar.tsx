@@ -291,19 +291,33 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ onOpenDemo }) => {
                   h="38px"
                   onClick={() => {
                     setMobileMenuOpen(false);
-                    navigate('/dashboard');
+                    navigate('/login?mode=signup');
                   }}
                 >
-                  Launch Live Software <ArrowRight size={14} />
+                  Launch Software <ArrowRight size={14} />
+                </Button>
+                <Button
+                  size="sm"
+                  w="100%"
+                  variant="outline"
+                  borderColor={isScrolled ? '#cbd5e1' : 'rgba(255, 255, 255, 0.25)'}
+                  color={isScrolled ? '#0f172a' : '#ffffff'}
+                  mb={2}
+                  h="38px"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    navigate('/login?mode=signin');
+                  }}
+                >
+                  Sign in
                 </Button>
                 {onOpenDemo && (
                   <Button
                     size="sm"
                     w="100%"
-                    variant="outline"
-                    borderColor={isScrolled ? '#cbd5e1' : 'rgba(255, 255, 255, 0.25)'}
-                    color={isScrolled ? '#334155' : '#ffffff'}
-                    h="38px"
+                    variant="ghost"
+                    color={isScrolled ? '#64748b' : '#94a3b8'}
+                    h="36px"
                     onClick={() => {
                       setMobileMenuOpen(false);
                       onOpenDemo();

@@ -1,7 +1,142 @@
-import { LeaveRequest, LeaveBalance } from '../types';
+import { LeaveRequest, LeaveBalance, CompanyLeavePolicy } from '../types';
 import { erpStorage } from './erpStorage';
 
+const LEAVE_POLICY_KEY = 'construction_erp_company_leave_policy';
+
+export const defaultCompanyLeavePolicy: CompanyLeavePolicy = {
+  companyId: 1,
+  leaveYear: 2026,
+  defaultAnnualDays: 30, // Configurable company standard (e.g. 30 calendar days)
+  leaveUnit: 'calendar_days', // 'calendar_days' | 'working_days'
+  allowUnpaidOverflow: true,
+  requireApprovalForUnpaid: true
+};
+
 export const leaveService = {
+  getCompanyLeavePolicy: (companyId = 1): CompanyLeavePolicy => {
+    try {
+      const stored = localStorage.getItem(`${LEAVE_POLICY_KEY}_${companyId}`);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.warn('Failed to parse leave policy:', e);
+    }
+    return defaultCompanyLeavePolicy;
+  },
+
+  updateCompanyLeavePolicy: (
+    policy: Partial<CompanyLeavePolicy>,
+    companyId = 1
+  ): CompanyLeavePolicy => {
+    const current = leaveService.getCompanyLeavePolicy(companyId);
+    const updated: CompanyLeavePolicy = { ...current, ...policy, companyId };
+    try {
+      localStorage.setItem(`${LEAVE_POLICY_KEY}_${companyId}`, JSON.stringify(updated));
+    } catch (e) {
+      console.error('Failed to update leave policy:', e);
+    }
+    return updated;
+  },
+
+  calculateLeaveDays: (
+    startDate: string,
+    endDate: string,
+    unit: 'calendar_days' | 'working_days' = 'calendar_days'
+  ): number => {
+    if (!startDate || !endDate) return 1;
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) return 1;
+
+    if (unit === 'calendar_days') {
+      const diffTime = end.getTime() - start.getTime();
+      return Math.max(1, Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1);
+    }
+
+    // Working days calculation (Monday to Friday, skipping Sat/Sun)
+    let workingDays = 0;
+    const cur = new Date(start);
+    while (cur <= end) {
+      const dayOfWeek = cur.getDay();
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        workingDays++;
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+    return Math.max(1, workingDays);
+  },
+
+  calculateLeaveBreakdown: (
+    employeeId: number,
+    startDate: string,
+    endDate: string,
+    leaveType: LeaveRequest['leaveType'],
+    companyId = 1
+  ): {
+    totalDays: number;
+    paidDays: number;
+    unpaidDays: number;
+    isOverflow: boolean;
+    remainingPaidBefore: number;
+    remainingPaidAfter: number;
+    policyUnit: 'calendar_days' | 'working_days';
+  } => {
+    const policy = leaveService.getCompanyLeavePolicy(companyId);
+    const totalDays = leaveService.calculateLeaveDays(startDate, endDate, policy.leaveUnit);
+    const balance = leaveService.getLeaveBalance(employeeId, companyId);
+    const remainingPaidBefore = balance.annualRemaining;
+
+    if (leaveType === 'Unpaid Leave') {
+      return {
+        totalDays,
+        paidDays: 0,
+        unpaidDays: totalDays,
+        isOverflow: true,
+        remainingPaidBefore,
+        remainingPaidAfter: remainingPaidBefore,
+        policyUnit: policy.leaveUnit
+      };
+    }
+
+    if (leaveType === 'Annual Leave') {
+      if (totalDays <= remainingPaidBefore) {
+        return {
+          totalDays,
+          paidDays: totalDays,
+          unpaidDays: 0,
+          isOverflow: false,
+          remainingPaidBefore,
+          remainingPaidAfter: remainingPaidBefore - totalDays,
+          policyUnit: policy.leaveUnit
+        };
+      } else {
+        const paidDays = Math.max(0, remainingPaidBefore);
+        const unpaidDays = totalDays - paidDays;
+        return {
+          totalDays,
+          paidDays,
+          unpaidDays,
+          isOverflow: true,
+          remainingPaidBefore,
+          remainingPaidAfter: 0,
+          policyUnit: policy.leaveUnit
+        };
+      }
+    }
+
+    // Other paid categories (Sick, Casual, etc.)
+    return {
+      totalDays,
+      paidDays: totalDays,
+      unpaidDays: 0,
+      isOverflow: false,
+      remainingPaidBefore,
+      remainingPaidAfter: remainingPaidBefore,
+      policyUnit: policy.leaveUnit
+    };
+  },
+
   getLeaveRequests: (filters?: {
     employeeId?: number;
     department?: string;
@@ -47,16 +182,19 @@ export const leaveService = {
     startDate: string;
     endDate: string;
     reason: string;
+    companyId?: number;
   }): LeaveRequest => {
     const list = erpStorage.getLeaves();
     const employees = erpStorage.getEmployees();
     const emp = employees.find(e => e.id === data.employeeId);
 
-    // Calculate days difference
-    const start = new Date(data.startDate);
-    const end = new Date(data.endDate);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    const daysCount = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
+    const breakdown = leaveService.calculateLeaveBreakdown(
+      data.employeeId,
+      data.startDate,
+      data.endDate,
+      data.leaveType,
+      data.companyId || 1
+    );
 
     const newId = list.length > 0 ? Math.max(...list.map(l => l.id)) + 1 : 1;
     const newRequest: LeaveRequest = {
@@ -68,7 +206,10 @@ export const leaveService = {
       leaveType: data.leaveType,
       startDate: data.startDate,
       endDate: data.endDate,
-      daysCount,
+      daysCount: breakdown.totalDays,
+      paidDays: breakdown.paidDays,
+      unpaidDays: breakdown.unpaidDays,
+      leaveYear: 2026,
       reason: data.reason,
       status: 'Pending',
       createdAt: new Date().toISOString().split('T')[0]
@@ -98,39 +239,8 @@ export const leaveService = {
 
     erpStorage.saveLeaves(list);
 
-    // If approved, deduct from leave balance
-    if (status === 'Approved') {
-      const balances = erpStorage.getLeaveBalances();
-      let empBalance = balances.find(b => b.employeeId === req.employeeId);
-      if (!empBalance) {
-        empBalance = {
-          employeeId: req.employeeId,
-          annualAllocated: 21,
-          annualUsed: 0,
-          annualRemaining: 21,
-          sickAllocated: 12,
-          sickUsed: 0,
-          sickRemaining: 12,
-          casualAllocated: 5,
-          casualUsed: 0,
-          casualRemaining: 5
-        };
-        balances.push(empBalance);
-      }
-
-      if (req.leaveType === 'Annual Leave') {
-        empBalance.annualUsed += req.daysCount;
-        empBalance.annualRemaining = Math.max(0, empBalance.annualAllocated - empBalance.annualUsed);
-      } else if (req.leaveType === 'Sick Leave') {
-        empBalance.sickUsed += req.daysCount;
-        empBalance.sickRemaining = Math.max(0, empBalance.sickAllocated - empBalance.sickUsed);
-      } else if (req.leaveType === 'Casual') {
-        empBalance.casualUsed += req.daysCount;
-        empBalance.casualRemaining = Math.max(0, empBalance.casualAllocated - empBalance.casualUsed);
-      }
-
-      erpStorage.saveLeaveBalances(balances);
-    }
+    // Synchronize Leave Balance based authoritatively on Approved requests
+    leaveService.recalculateEmployeeBalance(req.employeeId);
 
     return req;
   },
@@ -142,19 +252,120 @@ export const leaveService = {
 
     req.status = 'Cancelled';
     erpStorage.saveLeaves(list);
+    leaveService.recalculateEmployeeBalance(req.employeeId);
     return true;
   },
 
-  getLeaveBalance: (employeeId: number): LeaveBalance => {
+  setEmployeeCustomEntitlement: (
+    employeeId: number,
+    customDays: number,
+    notes?: string,
+    companyId = 1
+  ): LeaveBalance => {
+    const balances = erpStorage.getLeaveBalances();
+    let empBal = balances.find(b => b.employeeId === employeeId);
+    if (!empBal) {
+      empBal = leaveService.getLeaveBalance(employeeId, companyId);
+      balances.push(empBal);
+    }
+
+    empBal.isCustomEntitlement = true;
+    empBal.customEntitlementDays = customDays;
+    empBal.annualAllocated = customDays;
+    empBal.entitlementNotes = notes;
+
+    erpStorage.saveLeaveBalances(balances);
+    return leaveService.recalculateEmployeeBalance(employeeId, companyId);
+  },
+
+  recalculateEmployeeBalance: (employeeId: number, companyId = 1): LeaveBalance => {
+    const balances = erpStorage.getLeaveBalances();
+    const policy = leaveService.getCompanyLeavePolicy(companyId);
+    const allLeaves = erpStorage.getLeaves().filter(l => l.employeeId === employeeId);
+
+    let empBalance = balances.find(b => b.employeeId === employeeId);
+    if (!empBalance) {
+      empBalance = {
+        employeeId,
+        leaveYear: policy.leaveYear,
+        leaveUnit: policy.leaveUnit,
+        annualAllocated: policy.defaultAnnualDays,
+        annualUsed: 0,
+        annualRemaining: policy.defaultAnnualDays,
+        annualApprovedPaidTaken: 0,
+        annualPendingRequested: 0,
+        unpaidLeaveDays: 0,
+        sickAllocated: 12,
+        sickUsed: 0,
+        sickRemaining: 12,
+        casualAllocated: 5,
+        casualUsed: 0,
+        casualRemaining: 5
+      };
+      balances.push(empBalance);
+    }
+
+    // Determine configured allocated days (custom exception or default policy)
+    const annualAllocated = empBalance.isCustomEntitlement && empBalance.customEntitlementDays !== undefined
+      ? empBalance.customEntitlementDays
+      : policy.defaultAnnualDays;
+
+    empBalance.annualAllocated = annualAllocated;
+    empBalance.leaveYear = policy.leaveYear;
+    empBalance.leaveUnit = policy.leaveUnit;
+
+    // Tally APPROVED requests only for reducing entitlement
+    const approvedAnnual = allLeaves.filter(
+      l => l.status === 'Approved' && l.leaveType === 'Annual Leave'
+    );
+    const approvedPaidTaken = approvedAnnual.reduce((sum, l) => sum + (l.paidDays !== undefined ? l.paidDays : l.daysCount), 0);
+    const approvedUnpaidDays = allLeaves
+      .filter(l => l.status === 'Approved')
+      .reduce((sum, l) => sum + (l.unpaidDays || (l.leaveType === 'Unpaid Leave' ? l.daysCount : 0)), 0);
+
+    // Tally PENDING requests (tracking them without deducting from official entitlement)
+    const pendingAnnual = allLeaves.filter(
+      l => l.status === 'Pending' && (l.leaveType === 'Annual Leave' || l.leaveType === 'Unpaid Leave')
+    );
+    const pendingRequested = pendingAnnual.reduce((sum, l) => sum + l.daysCount, 0);
+
+    empBalance.annualApprovedPaidTaken = approvedPaidTaken;
+    empBalance.annualUsed = approvedPaidTaken;
+    empBalance.annualRemaining = Math.max(0, annualAllocated - approvedPaidTaken);
+    empBalance.annualPendingRequested = pendingRequested;
+    empBalance.unpaidLeaveDays = approvedUnpaidDays;
+
+    // Sick and Casual tallies
+    const approvedSick = allLeaves.filter(l => l.status === 'Approved' && l.leaveType === 'Sick Leave');
+    empBalance.sickUsed = approvedSick.reduce((sum, l) => sum + l.daysCount, 0);
+    empBalance.sickRemaining = Math.max(0, empBalance.sickAllocated - empBalance.sickUsed);
+
+    const approvedCasual = allLeaves.filter(l => l.status === 'Approved' && l.leaveType === 'Casual');
+    empBalance.casualUsed = approvedCasual.reduce((sum, l) => sum + l.daysCount, 0);
+    empBalance.casualRemaining = Math.max(0, empBalance.casualAllocated - empBalance.casualUsed);
+
+    erpStorage.saveLeaveBalances(balances);
+    return empBalance;
+  },
+
+  getLeaveBalance: (employeeId: number, companyId = 1): LeaveBalance => {
     const balances = erpStorage.getLeaveBalances();
     const found = balances.find(b => b.employeeId === employeeId);
-    if (found) return found;
+    if (found) {
+      return leaveService.recalculateEmployeeBalance(employeeId, companyId);
+    }
 
-    return {
+    const policy = leaveService.getCompanyLeavePolicy(companyId);
+    const newBal: LeaveBalance = {
       employeeId,
-      annualAllocated: 21,
+      leaveYear: policy.leaveYear,
+      leaveUnit: policy.leaveUnit,
+      annualAllocated: policy.defaultAnnualDays,
       annualUsed: 0,
-      annualRemaining: 21,
+      annualRemaining: policy.defaultAnnualDays,
+      annualApprovedPaidTaken: 0,
+      annualPendingRequested: 0,
+      unpaidLeaveDays: 0,
       sickAllocated: 12,
       sickUsed: 0,
       sickRemaining: 12,
@@ -162,5 +373,8 @@ export const leaveService = {
       casualUsed: 0,
       casualRemaining: 5
     };
+    balances.push(newBal);
+    erpStorage.saveLeaveBalances(balances);
+    return leaveService.recalculateEmployeeBalance(employeeId, companyId);
   }
 };

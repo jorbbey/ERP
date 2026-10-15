@@ -208,5 +208,152 @@ export const payrollService = {
     } catch (err: any) {
       return { success: false, error: err?.message || 'Failed to parse CSV file.' };
     }
+  },
+
+  calculateEmployeePay: (params: {
+    employeeId: number;
+    monthYear: string;
+    customBasic?: number;
+    customAllowances?: number;
+  }) => {
+    const employees = erpStorage.getEmployees();
+    const emp = employees.find(e => e.id === params.employeeId);
+    if (!emp) return null;
+
+    const loans = erpStorage.getEmployeeLoans();
+    const advances = erpStorage.getSalaryAdvances();
+
+    const basic = params.customBasic !== undefined ? params.customBasic : (emp.salary || 4000);
+    const allowances = params.customAllowances !== undefined ? params.customAllowances : Math.round(basic * 0.12);
+    const gross = basic + allowances;
+
+    const tax = Math.round(gross * 0.18);
+    const pension = Math.round(basic * 0.08);
+
+    let loanDeduction = 0;
+    const activeLoan = loans.find(l => l.employeeId === emp.id && l.status === 'Active');
+    if (activeLoan) {
+      const remaining = activeLoan.totalAmount - activeLoan.repaidAmount;
+      loanDeduction = Math.min(activeLoan.monthlyDeduction, remaining);
+    }
+
+    const activeAdvance = advances.find(
+      a => a.employeeId === emp.id && a.status === 'Approved' && a.deductionMonth.toLowerCase() === params.monthYear.toLowerCase()
+    );
+    const advanceDeduction = activeAdvance ? activeAdvance.amount : 0;
+
+    const statutoryDeductions = tax + pension;
+    const otherDeductions = loanDeduction + advanceDeduction;
+    const totalDeductions = statutoryDeductions + otherDeductions;
+    const netPay = gross - totalDeductions;
+
+    return {
+      employee: emp,
+      basicSalary: basic,
+      allowances,
+      grossPay: gross,
+      tax,
+      pension,
+      loanDeduction: otherDeductions,
+      statutoryDeductions,
+      totalDeductions,
+      netPay
+    };
+  },
+
+  createIndividualPayrollEntry: (params: {
+    employeeId: number;
+    monthYear: string;
+    basicSalary?: number;
+    allowances?: number;
+    createdBy?: string;
+    notes?: string;
+  }): { success: boolean; payslip?: Payslip; run?: PayrollRun; error?: string } => {
+    const employees = erpStorage.getEmployees();
+    const emp = employees.find(e => e.id === params.employeeId);
+    if (!emp) {
+      return { success: false, error: 'Employee not found.' };
+    }
+
+    const allPayslips = erpStorage.getPayslips();
+    const runs = erpStorage.getPayrollRuns();
+
+    // Check for duplicate entry for same employee in the same period
+    const existingSlip = allPayslips.find(
+      p => p.employeeId === emp.id &&
+           runs.find(r => r.id === p.payrollRunId)?.monthYear.toLowerCase() === params.monthYear.toLowerCase()
+    );
+
+    if (existingSlip) {
+      return {
+        success: false,
+        error: `A payroll entry for ${emp.name} (${emp.code}) already exists in period ${params.monthYear}. Duplicate pay entries are prohibited.`
+      };
+    }
+
+    const calc = payrollService.calculateEmployeePay({
+      employeeId: emp.id,
+      monthYear: params.monthYear,
+      customBasic: params.basicSalary,
+      customAllowances: params.allowances
+    });
+
+    if (!calc) {
+      return { success: false, error: 'Failed to calculate payroll deductions.' };
+    }
+
+    // Find or create payroll run for this monthYear
+    let run = runs.find(r => r.monthYear.toLowerCase() === params.monthYear.toLowerCase());
+    let runId: number;
+
+    if (!run) {
+      runId = runs.length > 0 ? Math.max(...runs.map(r => r.id)) + 1 : 1;
+      run = {
+        id: runId,
+        monthYear: params.monthYear,
+        totalGross: calc.grossPay,
+        totalDeductions: calc.totalDeductions,
+        totalNet: calc.netPay,
+        employeeCount: 1,
+        processedDate: new Date().toISOString().split('T')[0],
+        status: 'Draft'
+      };
+      runs.unshift(run);
+    } else {
+      runId = run.id;
+      run.totalGross += calc.grossPay;
+      run.totalDeductions += calc.totalDeductions;
+      run.totalNet += calc.netPay;
+      run.employeeCount += 1;
+    }
+
+    const nextSlipId = allPayslips.length > 0 ? Math.max(...allPayslips.map(s => s.id)) + 1 : 1;
+    const newPayslip: Payslip = {
+      id: nextSlipId,
+      payrollRunId: runId,
+      employeeId: emp.id,
+      employeeName: emp.name,
+      employeeCode: emp.code,
+      department: emp.department,
+      basicSalary: calc.basicSalary,
+      allowances: calc.allowances,
+      grossPay: calc.grossPay,
+      tax: calc.tax,
+      pension: calc.pension,
+      loanDeduction: calc.loanDeduction,
+      totalDeductions: calc.totalDeductions,
+      netPay: calc.netPay,
+      sentToPortal: false
+    };
+
+    allPayslips.unshift(newPayslip);
+    erpStorage.savePayrollRuns(runs);
+    erpStorage.savePayslips(allPayslips);
+
+    return {
+      success: true,
+      payslip: newPayslip,
+      run
+    };
   }
 };

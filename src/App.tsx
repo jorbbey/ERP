@@ -47,6 +47,7 @@ export default function App() {
             <Route path="/security" element={<SecurityPage />} />
             <Route path="/preview" element={<PreviewPublicPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<LoginPage />} />
             <Route element={<AppLayout />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/assistant" element={<AIAssistantPage />} />
@@ -67,8 +68,8 @@ export default function App() {
               <Route path="/workflow" element={<WorkflowPage />} />
               <Route path="/portals" element={<PortalsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Route>
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
       </ERPProvider>

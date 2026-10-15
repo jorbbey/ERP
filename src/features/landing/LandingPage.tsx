@@ -142,9 +142,9 @@ export const LandingPage: React.FC = () => {
                   boxShadow="0 4px 16px rgba(37, 99, 235, 0.35)"
                   _hover={{ bg: '#1d4ed8', transform: 'translateY(-1px)' }}
                   transition="all 0.15s ease"
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => navigate('/login?mode=signup')}
                 >
-                  Explore ERP System <ArrowRight size={16} />
+                  Launch Software <ArrowRight size={16} />
                 </Button>
                 <Button
                   size="lg"
@@ -152,12 +152,25 @@ export const LandingPage: React.FC = () => {
                   borderColor="#475569"
                   color="#ffffff"
                   bg="rgba(15, 23, 42, 0.6)"
-                  px={7}
+                  px={6}
                   h="50px"
                   fontSize="sm"
                   fontWeight="bold"
                   borderRadius="12px"
                   _hover={{ bg: '#1e293b', borderColor: '#94a3b8' }}
+                  onClick={() => navigate('/login?mode=signin')}
+                >
+                  Sign in
+                </Button>
+                <Button
+                  size="lg"
+                  variant="ghost"
+                  color="#cbd5e1"
+                  px={5}
+                  h="50px"
+                  fontSize="sm"
+                  fontWeight="semibold"
+                  _hover={{ color: '#ffffff', bg: 'rgba(255, 255, 255, 0.08)' }}
                   onClick={() => setShowDemoModal(true)}
                 >
                   Request a Demo
@@ -604,12 +617,12 @@ export const LandingPage: React.FC = () => {
                 bg="#2563eb"
                 color="white"
                 _hover={{ bg: '#1d4ed8' }}
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate('/login?mode=signup')}
                 fontWeight="bold"
                 px={6}
                 h="46px"
               >
-                Launch Live Software <ArrowRight size={16} />
+                Launch Software <ArrowRight size={16} />
               </Button>
               <Button
                 size="lg"
@@ -617,9 +630,21 @@ export const LandingPage: React.FC = () => {
                 borderColor="#334155"
                 color="#ffffff"
                 _hover={{ bg: '#1e293b' }}
-                onClick={() => setShowDemoModal(true)}
+                onClick={() => navigate('/login?mode=signin')}
                 fontWeight="semibold"
                 px={6}
+                h="46px"
+              >
+                Sign in
+              </Button>
+              <Button
+                size="lg"
+                variant="ghost"
+                color="#94a3b8"
+                _hover={{ color: '#ffffff', bg: 'rgba(255, 255, 255, 0.08)' }}
+                onClick={() => setShowDemoModal(true)}
+                fontWeight="semibold"
+                px={5}
                 h="46px"
               >
                 Request Enterprise Demo

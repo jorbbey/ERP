@@ -446,12 +446,25 @@ export const ModulesPage: React.FC = () => {
                 bg="#2563eb"
                 color="white"
                 _hover={{ bg: '#1d4ed8' }}
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate('/login?mode=signup')}
                 fontWeight="semibold"
                 px={5}
                 h="40px"
               >
-                Launch Enterprise Workspace <ArrowRight size={15} />
+                Launch Software <ArrowRight size={15} />
+              </Button>
+              <Button
+                size="md"
+                variant="outline"
+                borderColor="#475569"
+                color="#ffffff"
+                _hover={{ bg: '#1e293b' }}
+                onClick={() => navigate('/login?mode=signin')}
+                fontWeight="semibold"
+                px={5}
+                h="40px"
+              >
+                Sign in
               </Button>
             </Flex>
           </Flex>

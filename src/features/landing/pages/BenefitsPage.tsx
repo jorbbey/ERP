@@ -127,20 +127,32 @@ export const BenefitsPage: React.FC = () => {
                 bg="#2563eb"
                 color="white"
                 _hover={{ bg: '#1d4ed8' }}
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate('/login?mode=signup')}
                 fontWeight="semibold"
                 px={6}
                 h="44px"
                 boxShadow="0 2px 10px rgba(37, 99, 235, 0.35)"
               >
-                Launch Live Software <ArrowRight size={16} />
+                Launch Software <ArrowRight size={16} />
               </Button>
               <Button
                 size="md"
                 variant="outline"
                 borderColor="#475569"
                 color="#ffffff"
-                _hover={{ bg: '#1e293b', borderColor: '#94a3b8' }}
+                _hover={{ bg: '#1e293b' }}
+                onClick={() => navigate('/login?mode=signin')}
+                fontWeight="semibold"
+                px={6}
+                h="44px"
+              >
+                Sign in
+              </Button>
+              <Button
+                size="md"
+                variant="ghost"
+                color="#cbd5e1"
+                _hover={{ color: '#ffffff', bg: 'rgba(255, 255, 255, 0.08)' }}
                 onClick={() => setShowDemoModal(true)}
                 fontWeight="semibold"
                 px={6}

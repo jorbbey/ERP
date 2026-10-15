@@ -236,7 +236,7 @@ export const DashboardPage: React.FC = () => {
           </Text>
           <Flex align="center" justify="space-between" mt={1}>
             <Text fontSize="11px" color="#64748b">Plant Assets</Text>
-            <Badge size="xs" colorPalette="blue" variant="subtle">94% Active</Badge>
+            <Text fontSize="11px" color="#16a34a" fontWeight="medium">94% Active</Text>
           </Flex>
         </Card.Root>
 
@@ -255,7 +255,7 @@ export const DashboardPage: React.FC = () => {
           </Text>
           <Flex align="center" justify="space-between" mt={1}>
             <Text fontSize="11px" color="#64748b">Personnel</Text>
-            <Badge size="xs" colorPalette="purple" variant="subtle">Biometric</Badge>
+            <Text fontSize="11px" color="#16a34a" fontWeight="medium">Active on Site</Text>
           </Flex>
         </Card.Root>
       </SimpleGrid>
@@ -535,7 +535,6 @@ export const DashboardPage: React.FC = () => {
               <Activity size={17} color="#2563eb" />
               <Heading size="sm" color="#0f172a" fontWeight="bold">Field Activity Trail</Heading>
             </Flex>
-            <Badge size="xs" colorPalette="green" variant="solid">Live Log</Badge>
           </Flex>
 
           <Stack gap={3} mt={3}>

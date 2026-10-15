@@ -328,12 +328,16 @@ export interface ProjectDocument {
   fileType?: string;
   fileData?: string;
   uploadedBy?: string;
-  relatedType?: 'Project' | 'Employee' | 'Contract' | 'General';
+  relatedType?: 'Project' | 'Employee' | 'Contract' | 'PurchaseOrder' | 'Equipment' | 'Supplier' | 'General' | string;
   relatedId?: number;
   relatedName?: string;
+  sourceModule?: 'Projects' | 'Contracts' | 'Procurement' | 'Fleet & Plant' | 'HR' | 'Accounting' | 'General' | string;
+  referenceNumber?: string;
+  confidentiality?: 'Standard' | 'Confidential' | 'Strictly Legal';
   version?: string;
   status?: 'Draft' | 'Under Review' | 'Approved' | 'Archived';
   description?: string;
+  contractStage?: string;
 }
 
 export type ERPDocument = ProjectDocument;
@@ -787,10 +791,13 @@ export interface LeaveRequest {
   employeeName: string;
   employeeCode: string;
   department: string;
-  leaveType: 'Annual Leave' | 'Sick Leave' | 'Maternity / Paternity' | 'Compassionate' | 'Casual' | 'Study / Examination';
+  leaveType: 'Annual Leave' | 'Sick Leave' | 'Maternity / Paternity' | 'Compassionate' | 'Casual' | 'Study / Examination' | 'Unpaid Leave';
   startDate: string;
   endDate: string;
   daysCount: number;
+  paidDays?: number;
+  unpaidDays?: number;
+  leaveYear?: number;
   reason: string;
   status: 'Pending' | 'Approved' | 'Rejected' | 'Cancelled';
   approvedBy?: string;
@@ -802,15 +809,32 @@ export interface LeaveRequest {
 
 export interface LeaveBalance {
   employeeId: number;
+  leaveYear?: number;
+  leaveUnit?: 'calendar_days' | 'working_days';
   annualAllocated: number;
   annualUsed: number;
   annualRemaining: number;
+  annualApprovedPaidTaken?: number;
+  annualPendingRequested?: number;
+  unpaidLeaveDays?: number;
+  isCustomEntitlement?: boolean;
+  customEntitlementDays?: number;
+  entitlementNotes?: string;
   sickAllocated: number;
   sickUsed: number;
   sickRemaining: number;
   casualAllocated: number;
   casualUsed: number;
   casualRemaining: number;
+}
+
+export interface CompanyLeavePolicy {
+  companyId: number;
+  leaveYear: number;
+  defaultAnnualDays: number;
+  leaveUnit: 'calendar_days' | 'working_days';
+  allowUnpaidOverflow: boolean;
+  requireApprovalForUnpaid: boolean;
 }
 
 export interface RecruitmentApplication {
@@ -904,6 +928,22 @@ export interface RmcQualityInspection {
   notes: string;
 }
 
+export type ContractLifecycleStage = 
+  | 'Tendering & Bidding'
+  | 'Evaluation & Award'
+  | 'Execution & Administration'
+  | 'Variations & Claims'
+  | 'Completion & Closeout';
+
+export interface ContractRequiredDocumentConfig {
+  id: string;
+  stage: ContractLifecycleStage;
+  category: string;
+  title: string;
+  isRequired: boolean;
+  description: string;
+}
+
 export interface ContractAdminContract {
   id: number;
   contractNumber: string;
@@ -912,6 +952,7 @@ export interface ContractAdminContract {
   contractorName?: string;
   procurementRoute: string;
   status: 'opportunity' | 'tendering' | 'under_evaluation' | 'awarded' | 'active' | 'completed' | 'unsuccessful' | 'cancelled';
+  currentStage?: ContractLifecycleStage;
   estimatedValue: number;
   awardedValue: number;
   bidDeadline?: string;
@@ -919,14 +960,18 @@ export interface ContractAdminContract {
   commencementDate?: string;
   completionDate?: string;
   description?: string;
+  documentCount?: number;
 }
 
 export interface ContractAdminEvent {
   id: number;
   contractId: number;
-  eventType: 'Instruction' | 'Variation' | 'Extension of Time' | 'Payment Application' | 'Certificate' | 'Claim';
+  eventType: 'Instruction' | 'Variation' | 'Extension of Time' | 'Payment Application' | 'Certificate' | 'Claim' | 'Lifecycle Milestone';
+  stage?: ContractLifecycleStage;
   eventDate: string;
   notes: string;
+  supportingDocumentId?: number;
+  supportingDocumentName?: string;
 }
 
 export interface ChatMessage {
@@ -999,16 +1044,60 @@ export interface MaintenanceRecord {
 
 export interface FuelConsumption {
   id: number;
-  vehicleId: number;
-  vehicleCode: string;
-  plateNumber: string;
+  assetType?: 'Vehicle' | 'Equipment';
+  assetId?: number;
+  assetCode?: string;
+  assetName?: string;
+  equipmentCategory?: 'Vehicle' | 'Generator' | 'Tractor' | 'Excavator' | 'Water Pump' | 'Heavy Machinery' | 'Other Plant' | string;
+  vehicleId?: number;
+  vehicleCode?: string;
+  plateNumber?: string;
   fuelDate: string;
+  fuelTime?: string;
+  fuelType?: 'Diesel (AGO)' | 'Petrol (PMS)' | 'Heavy Fuel Oil' | 'Engine Oil / Lubricant' | string;
   liters: number;
+  unit?: string;
   cost: number;
+  currency?: string;
   odometerKm?: number;
+  meterType?: 'operating_hours' | 'odometer_km' | 'none';
+  meterReading?: number;
   driverName?: string;
+  recordedBy?: string;
   fuelStation?: string;
+  supplierOrSource?: string;
+  projectId?: number;
+  projectName?: string;
+  receiptNumber?: string;
+  notes?: string;
   createdAt?: string;
+}
+
+export interface SupplierInvoice {
+  id: number;
+  invoiceNumber: string;
+  supplierId: number;
+  supplierName: string;
+  invoiceDate: string;
+  dueDate?: string;
+  amount: number;
+  currency: string;
+  purchaseOrderId?: number;
+  poNumber?: string;
+  goodsReceivedNoteId?: number;
+  grnNumber?: string;
+  status: 'Pending Verification' | 'Matched' | 'Under Query' | 'Approved for Payment' | 'Paid';
+  uploadedBy: string;
+  uploadDate: string;
+  fileName?: string;
+  fileSize?: string;
+  fileType?: string;
+  fileData?: string;
+  documentVaultId?: number;
+  notes?: string;
+  isDuplicateWarning?: boolean;
+  verifiedMatch?: boolean;
+  createdAt: string;
 }
 
 export interface AuditLog {
@@ -1029,4 +1118,27 @@ export interface SystemLog {
   module: string;
   message: string;
   createdAt: string;
+}
+
+export type AuthEventType = 
+  | 'successful_login' 
+  | 'failed_login' 
+  | 'logout' 
+  | 'session_expired' 
+  | 'admin_terminated';
+
+export interface AuthSessionLog {
+  id: number;
+  userId?: number;
+  userEmail?: string;
+  userName?: string;
+  userRole?: string;
+  eventType: AuthEventType;
+  timestamp: string;
+  sessionId: string;
+  ipAddress: string;
+  deviceInfo: string;
+  failureReason?: string;
+  status: 'Success' | 'Failed' | 'Terminated' | 'Expired';
+  notes?: string;
 }
