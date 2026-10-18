@@ -103,15 +103,17 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({ onOpenCrea
 
   // Filtered POs
   const filteredPOs = purchaseOrders.filter(po => {
+    if (!po) return false;
     const matchesStatus = activeStatusTab === 'all' || po.status === activeStatusTab;
     const matchesSupplier = supplierFilter === 'All' || String(po.supplierId) === supplierFilter;
     const matchesProject = projectFilter === 'All' || String(po.projectId) === projectFilter;
-    const q = searchTerm.toLowerCase();
+    const q = (searchTerm || '').trim().toLowerCase();
     const matchesSearch =
-      po.poNumber.toLowerCase().includes(q) ||
-      po.supplierName.toLowerCase().includes(q) ||
+      !q ||
+      (po.poNumber || '').toLowerCase().includes(q) ||
+      (po.supplierName || '').toLowerCase().includes(q) ||
       (po.projectName && po.projectName.toLowerCase().includes(q)) ||
-      po.items.some(i => i.description.toLowerCase().includes(q));
+      (po.items && po.items.some(i => (i.description || '').toLowerCase().includes(q)));
 
     return matchesStatus && matchesSupplier && matchesProject && matchesSearch;
   });

@@ -230,15 +230,17 @@ export const GoodsReceivedNotesTab: React.FC<GoodsReceivedNotesTabProps> = ({
 
   // Filter GRNs
   const filteredGRNs = goodsReceivedNotes.filter(g => {
+    if (!g) return false;
     const matchesStatus = statusFilter === 'All' || g.status === statusFilter;
     const matchesWarehouse = warehouseFilter === 'All' || String(g.warehouseId) === warehouseFilter;
-    const q = searchTerm.toLowerCase();
+    const q = (searchTerm || '').trim().toLowerCase();
     const matchesSearch =
-      g.grnNumber.toLowerCase().includes(q) ||
-      g.poNumber.toLowerCase().includes(q) ||
-      g.supplierName.toLowerCase().includes(q) ||
-      g.receivedBy.toLowerCase().includes(q) ||
-      g.warehouseName.toLowerCase().includes(q);
+      !q ||
+      (g.grnNumber || '').toLowerCase().includes(q) ||
+      (g.poNumber || '').toLowerCase().includes(q) ||
+      (g.supplierName || '').toLowerCase().includes(q) ||
+      (g.receivedBy || '').toLowerCase().includes(q) ||
+      (g.warehouseName || '').toLowerCase().includes(q);
 
     return matchesStatus && matchesWarehouse && matchesSearch;
   });

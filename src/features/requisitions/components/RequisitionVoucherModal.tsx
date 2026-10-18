@@ -86,7 +86,7 @@ export const RequisitionVoucherModal: React.FC<RequisitionVoucherModalProps> = (
                 <Table.Cell fontSize="xs" fontWeight="bold">{item.quantityRequired}</Table.Cell>
                 <Table.Cell fontSize="xs">{item.quantityToPurchase}</Table.Cell>
                 <Table.Cell fontSize="xs">
-                  {item.price !== undefined ? `${activeCompany.currency} ${item.price.toFixed(2)}` : '—'}
+                  {item.price !== undefined && item.price !== null && !isNaN(Number(item.price)) ? `${activeCompany.currency} ${(Number(item.price) || 0).toFixed(2)}` : '—'}
                 </Table.Cell>
                 <Table.Cell fontSize="xs" fontWeight="bold">
                   {item.value !== undefined

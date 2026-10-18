@@ -69,14 +69,16 @@ export const RequisitionsPage: React.FC = () => {
     : null;
 
   const filteredRequisitions = requisitions.filter(r => {
+    if (!r) return false;
     const matchesStatus = filterStatus === 'All' || r.status === filterStatus;
     const matchesProject = projectFilter === 'All' || String(r.projectId) === projectFilter;
-    const q = searchTerm.toLowerCase();
+    const q = (searchTerm || '').trim().toLowerCase();
     const matchesSearch =
-      r.requisitionNo.toLowerCase().includes(q) ||
-      r.title.toLowerCase().includes(q) ||
-      r.projectName.toLowerCase().includes(q) ||
-      r.requestedBy.toLowerCase().includes(q);
+      !q ||
+      (r.requisitionNo || '').toLowerCase().includes(q) ||
+      (r.title || '').toLowerCase().includes(q) ||
+      (r.projectName || '').toLowerCase().includes(q) ||
+      (r.requestedBy || '').toLowerCase().includes(q);
 
     return matchesStatus && matchesProject && matchesSearch;
   });

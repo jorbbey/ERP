@@ -22,12 +22,12 @@ export const employeeService = {
     if (filters.searchTerm) {
       const q = filters.searchTerm.toLowerCase();
       list = list.filter(e =>
-        e.name.toLowerCase().includes(q) ||
-        e.code.toLowerCase().includes(q) ||
-        e.email.toLowerCase().includes(q) ||
-        e.phone.toLowerCase().includes(q) ||
-        e.position.toLowerCase().includes(q) ||
-        e.department.toLowerCase().includes(q) ||
+        (e.name || '').toLowerCase().includes(q) ||
+        (e.code || '').toLowerCase().includes(q) ||
+        (e.email || '').toLowerCase().includes(q) ||
+        (e.phone || '').toLowerCase().includes(q) ||
+        (e.position || '').toLowerCase().includes(q) ||
+        (e.department || '').toLowerCase().includes(q) ||
         (e.nin && e.nin.toLowerCase().includes(q)) ||
         (e.tin && e.tin.toLowerCase().includes(q))
       );

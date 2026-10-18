@@ -22,12 +22,12 @@ export const supplierService = {
     if (filters.searchTerm) {
       const q = filters.searchTerm.toLowerCase();
       list = list.filter(s =>
-        s.companyName.toLowerCase().includes(q) ||
-        s.supplierCode.toLowerCase().includes(q) ||
-        s.contactPerson.toLowerCase().includes(q) ||
-        s.email.toLowerCase().includes(q) ||
-        s.phone.toLowerCase().includes(q) ||
-        s.category.toLowerCase().includes(q)
+        (s.companyName || '').toLowerCase().includes(q) ||
+        (s.supplierCode || '').toLowerCase().includes(q) ||
+        (s.contactPerson || '').toLowerCase().includes(q) ||
+        (s.email || '').toLowerCase().includes(q) ||
+        (s.phone || '').toLowerCase().includes(q) ||
+        (s.category || '').toLowerCase().includes(q)
       );
     }
 

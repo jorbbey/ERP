@@ -51,6 +51,38 @@ import {
   Users,
   FileText
 } from 'lucide-react';
+import { ExcelImportModal, TemplateColumn } from '../../components/common/ExcelImportModal';
+
+const inventoryTemplateColumns: TemplateColumn[] = [
+  { key: 'itemCode', label: 'Item Code / SKU', required: true, type: 'string', description: 'Unique material catalog SKU code (e.g. MAT-101)', example: 'MAT-105' },
+  { key: 'name', label: 'Material Name / Description', required: true, type: 'string', description: 'Full description and material specifications', example: 'Dangote 3X Portland Cement 42.5R' },
+  { key: 'categoryName', label: 'Category', required: true, type: 'enum', validValues: ['Cement & Aggregates', 'Structural Steel & Rebar', 'Pipes & Drainage', 'Electrical & Conduit', 'Safety Equipment & PPE', 'Paints & Finishes'], description: 'Standard store classification grouping', example: 'Cement & Aggregates' },
+  { key: 'unit', label: 'Unit of Measure', required: true, type: 'string', description: 'Standard unit (e.g. Bags, Tonnes, Pcs, Meters, Litres)', example: 'Bags' },
+  { key: 'costPrice', label: 'Standard Benchmark Cost', required: true, type: 'number', description: 'Procurement reference cost price', example: 5200 },
+  { key: 'minLevel', label: 'Reorder Min Safety Buffer', required: false, type: 'number', description: 'Minimum stock reorder notification threshold', example: 50 },
+  { key: 'description', label: 'Technical Specifications', required: false, type: 'string', description: 'Grade, ASTM/BS standard or packaging notes', example: 'Rapid hardening Portland composite cement in 50kg bags' }
+];
+
+const sampleInventoryData = [
+  {
+    itemCode: 'MAT-101',
+    name: 'Dangote 3X Portland Cement 42.5R (50kg)',
+    categoryName: 'Cement & Aggregates',
+    unit: 'Bags',
+    costPrice: 5200,
+    minLevel: 100,
+    description: 'High strength 42.5R Portland cement for structural concrete'
+  },
+  {
+    itemCode: 'MAT-205',
+    name: 'High-Tensile TMT Deformed Rebar 16mm (12m)',
+    categoryName: 'Structural Steel & Rebar',
+    unit: 'Tonnes',
+    costPrice: 980000,
+    minLevel: 15,
+    description: 'Yield strength 500 N/mm2 certified structural rebar'
+  }
+];
 
 export const InventoryPage: React.FC = () => {
   const {
@@ -71,10 +103,12 @@ export const InventoryPage: React.FC = () => {
     requisitions,
     activeCompany,
     currentUserName,
-    activeRole
+    activeRole,
+    bulkImportInventory
   } = useERP();
 
   const [activeTab, setActiveTab] = useState<'items' | 'warehouses' | 'movements' | 'categories' | 'audit' | 'reports'>('items');
+  const [showImportModal, setShowImportModal] = useState(false);
 
   // Filters
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
@@ -161,9 +195,9 @@ export const InventoryPage: React.FC = () => {
     description: ''
   });
 
-  const totalValuation = inventory.reduce((acc, i) => acc + (i.currentStock * i.costPrice), 0);
-  const lowStockCount = inventory.filter(i => i.currentStock <= i.minLevel && i.currentStock > 0).length;
-  const outOfStockCount = inventory.filter(i => i.currentStock <= 0).length;
+  const totalValuation = inventory.reduce((acc, i) => acc + ((Number(i.currentStock) || 0) * (Number(i.costPrice) || 0)), 0);
+  const lowStockCount = inventory.filter(i => (Number(i.currentStock) || 0) <= (Number(i.minLevel) || 0) && (Number(i.currentStock) || 0) > 0).length;
+  const outOfStockCount = inventory.filter(i => (Number(i.currentStock) || 0) <= 0).length;
 
   const filteredItems = inventory.filter((item) => {
     if (!item) return false;
@@ -173,12 +207,14 @@ export const InventoryPage: React.FC = () => {
       itemLoc.includes((warehouseFilter || '').toLowerCase());
     
     let matchesStatus = true;
+    const stockVal = Number(item.currentStock) || 0;
+    const minVal = Number(item.minLevel) || 0;
     if (stockStatusFilter === 'low_stock') {
-      matchesStatus = item.currentStock <= item.minLevel && item.currentStock > 0;
+      matchesStatus = stockVal <= minVal && stockVal > 0;
     } else if (stockStatusFilter === 'out_of_stock') {
-      matchesStatus = item.currentStock <= 0;
+      matchesStatus = stockVal <= 0;
     } else if (stockStatusFilter === 'in_stock') {
-      matchesStatus = item.currentStock > item.minLevel;
+      matchesStatus = stockVal > minVal;
     }
 
     const q = (searchTerm || '').trim().toLowerCase();
@@ -246,7 +282,7 @@ export const InventoryPage: React.FC = () => {
       }
     } else if (itemForm.supplierMode === 'new' && itemForm.newSupplierName.trim()) {
       const existingSup = suppliers.find(
-        s => s.companyName.trim().toLowerCase() === itemForm.newSupplierName.trim().toLowerCase()
+        s => (s.companyName || '').trim().toLowerCase() === itemForm.newSupplierName.trim().toLowerCase()
       );
 
       if (existingSup) {
@@ -566,7 +602,7 @@ export const InventoryPage: React.FC = () => {
       i.minLevel,
       i.costPrice,
       i.sellingPrice,
-      (i.currentStock * i.costPrice).toFixed(2),
+      ((Number(i.currentStock) || 0) * (Number(i.costPrice) || 0)).toFixed(2),
       `"${i.warehouseLocation}"`
     ]);
 
@@ -610,6 +646,16 @@ export const InventoryPage: React.FC = () => {
           <Flex gap={2} flexWrap="wrap">
             <Button size="sm" variant="outline" borderColor="#cbd5e1" color="#334155" onClick={handleExportCSV}>
               <Download size={15} /> Export CSV
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              borderColor="#cbd5e1"
+              color="#334155"
+              onClick={() => setShowImportModal(true)}
+              fontWeight="medium"
+            >
+              <FileSpreadsheet size={15} color="#16a34a" /> Import Materials (Excel)
             </Button>
             <Button size="sm" colorPalette="green" onClick={handleOpenReceiveModal} fontWeight="semibold">
               <ArrowDownLeft size={16} /> Receive Stock (GRN)
@@ -785,9 +831,12 @@ export const InventoryPage: React.FC = () => {
                     </Table.Row>
                   ) : (
                     filteredItems.map((item) => {
-                      const isLow = item.currentStock <= item.minLevel && item.currentStock > 0;
-                      const isOut = item.currentStock <= 0;
-                      const lineValuation = item.currentStock * item.costPrice;
+                      const stockNum = Number(item.currentStock) || 0;
+                      const minNum = Number(item.minLevel) || 0;
+                      const costNum = Number(item.costPrice) || 0;
+                      const isLow = stockNum <= minNum && stockNum > 0;
+                      const isOut = stockNum <= 0;
+                      const lineValuation = stockNum * costNum;
 
                       return (
                         <Table.Row key={item.id} _hover={{ bg: '#f8fafc' }}>
@@ -808,17 +857,17 @@ export const InventoryPage: React.FC = () => {
                           <Table.Cell fontSize="xs">
                             <Flex align="center" gap={1.5}>
                               <Text fontWeight="bold" color={isOut ? '#dc2626' : isLow ? '#d97706' : '#0f172a'}>
-                                {item.currentStock} {item.unit}
+                                {stockNum} {item.unit}
                               </Text>
                               {isOut && <Badge size="xs" colorPalette="red">DEPLETED</Badge>}
                               {isLow && <Badge size="xs" colorPalette="orange">LOW</Badge>}
                             </Flex>
                           </Table.Cell>
                           <Table.Cell fontSize="xs" color="#64748b">
-                            {item.minLevel} {item.unit}
+                            {minNum} {item.unit}
                           </Table.Cell>
                           <Table.Cell fontSize="xs">
-                            {activeCompany.currency} {item.costPrice.toFixed(2)}
+                            {activeCompany.currency} {costNum.toFixed(2)}
                           </Table.Cell>
                           <Table.Cell fontSize="xs" fontWeight="bold" color="#16a34a">
                             {activeCompany.currency} {lineValuation.toLocaleString()}
@@ -1830,9 +1879,9 @@ export const InventoryPage: React.FC = () => {
               <Box bg="#f8fafc" p={3} borderRadius="10px">
                 <Text fontSize="10px" textTransform="uppercase" fontWeight="bold" color="#64748b">Total Valuation</Text>
                 <Text fontSize="xl" fontWeight="black" color="#16a34a" mt={1}>
-                  {activeCompany.currency} {(viewingItem.currentStock * viewingItem.costPrice).toLocaleString()}
+                  {activeCompany.currency} {((Number(viewingItem.currentStock) || 0) * (Number(viewingItem.costPrice) || 0)).toLocaleString()}
                 </Text>
-                <Text fontSize="10px" color="#64748b">Unit Cost: {activeCompany.currency}{viewingItem.costPrice.toFixed(2)}</Text>
+                <Text fontSize="10px" color="#64748b">Unit Cost: {activeCompany.currency}{(Number(viewingItem.costPrice) || 0).toFixed(2)}</Text>
               </Box>
             </SimpleGrid>
 
@@ -1853,7 +1902,7 @@ export const InventoryPage: React.FC = () => {
               )}
               <Flex justify="space-between">
                 <Text color="#64748b">Selling / Transfer Rate:</Text>
-                <Text fontWeight="semibold" color="#0f172a">{activeCompany.currency} {viewingItem.sellingPrice.toFixed(2)}</Text>
+                <Text fontWeight="semibold" color="#0f172a">{activeCompany.currency} {(Number(viewingItem.sellingPrice) || 0).toFixed(2)}</Text>
               </Flex>
             </Stack>
 
@@ -1865,6 +1914,25 @@ export const InventoryPage: React.FC = () => {
           </Box>
         </Box>
       )}
+
+      {/* Excel Material Catalog Import Modal */}
+      <ExcelImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        moduleTitle="Stores & Materials Master Catalog"
+        moduleKey="inventory"
+        templateColumns={inventoryTemplateColumns}
+        sampleData={sampleInventoryData}
+        existingRecords={inventory}
+        duplicateKeyField="itemCode"
+        guidanceNotes={[
+          'Item Code / SKU is required and must be unique across all material catalogs.',
+          'Importing material records adds them to the Master SKU Catalog. It does NOT automatically inflate physical on-hand warehouse stock.',
+          'Physical stock must be formally received via Goods Received Notes (GRN) or reconciled via a verified Physical Stock Count.',
+          'Valid Categories: Cement & Aggregates, Structural Steel & Rebar, Pipes & Drainage, Electrical & Conduit, Safety Equipment & PPE, Paints & Finishes.'
+        ]}
+        onCommitImport={bulkImportInventory}
+      />
     </Stack>
   );
 };

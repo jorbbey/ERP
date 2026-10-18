@@ -57,33 +57,33 @@ export const EnterpriseSearchModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
   // Search results
   const matchedProjects = q ? projects.filter(p => 
-    p.name.toLowerCase().includes(q) || 
-    p.projectNumber.toLowerCase().includes(q) || 
-    p.clientName.toLowerCase().includes(q) ||
-    p.siteLocation.toLowerCase().includes(q)
+    (p.name || '').toLowerCase().includes(q) || 
+    (p.projectNumber || '').toLowerCase().includes(q) || 
+    (p.clientName || '').toLowerCase().includes(q) ||
+    (p.siteLocation || '').toLowerCase().includes(q)
   ).slice(0, 4) : [];
 
   const matchedInventory = q ? inventory.filter(i => 
-    i.name.toLowerCase().includes(q) || 
-    i.itemCode.toLowerCase().includes(q) ||
-    i.categoryName.toLowerCase().includes(q)
+    (i.name || '').toLowerCase().includes(q) || 
+    (i.itemCode || '').toLowerCase().includes(q) ||
+    (i.categoryName || '').toLowerCase().includes(q)
   ).slice(0, 4) : [];
 
   const matchedRequisitions = q ? requisitions.filter(r => 
-    r.requisitionNo.toLowerCase().includes(q) || 
-    r.requestedBy.toLowerCase().includes(q) ||
+    (r.requisitionNo || '').toLowerCase().includes(q) || 
+    (r.requestedBy || '').toLowerCase().includes(q) ||
     (r.title && r.title.toLowerCase().includes(q))
   ).slice(0, 3) : [];
 
   const matchedPOs = q ? purchaseOrders.filter(po => 
-    po.poNumber.toLowerCase().includes(q) || 
-    po.supplierName.toLowerCase().includes(q)
+    (po.poNumber || '').toLowerCase().includes(q) || 
+    (po.supplierName || '').toLowerCase().includes(q)
   ).slice(0, 3) : [];
 
   const matchedEmployees = q ? employees.filter(e => 
-    e.name.toLowerCase().includes(q) || 
-    e.code.toLowerCase().includes(q) ||
-    e.department.toLowerCase().includes(q)
+    (e.name || '').toLowerCase().includes(q) || 
+    (e.code || '').toLowerCase().includes(q) ||
+    (e.department || '').toLowerCase().includes(q)
   ).slice(0, 3) : [];
 
   // Quick module jumps when no query

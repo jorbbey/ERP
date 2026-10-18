@@ -30,10 +30,56 @@ import {
   ShieldCheck,
   CheckCircle2,
   Building,
-  UserCheck
+  UserCheck,
+  KeyRound,
+  Lock,
+  Unlock,
+  UserMinus,
+  Mail,
+  FileSpreadsheet,
+  AlertTriangle,
+  X
 } from 'lucide-react';
+import { ExcelImportModal, TemplateColumn } from '../../../components/common/ExcelImportModal';
 import { EmployeeFormModal } from './EmployeeFormModal';
 import { EmployeeProfileModal } from './EmployeeProfileModal';
+
+const employeeTemplateColumns: TemplateColumn[] = [
+  { key: 'name', label: 'Full Employee Name', required: true, type: 'string', description: 'Legal name of staff member', example: 'Engr. Emeka Obi' },
+  { key: 'code', label: 'Staff Code', required: false, type: 'string', description: 'Unique payroll/staff code (e.g. EMP-001)', example: 'EMP-015' },
+  { key: 'email', label: 'Company Email', required: true, type: 'email', description: 'Work email address (unique)', example: 'emeka.obi@company.com' },
+  { key: 'phone', label: 'Phone Number', required: true, type: 'string', description: 'Contact telephone', example: '+234 802 345 6789' },
+  { key: 'department', label: 'Department', required: true, type: 'string', description: 'Assigned operational department', example: 'Civil Engineering' },
+  { key: 'position', label: 'Job Title / Position', required: true, type: 'string', description: 'Designation / job title', example: 'Senior Resident Engineer' },
+  { key: 'role', label: 'ERP Role Designation', required: true, type: 'enum', validValues: ['Managing Director', 'Project Manager', 'Site Engineer', 'Finance Manager', 'Accountant', 'HR Manager', 'Procurement Officer', 'Storekeeper', 'Staff'], description: 'Assigned role archetype', example: 'Site Engineer' },
+  { key: 'monthlySalary', label: 'Basic Monthly Salary', required: false, type: 'number', description: 'Monthly base pay amount', example: 450000 },
+  { key: 'joinDate', label: 'Date Joined', required: false, type: 'date', description: 'Hire date (YYYY-MM-DD)', example: '2025-01-15' }
+];
+
+const sampleEmployeeData = [
+  {
+    name: 'Engr. Emeka Obi',
+    code: 'EMP-015',
+    email: 'emeka.obi@company.com',
+    phone: '+234 802 345 6789',
+    department: 'Civil Engineering',
+    position: 'Senior Resident Engineer',
+    role: 'Site Engineer',
+    monthlySalary: 450000,
+    joinDate: '2025-01-15'
+  },
+  {
+    name: 'Fatima Garba',
+    code: 'EMP-016',
+    email: 'fatima.garba@company.com',
+    phone: '+234 803 987 1122',
+    department: 'Finance & Accounts',
+    position: 'Senior Project Accountant',
+    role: 'Accountant',
+    monthlySalary: 380000,
+    joinDate: '2025-02-01'
+  }
+];
 
 export const EmployeeDirectoryTab: React.FC = () => {
   const {
@@ -47,7 +93,12 @@ export const EmployeeDirectoryTab: React.FC = () => {
     employeeCustomFields,
     addCustomField,
     activeCompany,
-    loginAsEmployee
+    loginAsEmployee,
+    provisionEmployeeAccount,
+    updateEmployeeLoginStatus,
+    revokeEmployeeLoginAccess,
+    bulkImportEmployees,
+    activeRole
   } = useERP();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,6 +113,24 @@ export const EmployeeDirectoryTab: React.FC = () => {
   const [showColumnPicker, setShowColumnPicker] = useState(false);
   const [showCustomFieldModal, setShowCustomFieldModal] = useState(false);
   const [newCustomField, setNewCustomField] = useState({ fieldName: '', fieldLabel: '', fieldType: 'text' as const });
+  const [showImportModal, setShowImportModal] = useState(false);
+
+  // Administrator-Controlled Account Provisioning & Access Management
+  const [provisioningEmp, setProvisioningEmp] = useState<Employee | null>(null);
+  const [accessManageEmp, setAccessManageEmp] = useState<Employee | null>(null);
+  const [provisionForm, setProvisionForm] = useState<{
+    loginEmail: string;
+    loginRole: UserRole;
+    activationMethod: 'credentials' | 'invitation';
+    tempPassword: string;
+  }>({
+    loginEmail: '',
+    loginRole: 'Staff',
+    activationMethod: 'credentials',
+    tempPassword: 'Password@2026'
+  });
+  const [provisionError, setProvisionError] = useState<string | null>(null);
+  const [provisionSuccess, setProvisionSuccess] = useState<string | null>(null);
 
   // Archive prompt modal
   const [archivingEmp, setArchivingEmp] = useState<Employee | null>(null);
@@ -146,6 +215,69 @@ export const EmployeeDirectoryTab: React.FC = () => {
       case 'Archived': return 'yellow';
       case 'Terminated': return 'red';
       default: return 'gray';
+    }
+  };
+  const handleOpenProvisionAccess = (emp: Employee) => {
+    setProvisioningEmp(emp);
+    setProvisionError(null);
+    setProvisionSuccess(null);
+    setProvisionForm({
+      loginEmail: emp.email || `${emp.code.toLowerCase()}@${activeCompany.name.toLowerCase().replace(/[^a-z]/g, '')}.com`,
+      loginRole: emp.role || 'Staff',
+      activationMethod: 'credentials',
+      tempPassword: `Pass@${Math.floor(1000 + Math.random() * 9000)}`
+    });
+  };
+
+  const handleOpenManageAccess = (emp: Employee) => {
+    setAccessManageEmp(emp);
+    setProvisionError(null);
+    setProvisionSuccess(null);
+  };
+
+  const handleConfirmProvision = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!provisioningEmp) return;
+    if (!provisionForm.loginEmail.trim()) {
+      setProvisionError('Login email is required.');
+      return;
+    }
+
+    const res = provisionEmployeeAccount({
+      employeeId: provisioningEmp.id,
+      loginEmail: provisionForm.loginEmail.trim(),
+      loginRole: provisionForm.loginRole,
+      activationMethod: provisionForm.activationMethod,
+      tempPassword: provisionForm.tempPassword
+    });
+
+    if (res.success) {
+      setProvisionSuccess(`System login access provisioned for ${provisioningEmp.name}!`);
+      setTimeout(() => {
+        setProvisioningEmp(null);
+        setProvisionSuccess(null);
+      }, 1200);
+    } else {
+      setProvisionError(res.error || 'Failed to provision login credentials.');
+    }
+  };
+
+  const handleChangeStatus = (status: 'Active' | 'Suspended' | 'Deactivated') => {
+    if (!accessManageEmp) return;
+    const ok = updateEmployeeLoginStatus(accessManageEmp.id, status);
+    if (ok) {
+      setAccessManageEmp({
+        ...accessManageEmp,
+        loginStatus: status
+      });
+    }
+  };
+
+  const handleRevokeAccess = () => {
+    if (!accessManageEmp) return;
+    const ok = revokeEmployeeLoginAccess(accessManageEmp.id);
+    if (ok) {
+      setAccessManageEmp(null);
     }
   };
 
@@ -247,6 +379,16 @@ export const EmployeeDirectoryTab: React.FC = () => {
               onClick={handleExportCSV}
             >
               <Download size={14} /> Export CSV
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              borderColor="#cbd5e1"
+              color="#334155"
+              onClick={() => setShowImportModal(true)}
+              fontWeight="medium"
+            >
+              <FileSpreadsheet size={14} color="#16a34a" /> Import Staff (Excel)
             </Button>
             <Button
               size="sm"
@@ -390,6 +532,7 @@ export const EmployeeDirectoryTab: React.FC = () => {
               {!disabledColumns.includes('identifiers') && <Table.ColumnHeader>NIN / TIN</Table.ColumnHeader>}
               {!disabledColumns.includes('hireDate') && <Table.ColumnHeader>Hire Date</Table.ColumnHeader>}
               {!disabledColumns.includes('status') && <Table.ColumnHeader>Status</Table.ColumnHeader>}
+              <Table.ColumnHeader>Access & Credentials</Table.ColumnHeader>
               <Table.ColumnHeader textAlign="right">Actions</Table.ColumnHeader>
             </Table.Row>
           </Table.Header>
@@ -505,8 +648,63 @@ export const EmployeeDirectoryTab: React.FC = () => {
                     </Table.Cell>
                   )}
 
+                  <Table.Cell>
+                    {emp.hasLoginAccount ? (
+                      <Flex align="center" gap={1.5}>
+                        <Badge
+                          size="xs"
+                          colorPalette={
+                            emp.loginStatus === 'Active'
+                              ? 'green'
+                              : emp.loginStatus === 'Pending Activation'
+                              ? 'orange'
+                              : emp.loginStatus === 'Suspended'
+                              ? 'red'
+                              : 'gray'
+                          }
+                        >
+                          {emp.loginStatus || 'Active'}
+                        </Badge>
+                        <Button
+                          size="2xs"
+                          variant="ghost"
+                          color="#2563eb"
+                          p={1}
+                          h="20px"
+                          onClick={() => handleOpenManageAccess(emp)}
+                          title="Manage Login & Security Access"
+                        >
+                          <KeyRound size={12} />
+                        </Button>
+                      </Flex>
+                    ) : (
+                      <Button
+                        size="2xs"
+                        variant="outline"
+                        borderColor="#cbd5e1"
+                        color="#2563eb"
+                        fontSize="10px"
+                        h="22px"
+                        px={1.5}
+                        onClick={() => handleOpenProvisionAccess(emp)}
+                        title="Administrator: Provision ERP Account"
+                      >
+                        <KeyRound size={11} style={{ marginRight: '3px' }} /> Provision Login
+                      </Button>
+                    )}
+                  </Table.Cell>
+
                   <Table.Cell textAlign="right">
                     <Flex justify="flex-end" gap={1}>
+                      <Button
+                        size="xs"
+                        variant="ghost"
+                        color={emp.hasLoginAccount ? '#2563eb' : '#d97706'}
+                        onClick={() => emp.hasLoginAccount ? handleOpenManageAccess(emp) : handleOpenProvisionAccess(emp)}
+                        title={emp.hasLoginAccount ? `Manage Access (${emp.loginStatus || 'Active'})` : 'Provision Login Account'}
+                      >
+                        <KeyRound size={13} />
+                      </Button>
                       <Button
                         size="xs"
                         variant="ghost"
@@ -697,6 +895,294 @@ export const EmployeeDirectoryTab: React.FC = () => {
                 </Flex>
               </Stack>
             </form>
+          </Box>
+        </Box>
+      )}
+
+      {/* Excel Staff / Employee Master Import Modal */}
+      <ExcelImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        moduleTitle="HR Staff & Personnel Records"
+        moduleKey="employees"
+        templateColumns={employeeTemplateColumns}
+        sampleData={sampleEmployeeData}
+        existingRecords={employees}
+        duplicateKeyField="email"
+        guidanceNotes={[
+          'Company Email is required and must be unique across all staff profiles.',
+          'Security Rule: Importing staff creates HR personnel records. In accordance with zero-trust company policies, system login credentials are NEVER created automatically.',
+          'An authorized company administrator must provision login access individually through the "Provision Login" button in the staff directory.',
+          'Monthly salary and hire dates are validated for payroll calculations and tax deductions.'
+        ]}
+        onCommitImport={bulkImportEmployees}
+      />
+
+      {/* Administrator-Controlled Account Provisioning Modal */}
+      {provisioningEmp && (
+        <Box
+          position="fixed"
+          top={0}
+          left={0}
+          right={0}
+          bottom={0}
+          bg="rgba(15, 23, 42, 0.65)"
+          zIndex={1450}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          p={4}
+        >
+          <Box bg="white" borderRadius="18px" maxW="520px" w="100%" p={6} border="1px solid #cbd5e1" boxShadow="2xl">
+            <Flex justify="space-between" align="flex-start" mb={3}>
+              <Flex align="center" gap={3}>
+                <Box p={2.5} bg="#eff6ff" color="#2563eb" borderRadius="12px">
+                  <KeyRound size={24} />
+                </Box>
+                <Box>
+                  <Heading size="md" color="#0f172a">Provision ERP Login Account</Heading>
+                  <Text fontSize="xs" color="#64748b">
+                    {provisioningEmp.name} • {provisioningEmp.code} ({provisioningEmp.department})
+                  </Text>
+                </Box>
+              </Flex>
+              <Button size="xs" variant="ghost" onClick={() => setProvisioningEmp(null)}>
+                <X size={16} />
+              </Button>
+            </Flex>
+
+            <Box p={3} bg="#f8fafc" borderRadius="10px" border="1px solid #e2e8f0" mb={4}>
+              <Text fontSize="11px" color="#475569">
+                Staff accounts are strictly administrator-controlled and isolated to <strong>{activeCompany.name}</strong>. Ordinary employees cannot self-register.
+              </Text>
+            </Box>
+
+            {provisionError && (
+              <Box p={3} mb={3} bg="#fef2f2" borderRadius="8px" border="1px solid #fecaca" color="#dc2626" fontSize="xs">
+                {provisionError}
+              </Box>
+            )}
+
+            {provisionSuccess && (
+              <Box p={3} mb={3} bg="#f0fdf4" borderRadius="8px" border="1px solid #bbf7d0" color="#16a34a" fontSize="xs">
+                {provisionSuccess}
+              </Box>
+            )}
+
+            <form onSubmit={handleConfirmProvision}>
+              <Stack gap={3.5}>
+                <Box>
+                  <Text fontSize="xs" fontWeight="semibold" color="#334155" mb={1}>Login Email Address *</Text>
+                  <Input
+                    size="sm"
+                    type="email"
+                    value={provisionForm.loginEmail}
+                    onChange={e => setProvisionForm({ ...provisionForm, loginEmail: e.target.value })}
+                    required
+                  />
+                  <Text fontSize="10px" color="#64748b" mt={0.5}>Must be a unique login address for this employee.</Text>
+                </Box>
+
+                <Box>
+                  <Text fontSize="xs" fontWeight="semibold" color="#334155" mb={1}>Assigned System Role *</Text>
+                  <NativeSelect.Root size="sm">
+                    <NativeSelect.Field
+                      value={provisionForm.loginRole}
+                      onChange={e => setProvisionForm({ ...provisionForm, loginRole: e.target.value as UserRole })}
+                    >
+                      <option value="Staff">Staff (Standard Jobsite Access)</option>
+                      <option value="Site Engineer">Site Engineer</option>
+                      <option value="Project Manager">Project Manager</option>
+                      <option value="Storekeeper">Storekeeper / Store Officer</option>
+                      <option value="Procurement Officer">Procurement Officer</option>
+                      <option value="Accountant">Accountant</option>
+                      <option value="Finance Manager">Finance Manager</option>
+                      <option value="HR Manager">HR Manager</option>
+                      <option value="Managing Director">Managing Director (Company Admin)</option>
+                    </NativeSelect.Field>
+                  </NativeSelect.Root>
+                </Box>
+
+                <Box>
+                  <Text fontSize="xs" fontWeight="semibold" color="#334155" mb={1}>Activation Workflow</Text>
+                  <Flex gap={2}>
+                    <Button
+                      type="button"
+                      size="xs"
+                      flex="1"
+                      variant={provisionForm.activationMethod === 'credentials' ? 'solid' : 'outline'}
+                      colorPalette={provisionForm.activationMethod === 'credentials' ? 'blue' : 'gray'}
+                      onClick={() => setProvisionForm({ ...provisionForm, activationMethod: 'credentials' })}
+                    >
+                      Direct Credentials (Active)
+                    </Button>
+                    <Button
+                      type="button"
+                      size="xs"
+                      flex="1"
+                      variant={provisionForm.activationMethod === 'invitation' ? 'solid' : 'outline'}
+                      colorPalette={provisionForm.activationMethod === 'invitation' ? 'blue' : 'gray'}
+                      onClick={() => setProvisionForm({ ...provisionForm, activationMethod: 'invitation' })}
+                    >
+                      Email Invitation (Pending)
+                    </Button>
+                  </Flex>
+                </Box>
+
+                {provisionForm.activationMethod === 'credentials' && (
+                  <Box>
+                    <Text fontSize="xs" fontWeight="semibold" color="#334155" mb={1}>Temporary Initial Password</Text>
+                    <Input
+                      size="sm"
+                      value={provisionForm.tempPassword}
+                      onChange={e => setProvisionForm({ ...provisionForm, tempPassword: e.target.value })}
+                      required
+                    />
+                    <Text fontSize="10px" color="#64748b" mt={0.5}>Share securely with employee. Employee will be prompted to change password.</Text>
+                  </Box>
+                )}
+
+                <Flex justify="flex-end" gap={2} mt={3} pt={2} borderTop="1px solid #f1f5f9">
+                  <Button size="sm" variant="outline" onClick={() => setProvisioningEmp(null)}>
+                    Cancel
+                  </Button>
+                  <Button size="sm" bg="#2563eb" color="white" _hover={{ bg: '#1d4ed8' }} type="submit" fontWeight="bold">
+                    Provision Credentials
+                  </Button>
+                </Flex>
+              </Stack>
+            </form>
+          </Box>
+        </Box>
+      )}
+
+      {/* Administrator-Controlled Manage Access Modal */}
+      {accessManageEmp && (
+        <Box
+          position="fixed"
+          top={0}
+          left={0}
+          right={0}
+          bottom={0}
+          bg="rgba(15, 23, 42, 0.65)"
+          zIndex={1450}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          p={4}
+        >
+          <Box bg="white" borderRadius="18px" maxW="520px" w="100%" p={6} border="1px solid #cbd5e1" boxShadow="2xl">
+            <Flex justify="space-between" align="flex-start" mb={4}>
+              <Flex align="center" gap={3}>
+                <Box p={2.5} bg="#ecfdf5" color="#059669" borderRadius="12px">
+                  <ShieldCheck size={24} />
+                </Box>
+                <Box>
+                  <Heading size="md" color="#0f172a">Manage Staff Access Account</Heading>
+                  <Text fontSize="xs" color="#64748b">
+                    {accessManageEmp.name} • {accessManageEmp.code}
+                  </Text>
+                </Box>
+              </Flex>
+              <Button size="xs" variant="ghost" onClick={() => setAccessManageEmp(null)}>
+                <X size={16} />
+              </Button>
+            </Flex>
+
+            <Stack gap={3.5}>
+              <Box p={3.5} bg="#f8fafc" borderRadius="12px" border="1px solid #e2e8f0">
+                <Flex justify="space-between" align="center" mb={2}>
+                  <Text fontSize="xs" color="#64748b">Account Status:</Text>
+                  <Badge
+                    size="sm"
+                    colorPalette={
+                      accessManageEmp.loginStatus === 'Active'
+                        ? 'green'
+                        : accessManageEmp.loginStatus === 'Pending Activation'
+                        ? 'orange'
+                        : accessManageEmp.loginStatus === 'Suspended'
+                        ? 'red'
+                        : 'gray'
+                    }
+                  >
+                    {accessManageEmp.loginStatus || 'Active'}
+                  </Badge>
+                </Flex>
+                <Flex justify="space-between" align="center" mb={1}>
+                  <Text fontSize="xs" color="#64748b">Login Username / Email:</Text>
+                  <Text fontSize="xs" fontWeight="bold" color="#0f172a">
+                    {accessManageEmp.loginEmail || accessManageEmp.email}
+                  </Text>
+                </Flex>
+                <Flex justify="space-between" align="center" mb={1}>
+                  <Text fontSize="xs" color="#64748b">Assigned Role:</Text>
+                  <Badge size="xs" colorPalette="blue">{accessManageEmp.loginRole || accessManageEmp.role}</Badge>
+                </Flex>
+                <Flex justify="space-between" align="center">
+                  <Text fontSize="xs" color="#64748b">Provisioned Date:</Text>
+                  <Text fontSize="xs" color="#64748b">{accessManageEmp.accountCreatedAt || 'System Managed'}</Text>
+                </Flex>
+              </Box>
+
+              {/* Status Actions */}
+              <Box>
+                <Text fontSize="xs" fontWeight="bold" color="#334155" mb={2}>Account Status Controls:</Text>
+                <Flex gap={2}>
+                  {accessManageEmp.loginStatus === 'Active' ? (
+                    <>
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        colorPalette="orange"
+                        onClick={() => handleChangeStatus('Suspended')}
+                        flex="1"
+                      >
+                        <Lock size={12} /> Suspend Access
+                      </Button>
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        colorPalette="red"
+                        onClick={() => handleChangeStatus('Deactivated')}
+                        flex="1"
+                      >
+                        <UserMinus size={12} /> Deactivate Access
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      size="xs"
+                      colorPalette="green"
+                      onClick={() => handleChangeStatus('Active')}
+                      w="100%"
+                    >
+                      <Unlock size={12} /> Reactivate Login Access
+                    </Button>
+                  )}
+                </Flex>
+              </Box>
+
+              {/* Danger Zone: Revoke Access */}
+              <Box p={3} bg="#fef2f2" borderRadius="10px" border="1px solid #fecaca" mt={2}>
+                <Text fontSize="xs" fontWeight="bold" color="#991b1b" mb={1}>Revoke System Access:</Text>
+                <Text fontSize="11px" color="#7f1d1d" mb={3}>
+                  Permanently revokes this employee&apos;s login privileges. The HR employee record, salary history, bank accounts, and attendance logs are <strong>fully preserved</strong>.
+                </Text>
+                <Button
+                  size="xs"
+                  colorPalette="red"
+                  onClick={handleRevokeAccess}
+                >
+                  <UserMinus size={13} /> Revoke Login Credentials
+                </Button>
+              </Box>
+
+              <Flex justify="flex-end" pt={2}>
+                <Button size="sm" variant="outline" onClick={() => setAccessManageEmp(null)}>
+                  Close
+                </Button>
+              </Flex>
+            </Stack>
           </Box>
         </Box>
       )}

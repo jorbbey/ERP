@@ -24,6 +24,14 @@ export interface Company {
   website?: string;
   isActive?: boolean;
   createdAt?: string;
+  // Trial & Subscription
+  trialStatus?: 'active' | 'expired' | 'converted';
+  trialStartDate?: string;
+  trialEndDate?: string;
+  subscriptionPlan?: string;
+  contactPerson?: string;
+  country?: string;
+  industry?: string;
 }
 
 export interface User {
@@ -94,6 +102,16 @@ export interface Employee {
   certifications?: string[];
   customFieldValues?: Record<string, string>;
   createdAt?: string;
+  companyId?: number;
+  // Login Account Provisioning (Admin-controlled)
+  hasLoginAccount?: boolean;
+  loginStatus?: 'Pending Activation' | 'Active' | 'Suspended' | 'Deactivated';
+  loginUsername?: string;
+  loginEmail?: string;
+  loginRole?: UserRole;
+  lastLoginAt?: string;
+  accountCreatedAt?: string;
+  tempPassword?: string;
 }
 
 export interface Department {
@@ -574,6 +592,14 @@ export interface Requisition {
   chatChannelId?: string;
   attachments?: { name: string; size?: string; type?: string; data?: string }[];
   dispatchNote?: string;
+  docReference?: string;
+  revisionNumber?: string;
+  requiredByDate?: string;
+  justification?: string;
+  supplierContact?: string;
+  supplierPhone?: string;
+  approvalStage?: 'Requested By' | 'Departmental Head' | 'Stock Control' | 'Finance Review' | 'Approved By' | 'Completed' | 'Rejected' | 'Clarification';
+  stageSignatures?: { stage: string; actorName: string; actorRole: string; action: string; date: string; comments?: string; }[];
   remarks?: string;
   messages?: RequisitionMessage[];
   approvalHistory?: RequisitionApprovalStep[];
@@ -1117,6 +1143,10 @@ export interface SystemLog {
   logType: 'info' | 'warning' | 'error' | 'security';
   module: string;
   message: string;
+  action?: string;
+  description?: string;
+  severity?: 'info' | 'warning' | 'error' | 'security';
+  user?: string;
   createdAt: string;
 }
 

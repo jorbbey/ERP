@@ -37,8 +37,10 @@ import {
   Filter,
   AlertCircle,
   FileText,
-  Clock
+  Clock,
+  FileSpreadsheet
 } from 'lucide-react';
+import { ExcelImportModal, TemplateColumn } from '../../components/common/ExcelImportModal';
 
 export const ProjectsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -50,7 +52,8 @@ export const ProjectsPage: React.FC = () => {
     addDailyLog, 
     activeCompany, 
     currentUserName,
-    employees
+    employees,
+    bulkImportProjects
   } = useERP();
 
   const [activeTab, setActiveTab] = useState<'projects' | 'dailyLogs'>('projects');
@@ -63,6 +66,7 @@ export const ProjectsPage: React.FC = () => {
 
   // Modal States
   const [showAddProjectModal, setShowAddProjectModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [showAddLogModal, setShowAddLogModal] = useState(false);
 
@@ -103,37 +107,47 @@ export const ProjectsPage: React.FC = () => {
     loggedBy: currentUserName
   });
 
+  const currency = activeCompany?.currency || 'USD';
+
   // Client and Manager Options
-  const uniqueClients = Array.from(new Set(projects.map(p => p.clientName).filter(Boolean)));
-  const uniqueManagers = Array.from(new Set(projects.map(p => p.manager).filter(Boolean)));
+  const uniqueClients = Array.from(new Set(projects.map(p => p?.clientName || '').filter(Boolean)));
+  const uniqueManagers = Array.from(new Set(projects.map(p => p?.manager || '').filter(Boolean)));
+
+  const q = (searchTerm || '').trim().toLowerCase();
+
+  // Tenant Isolation: filter by activeCompany if set
+  const companyProjects = projects.filter(p => !p?.companyId || !activeCompany?.id || p.companyId === activeCompany.id);
 
   // Filtering & Sorting
-  const filteredProjects = projects.filter(p => {
+  const filteredProjects = companyProjects.filter(p => {
+    if (!p) return false;
     const matchesSearch = 
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.projectNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.siteLocation.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (p.consultant && p.consultant.toLowerCase().includes(searchTerm.toLowerCase()));
+      (p.name || '').toLowerCase().includes(q) ||
+      (p.projectNumber || '').toLowerCase().includes(q) ||
+      (p.clientName || '').toLowerCase().includes(q) ||
+      (p.siteLocation || '').toLowerCase().includes(q) ||
+      Boolean(p.consultant && p.consultant.toLowerCase().includes(q));
     
     const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
     const matchesClient = clientFilter === 'all' || p.clientName === clientFilter;
     const matchesManager = managerFilter === 'all' || p.manager === managerFilter;
     return matchesSearch && matchesStatus && matchesClient && matchesManager;
   }).sort((a, b) => {
-    if (sortBy === 'name') return a.name.localeCompare(b.name);
-    if (sortBy === 'progress') return b.progressPercent - a.progressPercent;
-    if (sortBy === 'value') return b.contractValue - a.contractValue;
-    return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+    if (sortBy === 'name') return (a.name || '').localeCompare(b.name || '');
+    if (sortBy === 'progress') return (b.progressPercent || 0) - (a.progressPercent || 0);
+    if (sortBy === 'value') return (b.contractValue || 0) - (a.contractValue || 0);
+    const dateA = a.startDate ? new Date(a.startDate).getTime() : 0;
+    const dateB = b.startDate ? new Date(b.startDate).getTime() : 0;
+    return dateB - dateA;
   });
 
   // KPI Calculations
-  const totalContractValue = projects.reduce((acc, p) => acc + p.contractValue, 0);
-  const totalBudget = projects.reduce((acc, p) => acc + p.budget, 0);
-  const totalSpent = projects.reduce((acc, p) => acc + p.spent, 0);
-  const activeProjectsCount = projects.filter(p => p.status === 'in_progress').length;
-  const avgProgress = projects.length > 0
-    ? Math.round(projects.reduce((acc, p) => acc + p.progressPercent, 0) / projects.length)
+  const totalContractValue = companyProjects.reduce((acc, p) => acc + (p?.contractValue || 0), 0);
+  const totalBudget = companyProjects.reduce((acc, p) => acc + (p?.budget || 0), 0);
+  const totalSpent = companyProjects.reduce((acc, p) => acc + (p?.spent || 0), 0);
+  const activeProjectsCount = companyProjects.filter(p => p?.status === 'in_progress').length;
+  const avgProgress = companyProjects.length > 0
+    ? Math.round(companyProjects.reduce((acc, p) => acc + (p?.progressPercent || 0), 0) / companyProjects.length)
     : 0;
 
   const handleOpenAddModal = () => {
@@ -299,7 +313,17 @@ export const ProjectsPage: React.FC = () => {
           </Flex>
         </Box>
 
-        <Flex gap={2}>
+        <Flex gap={2} wrap="wrap">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            borderColor="#16a34a" 
+            color="#16a34a" 
+            _hover={{ bg: '#f0fdf4' }}
+            onClick={() => setShowImportModal(true)}
+          >
+            <FileSpreadsheet size={16} /> Import from Excel
+          </Button>
           <Button 
             size="sm" 
             variant="outline" 
@@ -340,7 +364,7 @@ export const ProjectsPage: React.FC = () => {
                 Total Portfolio Value
               </Text>
               <Text fontSize="xl" fontWeight="black" color="#0f172a" mt={1}>
-                {activeCompany.currency} {(totalContractValue / 1000000).toFixed(2)}M
+                {currency} {(totalContractValue / 1000000).toFixed(2)}M
               </Text>
             </Box>
             <Box p={2.5} bg="#eff6ff" color="#2563eb" borderRadius="10px">
@@ -348,7 +372,7 @@ export const ProjectsPage: React.FC = () => {
             </Box>
           </Flex>
           <Text fontSize="11px" color="#16a34a" fontWeight="medium" mt={2}>
-            {projects.length} Total Projects Registered
+            {companyProjects.length} Projects Under Management
           </Text>
         </Card.Root>
 
@@ -378,7 +402,7 @@ export const ProjectsPage: React.FC = () => {
                 Budget vs Actual Spend
               </Text>
               <Text fontSize="xl" fontWeight="black" color="#0f172a" mt={1}>
-                {activeCompany.currency} {(totalSpent / 1000000).toFixed(2)}M
+                {currency} {(totalSpent / 1000000).toFixed(2)}M
               </Text>
             </Box>
             <Box p={2.5} bg="#f0fdf4" color="#16a34a" borderRadius="10px">
@@ -386,7 +410,7 @@ export const ProjectsPage: React.FC = () => {
             </Box>
           </Flex>
           <Text fontSize="11px" color="#64748b" mt={2}>
-            Allocated: {activeCompany.currency} {(totalBudget / 1000000).toFixed(2)}M
+            Allocated: {currency} {(totalBudget / 1000000).toFixed(2)}M
           </Text>
         </Card.Root>
 
@@ -642,19 +666,19 @@ export const ProjectsPage: React.FC = () => {
                       <Flex justify="space-between" mb={1.5}>
                         <Text color="#64748b">Contract Value:</Text>
                         <Text fontWeight="bold" color="#2563eb">
-                          {activeCompany.currency} {project.contractValue.toLocaleString()}
+                          {currency} {(project.contractValue || 0).toLocaleString()}
                         </Text>
                       </Flex>
                       <Flex justify="space-between" mb={1.5}>
                         <Text color="#64748b">Target Budget:</Text>
                         <Text fontWeight="semibold" color="#0f172a">
-                          {activeCompany.currency} {project.budget.toLocaleString()}
+                          {currency} {(project.budget || 0).toLocaleString()}
                         </Text>
                       </Flex>
                       <Flex justify="space-between">
                         <Text color="#64748b">Actual Spent:</Text>
                         <Text fontWeight="semibold" color="#16a34a">
-                          {activeCompany.currency} {project.spent.toLocaleString()}
+                          {currency} {(project.spent || 0).toLocaleString()}
                         </Text>
                       </Flex>
                     </Box>
@@ -745,10 +769,10 @@ export const ProjectsPage: React.FC = () => {
                         {project.consultant && <Text fontSize="10px" color="#94a3b8">{project.consultant}</Text>}
                       </Table.Cell>
                       <Table.Cell fontSize="xs" textAlign="right" fontWeight="bold" color="#2563eb">
-                        {activeCompany.currency} {project.contractValue.toLocaleString()}
+                        {currency} {(project.contractValue || 0).toLocaleString()}
                       </Table.Cell>
                       <Table.Cell fontSize="xs" textAlign="right" fontWeight="medium" color="#0f172a">
-                        {activeCompany.currency} {project.budget.toLocaleString()}
+                        {currency} {(project.budget || 0).toLocaleString()}
                       </Table.Cell>
                       <Table.Cell minW="110px">
                         <Flex justify="space-between" fontSize="10px" mb={1}>
@@ -1369,6 +1393,64 @@ export const ProjectsPage: React.FC = () => {
           </Box>
         </Box>
       )}
+
+      {/* Excel Projects Bulk Import Modal */}
+      <ExcelImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        moduleTitle="Civil Projects & Contracts"
+        moduleKey="projects"
+        existingRecords={projects}
+        duplicateKeyField="projectNumber"
+        templateColumns={[
+          { key: 'projectNumber', label: 'Project Number', required: true, type: 'string', description: 'Unique civil project code (e.g. PRJ-2026-001)', example: 'PRJ-2026-015' },
+          { key: 'name', label: 'Project Name', required: true, type: 'string', description: 'Official project title / contract package', example: 'Lekki Coastal Flyover & Asphalt Dual Carriage' },
+          { key: 'clientName', label: 'Client Name', required: true, type: 'string', description: 'Employer / Institutional client', example: 'Federal Ministry of Works & Housing' },
+          { key: 'consultant', label: 'Engineering Consultant', required: false, type: 'string', description: 'Resident supervising engineering firm', example: 'Arup Consulting Engineers Ltd' },
+          { key: 'projectType', label: 'Project Sector', required: false, type: 'string', description: 'Infrastructure, Commercial, Highway, Bridges, etc.', example: 'Highway & Bridges' },
+          { key: 'contractValue', label: 'Contract Value', required: true, type: 'number', description: 'Approved contract value amount in company currency', example: 45000000 },
+          { key: 'budget', label: 'Target Budget', required: true, type: 'number', description: 'Internal allocated execution budget', example: 42000000 },
+          { key: 'spent', label: 'Actual Spent to Date', required: false, type: 'number', description: 'Cumulative expenditure incurred to date', example: 12500000 },
+          { key: 'startDate', label: 'Commencement Date', required: false, type: 'string', description: 'YYYY-MM-DD project start date', example: '2026-01-15' },
+          { key: 'endDate', label: 'Contractual Completion Date', required: false, type: 'string', description: 'YYYY-MM-DD target handover date', example: '2027-11-30' },
+          { key: 'siteLocation', label: 'Site Location / Chainage', required: true, type: 'string', description: 'Physical site address / corridor', example: 'KM 14-22 Lekki-Epe Expressway, Lagos' },
+          { key: 'progressPercent', label: 'Progress (%)', required: false, type: 'number', description: 'Certified physical execution percentage (0-100)', example: 35 },
+          { key: 'manager', label: 'Project Manager', required: false, type: 'string', description: 'Assigned resident project director / manager', example: currentUserName }
+        ]}
+        sampleData={[
+          {
+            projectNumber: 'PRJ-2026-015',
+            name: 'Lekki Coastal Flyover & Asphalt Dual Carriage',
+            clientName: 'Federal Ministry of Works & Housing',
+            consultant: 'Arup Consulting Engineers Ltd',
+            projectType: 'Highway & Bridges',
+            contractValue: 45000000,
+            budget: 42000000,
+            spent: 12500000,
+            startDate: '2026-01-15',
+            endDate: '2027-11-30',
+            siteLocation: 'KM 14-22 Lekki-Epe Expressway, Lagos',
+            progressPercent: 35,
+            manager: currentUserName
+          },
+          {
+            projectNumber: 'PRJ-2026-016',
+            name: 'Victoria Island Deep Foundation & Basement Box',
+            clientName: 'Commercial Towers Dev Corp',
+            consultant: 'Ove Arup & Partners',
+            projectType: 'Commercial Building',
+            contractValue: 28000000,
+            budget: 26000000,
+            spent: 8900000,
+            startDate: '2026-02-01',
+            endDate: '2027-08-31',
+            siteLocation: 'Plot 40 Marina Waterfront, Victoria Island',
+            progressPercent: 28,
+            manager: currentUserName
+          }
+        ]}
+        onCommitImport={(validRows) => bulkImportProjects(validRows)}
+      />
     </Box>
   );
 };

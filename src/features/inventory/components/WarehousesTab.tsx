@@ -369,13 +369,13 @@ export const WarehousesTab: React.FC<WarehousesTabProps> = ({ onInitiateTransfer
                         <Text fontSize="10px" color="#94a3b8">{item.categoryName}</Text>
                       </Table.Cell>
                       <Table.Cell fontSize="xs" fontWeight="bold">
-                        {item.currentStock} {item.unit}
+                        {Number(item.currentStock) || 0} {item.unit}
                       </Table.Cell>
                       <Table.Cell fontSize="xs">
-                        {activeCompany.currency} {item.costPrice.toFixed(2)}
+                        {activeCompany.currency} {(Number(item.costPrice) || 0).toFixed(2)}
                       </Table.Cell>
                       <Table.Cell fontSize="xs" fontWeight="bold" color="#16a34a">
-                        {activeCompany.currency} {(item.currentStock * item.costPrice).toLocaleString()}
+                        {activeCompany.currency} {((Number(item.currentStock) || 0) * (Number(item.costPrice) || 0)).toLocaleString()}
                       </Table.Cell>
                     </Table.Row>
                   ))}

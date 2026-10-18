@@ -27,11 +27,11 @@ export const grnService = {
     if (filters.searchTerm) {
       const q = filters.searchTerm.toLowerCase();
       list = list.filter(g =>
-        g.grnNumber.toLowerCase().includes(q) ||
-        g.poNumber.toLowerCase().includes(q) ||
-        g.supplierName.toLowerCase().includes(q) ||
-        g.warehouseName.toLowerCase().includes(q) ||
-        g.receivedBy.toLowerCase().includes(q)
+        (g.grnNumber || '').toLowerCase().includes(q) ||
+        (g.poNumber || '').toLowerCase().includes(q) ||
+        (g.supplierName || '').toLowerCase().includes(q) ||
+        (g.warehouseName || '').toLowerCase().includes(q) ||
+        (g.receivedBy || '').toLowerCase().includes(q)
       );
     }
 

@@ -154,7 +154,7 @@ export const RequisitionCreateModal: React.FC<RequisitionCreateModalProps> = ({ 
     updated[index].isSearchOpen = true;
 
     // Check exact match
-    const match = inventory.find(i => i.name.toLowerCase() === name.toLowerCase());
+    const match = inventory.find(i => (i.name || '').toLowerCase() === (name || '').toLowerCase());
     if (match) {
       updated[index].inventoryItemId = match.id;
       updated[index].itemCode = match.itemCode;
@@ -424,11 +424,12 @@ export const RequisitionCreateModal: React.FC<RequisitionCreateModalProps> = ({ 
 
               <Stack gap={2.5}>
                 {itemRows.map((row, idx) => {
-                  const matchingSuggestions = row.searchQuery.trim()
+                  const q = (row.searchQuery || '').trim().toLowerCase();
+                  const matchingSuggestions = q
                     ? inventory.filter(i =>
-                        i.name.toLowerCase().includes(row.searchQuery.toLowerCase()) ||
-                        i.itemCode.toLowerCase().includes(row.searchQuery.toLowerCase()) ||
-                        i.categoryName.toLowerCase().includes(row.searchQuery.toLowerCase())
+                        (i.name || '').toLowerCase().includes(q) ||
+                        (i.itemCode || '').toLowerCase().includes(q) ||
+                        (i.categoryName || '').toLowerCase().includes(q)
                       ).slice(0, 5)
                     : inventory.slice(0, 4);
 
@@ -533,8 +534,8 @@ export const RequisitionCreateModal: React.FC<RequisitionCreateModalProps> = ({ 
                                       <Text fontSize="10px" color="#64748b">{inv.itemCode} • {inv.categoryName}</Text>
                                     </Box>
                                     <Box textAlign="right">
-                                      <Badge size="xs" colorPalette="blue">{inv.currentStock} {inv.unit} in store</Badge>
-                                      <Text fontSize="10px" color="#16a34a">{activeCompany.currency} {inv.costPrice.toFixed(2)}</Text>
+                                      <Badge size="xs" colorPalette="blue">{Number(inv.currentStock) || 0} {inv.unit} in store</Badge>
+                                      <Text fontSize="10px" color="#16a34a">{activeCompany.currency} {(Number(inv.costPrice) || 0).toFixed(2)}</Text>
                                     </Box>
                                   </Flex>
                                 </Box>

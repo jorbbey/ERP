@@ -27,10 +27,10 @@ export const purchaseOrderService = {
     if (filters.searchTerm) {
       const q = filters.searchTerm.toLowerCase();
       list = list.filter(p =>
-        p.poNumber.toLowerCase().includes(q) ||
-        p.supplierName.toLowerCase().includes(q) ||
+        (p.poNumber || '').toLowerCase().includes(q) ||
+        (p.supplierName || '').toLowerCase().includes(q) ||
         (p.projectName && p.projectName.toLowerCase().includes(q)) ||
-        p.paymentTerms.toLowerCase().includes(q)
+        (p.paymentTerms || '').toLowerCase().includes(q)
       );
     }
 

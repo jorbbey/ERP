@@ -25,23 +25,23 @@ import {
 export const InventoryReportsTab: React.FC = () => {
   const { inventory, inventoryCategories, warehouses, activeCompany } = useERP();
 
-  const totalValuation = inventory.reduce((acc, i) => acc + (i.currentStock * i.costPrice), 0);
-  const lowStockItems = inventory.filter(i => i.currentStock <= i.minLevel);
-  const outOfStockItems = inventory.filter(i => i.currentStock <= 0);
+  const totalValuation = inventory.reduce((acc, i) => acc + ((Number(i.currentStock) || 0) * (Number(i.costPrice) || 0)), 0);
+  const lowStockItems = inventory.filter(i => (Number(i.currentStock) || 0) <= (Number(i.minLevel) || 0));
+  const outOfStockItems = inventory.filter(i => (Number(i.currentStock) || 0) <= 0);
 
   const handleExportCSV = () => {
     const headers = ['Item Code', 'Item Name', 'Category', 'Unit', 'Current Stock', 'Min Level', 'Cost Price', 'Selling Price', 'Total Valuation', 'Warehouse Location'];
     const rows = inventory.map(i => [
       i.itemCode,
-      `"${i.name.replace(/"/g, '""')}"`,
-      `"${i.categoryName}"`,
+      `"${(i.name || '').replace(/"/g, '""')}"`,
+      `"${i.categoryName || ''}"`,
       i.unit,
       i.currentStock,
       i.minLevel,
       i.costPrice,
       i.sellingPrice,
-      (i.currentStock * i.costPrice).toFixed(2),
-      `"${i.warehouseLocation}"`
+      ((Number(i.currentStock) || 0) * (Number(i.costPrice) || 0)).toFixed(2),
+      `"${i.warehouseLocation || ''}"`
     ]);
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');

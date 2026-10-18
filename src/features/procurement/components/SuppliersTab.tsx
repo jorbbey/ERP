@@ -27,15 +27,58 @@ import {
   Eye,
   FileText,
   PackageCheck,
-  DollarSign
+  DollarSign,
+  FileSpreadsheet
 } from 'lucide-react';
+import { ExcelImportModal, TemplateColumn } from '../../../components/common/ExcelImportModal';
+
+const supplierTemplateColumns: TemplateColumn[] = [
+  { key: 'companyName', label: 'Company / Vendor Name', required: true, type: 'string', description: 'Registered trading vendor entity name', example: 'Lafarge Holcim Cement Nig Ltd' },
+  { key: 'supplierCode', label: 'Supplier Code', required: false, type: 'string', description: 'Unique code or auto-assigned (e.g. SUP-001)', example: 'SUP-012' },
+  { key: 'contactPerson', label: 'Contact Person', required: true, type: 'string', description: 'Key representative or account manager', example: 'Engr. Daniel Okafor' },
+  { key: 'email', label: 'Official Email', required: true, type: 'email', description: 'Order confirmation and billing email', example: 'orders@lafarge-supply.com' },
+  { key: 'phone', label: 'Phone Number', required: true, type: 'string', description: 'Active contact phone number', example: '+234 803 123 4567' },
+  { key: 'category', label: 'Category', required: true, type: 'enum', validValues: ['Civil Aggregates & Cement', 'Structural Steel & Rebar', 'Heavy Equipment & Spares', 'Safety & PPE', 'Finishes & MEP'], description: 'Primary material/trade specialization', example: 'Civil Aggregates & Cement' },
+  { key: 'address', label: 'Physical Address', required: false, type: 'string', description: 'Headquarters or depot yard location', example: 'Plot 14 Industrial Layout, Ikeja, Lagos' },
+  { key: 'paymentTerms', label: 'Payment Terms', required: false, type: 'string', description: 'Default terms (e.g. Net 30 Days, 50% Advance)', example: 'Net 30 Days' },
+  { key: 'taxId', label: 'Tax ID / TIN', required: false, type: 'string', description: 'Federal/State tax identification number', example: 'TIN-98721345' },
+  { key: 'openingBalance', label: 'Opening Balance', required: false, type: 'number', description: 'Current payable balance or 0', example: 0 }
+];
+
+const sampleSupplierData = [
+  {
+    companyName: 'Lafarge Holcim Cement Nig Ltd',
+    supplierCode: 'SUP-001',
+    contactPerson: 'Engr. Daniel Okafor',
+    email: 'orders@lafarge-supply.com',
+    phone: '+234 803 123 4567',
+    category: 'Civil Aggregates & Cement',
+    address: 'Plot 14 Industrial Layout, Ikeja, Lagos',
+    paymentTerms: 'Net 30 Days',
+    taxId: 'TIN-98721345',
+    openingBalance: 0
+  },
+  {
+    companyName: 'Apex Steel Rolling Mills PLC',
+    supplierCode: 'SUP-002',
+    contactPerson: 'Mrs. Funke Adeyemi',
+    email: 'sales@apexsteel.ng',
+    phone: '+234 802 987 6543',
+    category: 'Structural Steel & Rebar',
+    address: 'KM 12 Sagamu-Benin Expressway, Ogun State',
+    paymentTerms: 'Net 14 Days',
+    taxId: 'TIN-45612389',
+    openingBalance: 0
+  }
+];
 
 export const SuppliersTab: React.FC = () => {
-  const { suppliers, addSupplier, updateSupplier, deleteSupplier, purchaseOrders, goodsReceivedNotes, activeCompany } = useERP();
+  const { suppliers, addSupplier, updateSupplier, deleteSupplier, purchaseOrders, goodsReceivedNotes, activeCompany, bulkImportSuppliers } = useERP();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [showImportModal, setShowImportModal] = useState(false);
 
   // Modals
   const [showAddModal, setShowAddModal] = useState(false);
@@ -66,16 +109,18 @@ export const SuppliersTab: React.FC = () => {
   ];
 
   const filteredSuppliers = suppliers.filter(s => {
+    if (!s) return false;
     const matchesCat = categoryFilter === 'All' || s.category === categoryFilter;
     const matchesStatus = statusFilter === 'All' || s.status === statusFilter;
-    const q = searchTerm.toLowerCase();
+    const q = (searchTerm || '').trim().toLowerCase();
     const matchesSearch =
-      s.companyName.toLowerCase().includes(q) ||
-      s.supplierCode.toLowerCase().includes(q) ||
-      s.contactPerson.toLowerCase().includes(q) ||
-      s.email.toLowerCase().includes(q) ||
-      s.phone.toLowerCase().includes(q) ||
-      s.address.toLowerCase().includes(q);
+      !q ||
+      (s.companyName || '').toLowerCase().includes(q) ||
+      (s.supplierCode || '').toLowerCase().includes(q) ||
+      (s.contactPerson || '').toLowerCase().includes(q) ||
+      (s.email || '').toLowerCase().includes(q) ||
+      (s.phone || '').toLowerCase().includes(q) ||
+      (s.address || '').toLowerCase().includes(q);
 
     return matchesCat && matchesStatus && matchesSearch;
   });
@@ -167,6 +212,17 @@ export const SuppliersTab: React.FC = () => {
               </NativeSelect.Field>
             </NativeSelect.Root>
           </Flex>
+
+          <Button
+            size="sm"
+            variant="outline"
+            borderColor="#cbd5e1"
+            color="#334155"
+            onClick={() => setShowImportModal(true)}
+            fontWeight="medium"
+          >
+            <FileSpreadsheet size={15} color="#16a34a" /> Import Suppliers (Excel)
+          </Button>
 
           <Button size="sm" colorPalette="blue" onClick={handleOpenAdd} fontWeight="semibold">
             <Plus size={16} /> Register Vendor / Supplier
@@ -459,6 +515,25 @@ export const SuppliersTab: React.FC = () => {
           </Box>
         </Box>
       )}
+
+      {/* Excel Supplier Master Import Modal */}
+      <ExcelImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        moduleTitle="Suppliers & Subcontractors Directory"
+        moduleKey="suppliers"
+        templateColumns={supplierTemplateColumns}
+        sampleData={sampleSupplierData}
+        existingRecords={suppliers}
+        duplicateKeyField="companyName"
+        guidanceNotes={[
+          'Supplier Company Name is mandatory and must be unique to prevent duplicate vendor accounts.',
+          'Official email will be used for PO purchase order dispatches and remittance notifications.',
+          'Opening Balance establishes initial Accounts Payable liability if migrating from another system.',
+          'Valid Categories: Civil Aggregates & Cement, Structural Steel & Rebar, Heavy Equipment & Spares, Safety & PPE, Finishes & MEP.'
+        ]}
+        onCommitImport={bulkImportSuppliers}
+      />
     </Stack>
   );
 };

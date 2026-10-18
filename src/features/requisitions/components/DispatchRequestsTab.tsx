@@ -52,14 +52,16 @@ export const DispatchRequestsTab: React.FC = () => {
   const canDispatch = ['Store Officer', 'Head Store Keeper', 'Procurement Officer', 'Managing Director', 'Super Admin'].includes(activeRole);
 
   const filteredRequests = dispatchRequests.filter(d => {
+    if (!d) return false;
     const matchesStatus = statusFilter === 'all' || d.status === statusFilter;
-    const q = searchTerm.toLowerCase();
+    const q = (searchTerm || '').trim().toLowerCase();
     const matchesSearch =
-      d.requisitionNo.toLowerCase().includes(q) ||
-      d.itemName.toLowerCase().includes(q) ||
-      d.itemCode.toLowerCase().includes(q) ||
-      d.destinationProjectName.toLowerCase().includes(q) ||
-      d.sourceWarehouseName.toLowerCase().includes(q);
+      !q ||
+      (d.requisitionNo || '').toLowerCase().includes(q) ||
+      (d.itemName || '').toLowerCase().includes(q) ||
+      (d.itemCode || '').toLowerCase().includes(q) ||
+      (d.destinationProjectName || '').toLowerCase().includes(q) ||
+      (d.sourceWarehouseName || '').toLowerCase().includes(q);
 
     return matchesStatus && matchesSearch;
   });

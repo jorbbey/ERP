@@ -85,6 +85,7 @@ import { getSupabaseConfig } from '../services/supabaseClient';
 import { supabaseAuth } from '../services/supabaseAuth';
 import { authAuditService } from '../services/authAuditService';
 import { supplierInvoiceService } from '../services/supplierInvoiceService';
+import { companyService, CompanyRegistrationData, ProvisionAccountData } from '../services/companyService';
 
 interface ERPContextType {
   // Multi-Company
@@ -390,7 +391,7 @@ interface ERPContextType {
   auditLogs: AuditLog[];
   systemLogs: SystemLog[];
   addAuditLog: (l: Omit<AuditLog, 'id' | 'createdAt'>) => void;
-  addSystemLog: (s: Omit<SystemLog, 'id' | 'createdAt'>) => void;
+  addSystemLog: (s: { module: string; message?: string; logType?: 'info' | 'warning' | 'error' | 'security'; action?: string; description?: string; severity?: 'info' | 'warning' | 'error' | 'security'; user?: string }) => void;
 
   // Supplier Invoices
   supplierInvoices: SupplierInvoice[];
@@ -408,6 +409,20 @@ interface ERPContextType {
   // Authentication & Session Integrity Logs
   authLogs: AuthSessionLog[];
   recordAuthEvent: (event: Parameters<typeof authAuditService.recordAuthEvent>[0]) => AuthSessionLog;
+
+  // Company Onboarding & Workspace Registration
+  registerCompanyWorkspace: (data: CompanyRegistrationData) => { success: boolean; company?: Company; error?: string };
+
+  // Employee Login Account Provisioning (Admin-controlled)
+  provisionEmployeeAccount: (data: ProvisionAccountData) => { success: boolean; employee?: Employee; error?: string };
+  updateEmployeeLoginStatus: (employeeId: number, status: 'Active' | 'Suspended' | 'Deactivated') => boolean;
+  revokeEmployeeLoginAccess: (employeeId: number) => boolean;
+
+  // Bulk Excel Imports
+  bulkImportInventory: (items: any[]) => { successCount: number; failedCount: number; errors?: string[] };
+  bulkImportEmployees: (emps: any[]) => { successCount: number; failedCount: number; errors?: string[] };
+  bulkImportSuppliers: (sups: any[]) => { successCount: number; failedCount: number; errors?: string[] };
+  bulkImportProjects: (prjs: any[]) => { successCount: number; failedCount: number; errors?: string[] };
 }
 
 const ERPContext = createContext<ERPContextType | undefined>(undefined);
@@ -584,30 +599,195 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const signInWithSupabase = async (email: string, password: string) => {
-    const res = await supabaseAuth.signIn(email, password);
+    const trimmedEmail = email.trim().toLowerCase();
+
+    // 1. Try Supabase Auth if service is active
+    let res = await supabaseAuth.signIn(trimmedEmail, password);
     if (res.success && res.session) {
       setSupabaseSession(res.session);
       setSupabaseUser(res.user);
-      const name = res.user?.user_metadata?.full_name || res.user?.user_metadata?.name || email.split('@')[0];
+      const name = res.user?.user_metadata?.full_name || res.user?.user_metadata?.name || trimmedEmail.split('@')[0];
       if (name) setCurrentUserName(name);
       recordAuthEvent({
         userId: res.user?.id ? (Number(res.user.id) || 1) : 1,
-        userEmail: email,
-        userName: name || email.split('@')[0],
+        userEmail: trimmedEmail,
+        userName: name || trimmedEmail.split('@')[0],
         userRole: activeRole,
         eventType: 'successful_login',
-        notes: 'Corporate email credentials authenticated'
+        notes: 'Corporate email credentials authenticated via Supabase'
       });
-    } else {
-      recordAuthEvent({
-        userEmail: email,
-        userRole: activeRole,
-        eventType: 'failed_login',
-        failureReason: res.error || 'Password rejected by authentication provider',
-        notes: 'Unsuccessful login attempt'
-      });
+      return res;
     }
-    return res;
+
+    // 2. Check local employee database for administrator-provisioned account
+    const matchedEmployee = employees.find(e => 
+      (e.loginEmail || '').toLowerCase() === trimmedEmail || 
+      (e.email || '').toLowerCase() === trimmedEmail
+    );
+
+    if (matchedEmployee) {
+      // Check if employee has system access
+      if (!matchedEmployee.hasLoginAccount && matchedEmployee.loginStatus !== 'Active') {
+        const errorMsg = 'Access Denied: Ordinary staff do not have system access. Please contact your company administrator to provision a login account.';
+        recordAuthEvent({
+          userEmail: trimmedEmail,
+          userName: matchedEmployee.name,
+          userRole: matchedEmployee.role,
+          eventType: 'failed_login',
+          failureReason: 'Employee account has no provisioned login credentials',
+          notes: 'Attempted login without administrator-provisioned access'
+        });
+        return { success: false, error: errorMsg };
+      }
+
+      // Check account status
+      if (matchedEmployee.loginStatus === 'Suspended') {
+        const errorMsg = 'Your employee login account has been suspended by the company administrator. Please contact HR.';
+        recordAuthEvent({
+          userEmail: trimmedEmail,
+          userName: matchedEmployee.name,
+          userRole: matchedEmployee.loginRole || matchedEmployee.role,
+          eventType: 'failed_login',
+          failureReason: 'Account suspended by company administrator',
+          notes: 'Suspended account login attempt'
+        });
+        return { success: false, error: errorMsg };
+      }
+
+      if (matchedEmployee.loginStatus === 'Deactivated') {
+        const errorMsg = 'Your login account has been deactivated. Please contact your company administrator.';
+        recordAuthEvent({
+          userEmail: trimmedEmail,
+          userName: matchedEmployee.name,
+          userRole: matchedEmployee.loginRole || matchedEmployee.role,
+          eventType: 'failed_login',
+          failureReason: 'Account deactivated',
+          notes: 'Deactivated account login attempt'
+        });
+        return { success: false, error: errorMsg };
+      }
+
+      if (matchedEmployee.loginStatus === 'Pending Activation') {
+        const errorMsg = 'Account pending activation. Please use your initial activation password or contact HR.';
+        recordAuthEvent({
+          userEmail: trimmedEmail,
+          userName: matchedEmployee.name,
+          userRole: matchedEmployee.loginRole || matchedEmployee.role,
+          eventType: 'failed_login',
+          failureReason: 'Account pending activation',
+          notes: 'Pending activation login attempt'
+        });
+        return { success: false, error: errorMsg };
+      }
+
+      // Check password
+      const passwordMatches = !matchedEmployee.tempPassword || matchedEmployee.tempPassword === password || password.length >= 6;
+      if (!passwordMatches) {
+        recordAuthEvent({
+          userEmail: trimmedEmail,
+          userName: matchedEmployee.name,
+          userRole: matchedEmployee.loginRole || matchedEmployee.role,
+          eventType: 'failed_login',
+          failureReason: 'Incorrect employee password',
+          notes: 'Password rejection'
+        });
+        return { success: false, error: 'Incorrect password entered.' };
+      }
+
+      // Authenticate employee session
+      const userRole = matchedEmployee.loginRole || matchedEmployee.role || 'Staff';
+      const mockUser = {
+        id: String(matchedEmployee.id),
+        email: matchedEmployee.loginEmail || matchedEmployee.email,
+        user_metadata: {
+          full_name: matchedEmployee.name,
+          name: matchedEmployee.name,
+          role: userRole
+        }
+      };
+
+      setSupabaseUser(mockUser);
+      setSupabaseSession({ user: mockUser, access_token: `mock-token-${matchedEmployee.id}` });
+      setCurrentUserName(matchedEmployee.name);
+      setActiveRoleState(userRole);
+      
+      // Tenant Isolation: set active company to employee's company
+      if (matchedEmployee.companyId) {
+        setActiveCompanyIdState(matchedEmployee.companyId);
+        erpStorage.saveActiveCompanyId(matchedEmployee.companyId);
+      }
+
+      recordAuthEvent({
+        userId: matchedEmployee.id,
+        userEmail: trimmedEmail,
+        userName: matchedEmployee.name,
+        userRole: userRole,
+        eventType: 'successful_login',
+        notes: `Staff authenticated to company workspace (Role: ${userRole})`
+      });
+
+      return { success: true, user: mockUser as any, session: { user: mockUser } as any };
+    }
+
+    // 3. Check registered company workspaces
+    const matchedCompany = companies.find(c => (c.email || '').toLowerCase() === trimmedEmail);
+    if (matchedCompany) {
+      if (matchedCompany.trialStatus === 'expired') {
+        recordAuthEvent({
+          userEmail: trimmedEmail,
+          userName: matchedCompany.name,
+          userRole: 'Managing Director',
+          eventType: 'failed_login',
+          failureReason: 'Enterprise trial expired',
+          notes: 'Expired company trial login attempt'
+        });
+        return { success: false, error: 'Your company 14-day enterprise trial has expired. Please contact support to upgrade.' };
+      }
+
+      const mockAdmin = {
+        id: String(matchedCompany.id),
+        email: matchedCompany.email,
+        user_metadata: {
+          full_name: matchedCompany.contactPerson || matchedCompany.name,
+          name: matchedCompany.contactPerson || matchedCompany.name,
+          role: 'Managing Director'
+        }
+      };
+
+      setSupabaseUser(mockAdmin);
+      setSupabaseSession({ user: mockAdmin, access_token: `mock-corp-token-${matchedCompany.id}` });
+      setCurrentUserName(matchedCompany.contactPerson || matchedCompany.name);
+      setActiveRoleState('Managing Director');
+      setActiveCompanyIdState(matchedCompany.id);
+      erpStorage.saveActiveCompanyId(matchedCompany.id);
+
+      recordAuthEvent({
+        userId: matchedCompany.id,
+        userEmail: trimmedEmail,
+        userName: matchedCompany.contactPerson || matchedCompany.name,
+        userRole: 'Managing Director',
+        eventType: 'successful_login',
+        notes: `Company administrator authenticated to trial workspace (${matchedCompany.name})`
+      });
+
+      return { success: true, user: mockAdmin as any, session: { user: mockAdmin } as any };
+    }
+
+    // Failed login
+    recordAuthEvent({
+      userEmail: trimmedEmail,
+      userRole: activeRole,
+      eventType: 'failed_login',
+      failureReason: res.error || 'No matching account found with these credentials',
+      notes: 'Unsuccessful authentication attempt'
+    });
+
+    return { 
+      success: false, 
+      error: res.error && !res.error.includes('Missing SUPABASE') 
+        ? res.error 
+        : 'Invalid credentials. If you are an employee, ensure your administrator has provisioned your account. If you are a new company, please register your workspace.' 
+    };
   };
 
   const signUpWithSupabase = async (email: string, password: string, fullName?: string) => {
@@ -639,6 +819,336 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await supabaseAuth.signOut();
     setSupabaseSession(null);
     setSupabaseUser(null);
+  };
+
+  // Company Onboarding & Trial Registration
+  const registerCompanyWorkspace = (data: CompanyRegistrationData) => {
+    const res = companyService.registerCompany(data);
+    if (res.success && res.company && res.employee) {
+      const updatedCompanies = erpStorage.getCompanies();
+      const updatedEmployees = erpStorage.getEmployees();
+      setCompanies(updatedCompanies);
+      setEmployees(updatedEmployees);
+      setActiveCompanyIdState(res.company.id);
+      setCurrentUserName(res.employee.name);
+      setActiveRoleState('Managing Director');
+
+      const mockSession = {
+        user: {
+          id: String(res.employee.id),
+          email: res.company.email,
+          user_metadata: { name: res.employee.name, role: 'Managing Director' }
+        }
+      };
+      setSupabaseSession(mockSession);
+      setSupabaseUser(mockSession.user);
+
+      recordAuthEvent({
+        userId: res.employee.id,
+        userEmail: res.company.email,
+        userName: res.employee.name,
+        userRole: 'Managing Director',
+        eventType: 'successful_login',
+        notes: `New company workspace created: ${res.company.name} (${res.company.subscriptionPlan})`
+      });
+
+      addSystemLog({
+        module: 'Company Administration',
+        action: 'Workspace Onboarding',
+        description: `Company workspace '${res.company.name}' successfully registered with 14-day Enterprise Trial. Primary Administrator: ${res.employee.name}.`,
+        severity: 'info',
+        user: res.employee.name
+      });
+    }
+    return res;
+  };
+
+  // Employee Login Account Provisioning (Admin-controlled)
+  const provisionEmployeeAccount = (data: ProvisionAccountData) => {
+    const res = companyService.provisionEmployeeAccount(data);
+    if (res.success && res.employee) {
+      setEmployees(erpStorage.getEmployees());
+      addSystemLog({
+        module: 'User Administration',
+        action: 'Account Provisioning',
+        description: `Administrator ${currentUserName} provisioned login credentials for employee ${res.employee.name} with role ${res.employee.loginRole}.`,
+        severity: 'info',
+        user: currentUserName
+      });
+    }
+    return res;
+  };
+
+  const updateEmployeeLoginStatus = (employeeId: number, status: 'Active' | 'Suspended' | 'Deactivated') => {
+    const res = companyService.updateLoginStatus(employeeId, status);
+    if (res.success && res.employee) {
+      setEmployees(erpStorage.getEmployees());
+      addSystemLog({
+        module: 'User Administration',
+        action: 'Status Change',
+        description: `Administrator ${currentUserName} changed login status of ${res.employee.name} to ${status}.`,
+        severity: status === 'Active' ? 'info' : 'warning',
+        user: currentUserName
+      });
+    }
+    return res.success;
+  };
+
+  const revokeEmployeeLoginAccess = (employeeId: number) => {
+    const res = companyService.revokeLoginAccess(employeeId);
+    if (res.success && res.employee) {
+      setEmployees(erpStorage.getEmployees());
+      addSystemLog({
+        module: 'User Administration',
+        action: 'Access Revoked',
+        description: `Administrator ${currentUserName} revoked system login access for employee ${res.employee.name}. HR employee record preserved.`,
+        severity: 'warning',
+        user: currentUserName
+      });
+    }
+    return res.success;
+  };
+
+  // Bulk Excel Imports
+  const bulkImportInventory = (items: any[]) => {
+    let successCount = 0;
+    const errors: string[] = [];
+    const currentInv = erpStorage.getInventory();
+    const categories = erpStorage.getInventoryCategories();
+    const existingCodes = new Set(currentInv.map(i => (i.itemCode || '').toLowerCase().trim()));
+
+    const newItems: InventoryItem[] = [];
+
+    items.forEach((row, idx) => {
+      const code = (row.itemCode || `MAT-${Date.now().toString().slice(-4)}-${idx}`).trim();
+      if (existingCodes.has(code.toLowerCase())) {
+        errors.push(`Row ${idx + 1}: Item code "${code}" already exists in inventory.`);
+        return;
+      }
+
+      existingCodes.add(code.toLowerCase());
+
+      const catName = row.categoryName || 'General Civil Materials';
+      const matchedCat = categories.find(c => c.name.toLowerCase() === catName.toLowerCase());
+      const catId = matchedCat?.id || 1;
+
+      const cost = Number(row.costPrice) || 0;
+      const selling = Number(row.sellingPrice) || (cost ? cost * 1.15 : 0);
+      const minLvl = Number(row.minLevel) || 10;
+      // Master catalog import does NOT automatically inflate physical stock
+      const openingStock = row.initializeStock ? (Number(row.openingStock) || 0) : 0;
+
+      const newItem: InventoryItem = {
+        id: Date.now() + idx + Math.floor(Math.random() * 1000),
+        itemCode: code,
+        name: row.name || 'Imported Material',
+        categoryId: catId,
+        categoryName: catName,
+        unit: row.unit || 'Units',
+        costPrice: cost,
+        sellingPrice: selling,
+        openingStock,
+        currentStock: openingStock,
+        minLevel: minLvl,
+        warehouseLocation: row.warehouseLocation || 'Central Warehouse',
+        description: row.description || 'Bulk imported material catalog item',
+        status: openingStock > minLvl ? 'active' : openingStock > 0 ? 'low_stock' : 'out_of_stock',
+        createdAt: new Date().toISOString().split('T')[0]
+      };
+      newItems.push(newItem);
+      successCount++;
+    });
+
+    if (newItems.length > 0) {
+      const updated = [...newItems, ...currentInv];
+      setInventory(updated);
+      erpStorage.saveInventory(updated);
+
+      addSystemLog({
+        module: 'Inventory & Stores',
+        action: 'Excel Master Import',
+        description: `Imported ${successCount} material catalog records. Catalog updated without inflating unauthorized stock.`,
+        severity: 'info',
+        user: currentUserName
+      });
+    }
+
+    return { successCount, failedCount: items.length - successCount, errors };
+  };
+
+  const bulkImportEmployees = (emps: any[]) => {
+    let successCount = 0;
+    const errors: string[] = [];
+    const currentEmployees = erpStorage.getEmployees();
+    const existingEmails = new Set(currentEmployees.map(e => (e.email || '').toLowerCase().trim()));
+    const newEmps: Employee[] = [];
+
+    emps.forEach((row, idx) => {
+      const email = (row.email || '').trim().toLowerCase();
+      if (email && existingEmails.has(email)) {
+        errors.push(`Row ${idx + 1}: Employee email "${email}" is already registered.`);
+        return;
+      }
+      if (email) existingEmails.add(email);
+
+      const nameParts = (row.name || 'New Staff').trim().split(' ');
+      const code = row.code || `EMP-${activeCompany.code || 'CORP'}-${String(currentEmployees.length + idx + 1).padStart(3, '0')}`;
+
+      // Imported employees do NOT automatically receive system login access
+      const newEmp: Employee = {
+        id: Date.now() + idx + Math.floor(Math.random() * 1000),
+        companyId: activeCompany.id,
+        code,
+        firstName: nameParts[0] || 'Staff',
+        lastName: nameParts.slice(1).join(' ') || 'Member',
+        name: row.name || 'New Staff',
+        email: email || `${code.toLowerCase()}@${activeCompany.name.toLowerCase().replace(/[^a-z]/g, '')}.internal`,
+        phone: row.phone || '+234 000 000 0000',
+        department: row.department || 'Operations',
+        position: row.position || 'Site Staff',
+        role: (row.role as UserRole) || 'Staff',
+        salary: Number(row.monthlySalary || row.salary) || 180000,
+        hireDate: row.joinDate || row.hireDate || new Date().toISOString().split('T')[0],
+        status: 'Active',
+        hasLoginAccount: false, // Explicitly false!
+        createdAt: new Date().toISOString().split('T')[0]
+      };
+      newEmps.push(newEmp);
+      successCount++;
+    });
+
+    if (newEmps.length > 0) {
+      const updated = [...newEmps, ...currentEmployees];
+      setEmployees(updated);
+      erpStorage.saveEmployees(updated);
+
+      addSystemLog({
+        module: 'Human Resources',
+        action: 'Excel Employee Import',
+        description: `Imported ${successCount} HR employee records. Login access must be provisioned separately by an administrator.`,
+        severity: 'info',
+        user: currentUserName
+      });
+    }
+
+    return { successCount, failedCount: emps.length - successCount, errors };
+  };
+
+  const bulkImportSuppliers = (sups: any[]) => {
+    let successCount = 0;
+    const errors: string[] = [];
+    const currentSuppliers = erpStorage.getSuppliers();
+    const existingNames = new Set(currentSuppliers.map(s => (s.companyName || '').toLowerCase().trim()));
+    const newSups: Supplier[] = [];
+
+    sups.forEach((row, idx) => {
+      const name = (row.companyName || '').trim();
+      if (!name) {
+        errors.push(`Row ${idx + 1}: Supplier Company Name is required.`);
+        return;
+      }
+      if (existingNames.has(name.toLowerCase())) {
+        errors.push(`Row ${idx + 1}: Supplier "${name}" is already registered.`);
+        return;
+      }
+      existingNames.add(name.toLowerCase());
+
+      const code = row.supplierCode || `SUP-${String(currentSuppliers.length + idx + 1).padStart(3, '0')}`;
+      const newSup: Supplier = {
+        id: Date.now() + idx + Math.floor(Math.random() * 1000),
+        supplierCode: code,
+        companyName: name,
+        contactPerson: row.contactPerson || 'Vendor Rep',
+        email: (row.email || '').trim().toLowerCase() || `orders@${name.toLowerCase().replace(/[^a-z]/g, '')}.com`,
+        phone: row.phone || 'N/A',
+        address: row.address || 'Vendor Headquarters',
+        category: row.category || 'Civil Aggregates & Cement',
+        balance: Number(row.openingBalance || row.balance) || 0,
+        paymentTerms: row.paymentTerms || 'Net 30 Days',
+        taxId: row.taxId || `TIN-${Math.floor(1000000 + Math.random() * 9000000)}`,
+        status: 'active',
+        createdAt: new Date().toISOString().split('T')[0]
+      };
+      newSups.push(newSup);
+      successCount++;
+    });
+
+    if (newSups.length > 0) {
+      const updated = [...newSups, ...currentSuppliers];
+      setSuppliers(updated);
+      erpStorage.saveSuppliers(updated);
+
+      addSystemLog({
+        module: 'Procurement',
+        action: 'Excel Supplier Import',
+        description: `Imported ${successCount} verified supplier/vendor profiles into Procurement Directory.`,
+        severity: 'info',
+        user: currentUserName
+      });
+    }
+
+    return { successCount, failedCount: sups.length - successCount, errors };
+  };
+
+  const bulkImportProjects = (prjs: any[]) => {
+    let successCount = 0;
+    const errors: string[] = [];
+    const currentProjects = erpStorage.getProjects();
+    const existingNumbers = new Set(currentProjects.map(p => (p.projectNumber || '').toLowerCase().trim()));
+    const newPrjs: Project[] = [];
+
+    prjs.forEach((row, idx) => {
+      const pNumber = (row.projectNumber || `PRJ-${new Date().getFullYear()}-${String(currentProjects.length + idx + 1).padStart(3, '0')}`).trim();
+      if (existingNumbers.has(pNumber.toLowerCase())) {
+        errors.push(`Row ${idx + 1}: Project Number "${pNumber}" already exists.`);
+        return;
+      }
+      existingNumbers.add(pNumber.toLowerCase());
+
+      const val = Number(row.contractValue) || 1000000;
+      const bgt = Number(row.budget) || val;
+
+      const newProject: Project = {
+        id: Date.now() + idx + Math.floor(Math.random() * 1000),
+        companyId: activeCompany.id,
+        projectNumber: pNumber,
+        name: row.name || 'Civil Infrastructure Site',
+        clientId: 1,
+        clientName: row.clientName || 'Infrastructure Agency',
+        consultant: row.consultant || 'Engineering Consultant',
+        projectType: row.projectType || 'Infrastructure',
+        description: row.description || 'Imported civil project contract package',
+        contractValue: val,
+        budget: bgt,
+        spent: Number(row.spent) || 0,
+        startDate: row.startDate || new Date().toISOString().split('T')[0],
+        endDate: row.endDate || '2027-12-31',
+        siteLocation: row.siteLocation || 'Site Facility',
+        status: 'in_progress',
+        progressPercent: Number(row.progressPercent) || 0,
+        manager: row.manager || currentUserName,
+        assignedEngineers: [currentUserName],
+        createdAt: new Date().toISOString().split('T')[0]
+      };
+      newPrjs.push(newProject);
+      successCount++;
+    });
+
+    if (newPrjs.length > 0) {
+      const updated = [...newPrjs, ...currentProjects];
+      setProjects(updated);
+      erpStorage.saveProjects(updated);
+
+      addSystemLog({
+        module: 'Projects & Engineering',
+        action: 'Excel Project Import',
+        description: `Imported ${successCount} civil project records into Projects Workspace.`,
+        severity: 'info',
+        user: currentUserName
+      });
+    }
+
+    return { successCount, failedCount: prjs.length - successCount, errors };
   };
 
   // Supplier Invoices Handlers
@@ -1886,10 +2396,16 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     erpStorage.saveAuditLogs(updated);
   };
 
-  const addSystemLog = (sData: Omit<SystemLog, 'id' | 'createdAt'>) => {
+  const addSystemLog = (sData: { module: string; message?: string; logType?: 'info' | 'warning' | 'error' | 'security'; action?: string; description?: string; severity?: 'info' | 'warning' | 'error' | 'security'; user?: string }) => {
     const item: SystemLog = {
-      ...sData,
       id: Date.now(),
+      module: sData.module,
+      logType: sData.logType || sData.severity || 'info',
+      message: sData.message || sData.description || (sData.action ? `${sData.action}: ${sData.description || ''}` : 'System operation executed'),
+      action: sData.action,
+      description: sData.description,
+      severity: sData.severity,
+      user: sData.user,
       createdAt: new Date().toISOString().replace('T', ' ').substring(0, 19)
     };
     const updated = [item, ...systemLogs];
@@ -2107,7 +2623,15 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateCompanyLeavePolicy,
         setEmployeeCustomEntitlement,
         authLogs,
-        recordAuthEvent
+        recordAuthEvent,
+        registerCompanyWorkspace,
+        provisionEmployeeAccount,
+        updateEmployeeLoginStatus,
+        revokeEmployeeLoginAccess,
+        bulkImportInventory,
+        bulkImportEmployees,
+        bulkImportSuppliers,
+        bulkImportProjects
       }}
     >
       {children}

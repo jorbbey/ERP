@@ -74,9 +74,9 @@ export const RequisitionDetailModal: React.FC<RequisitionDetailModalProps> = ({
   const [approveComment, setApproveComment] = useState('Approved for project site operations.');
 
   // Check authorization
-  const currentEmp = employees.find(e => e.name.toLowerCase() === currentUserName.toLowerCase());
+  const currentEmp = employees.find(e => (e.name || '').toLowerCase() === (currentUserName || '').toLowerCase());
   const isTaggedApprover = Boolean(
-    requisition.approvers?.some(a => a.name.toLowerCase() === currentUserName.toLowerCase() || (currentEmp && a.id === currentEmp.id)) ||
+    requisition.approvers?.some(a => (a.name || '').toLowerCase() === (currentUserName || '').toLowerCase() || (currentEmp && a.id === currentEmp.id)) ||
     (currentEmp && requisition.approverIds?.includes(currentEmp.id))
   );
 
@@ -440,8 +440,8 @@ export const RequisitionDetailModal: React.FC<RequisitionDetailModalProps> = ({
                   {item.quantityDispatched || 0}
                 </Table.Cell>
                 <Table.Cell fontSize="xs">
-                  {item.price !== undefined && item.price !== null
-                    ? `${activeCompany.currency} ${item.price.toFixed(2)}`
+                  {item.price !== undefined && item.price !== null && !isNaN(Number(item.price))
+                    ? `${activeCompany.currency} ${(Number(item.price) || 0).toFixed(2)}`
                     : <Text as="span" color="#94a3b8">Unpriced</Text>}
                 </Table.Cell>
                 <Table.Cell fontSize="xs" fontWeight="bold" color={item.value ? '#16a34a' : '#94a3b8'}>

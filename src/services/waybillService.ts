@@ -22,12 +22,12 @@ export const waybillService = {
     if (filters.searchTerm) {
       const q = filters.searchTerm.toLowerCase();
       list = list.filter(w =>
-        w.waybillNumber.toLowerCase().includes(q) ||
+        (w.waybillNumber || '').toLowerCase().includes(q) ||
         (w.requisitionNo && w.requisitionNo.toLowerCase().includes(q)) ||
-        w.projectName.toLowerCase().includes(q) ||
-        w.carrierName.toLowerCase().includes(q) ||
-        w.vehicleNumber.toLowerCase().includes(q) ||
-        w.destinationSite.toLowerCase().includes(q)
+        (w.projectName || '').toLowerCase().includes(q) ||
+        (w.carrierName || '').toLowerCase().includes(q) ||
+        (w.vehicleNumber || '').toLowerCase().includes(q) ||
+        (w.destinationSite || '').toLowerCase().includes(q)
       );
     }
 
