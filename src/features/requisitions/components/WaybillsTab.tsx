@@ -232,23 +232,23 @@ export const WaybillsTab: React.FC = () => {
 
       {/* View Printable Delivery Note Voucher Modal */}
       {viewingWaybill && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="650px" w="100%" p={6} boxShadow="2xl" maxH="90vh" overflowY="auto">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="650px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             {/* Header */}
-            <Flex justify="space-between" align="flex-start" borderBottom="2px solid #0f172a" pb={3} mb={4}>
+            <Flex justify="space-between" align="flex-start" borderBottom="2px solid #0f172a" pb={3} mb={4} flexWrap="wrap" gap={2}>
               <Box>
                 <Heading size="md" color="#0f172a" textTransform="uppercase">{activeCompany.name}</Heading>
                 <Text fontSize="xs" color="#64748b">OFFICIAL MATERIAL WAYBILL & DELIVERY NOTE</Text>
                 <Text fontSize="10px" color="#94a3b8">Logistics & Heavy Transport Division</Text>
               </Box>
-              <Box textAlign="right">
+              <Box textAlign={{ base: 'left', sm: 'right' }}>
                 <Badge size="sm" colorPalette="blue" fontFamily="mono" fontSize="xs">{viewingWaybill.waybillNumber}</Badge>
                 <Text fontSize="10px" color="#64748b" mt={1}>Date: {viewingWaybill.dispatchDate}</Text>
               </Box>
             </Flex>
 
             {/* Information Grid */}
-            <SimpleGrid columns={2} gap={4} fontSize="xs" mb={4} p={3} bg="#f8fafc" borderRadius="10px">
+            <SimpleGrid columns={{ base: 1, sm: 2 }} gap={4} fontSize="xs" mb={4} p={3} bg="#f8fafc" borderRadius="10px">
               <Box>
                 <Text color="#64748b">Dispatched From:</Text>
                 <Text fontWeight="bold" color="#0f172a">{viewingWaybill.sourceWarehouseName}</Text>
@@ -264,31 +264,33 @@ export const WaybillsTab: React.FC = () => {
             </SimpleGrid>
 
             {/* Line Items */}
-            <Table.Root size="sm" variant="outline" mb={4}>
-              <Table.Header>
-                <Table.Row bg="#f1f5f9">
-                  <Table.ColumnHeader fontSize="10px">Item #</Table.ColumnHeader>
-                  <Table.ColumnHeader fontSize="10px">Material Description</Table.ColumnHeader>
-                  <Table.ColumnHeader fontSize="10px">Dispatched Qty</Table.ColumnHeader>
-                  <Table.ColumnHeader fontSize="10px">Received Qty</Table.ColumnHeader>
-                  <Table.ColumnHeader fontSize="10px">Condition</Table.ColumnHeader>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {viewingWaybill.items.map((i, idx) => (
-                  <Table.Row key={idx}>
-                    <Table.Cell fontSize="xs">{idx + 1}</Table.Cell>
-                    <Table.Cell fontSize="xs" fontWeight="semibold">{i.itemName}</Table.Cell>
-                    <Table.Cell fontSize="xs" fontWeight="bold">{i.quantityDispatched} {i.unit}</Table.Cell>
-                    <Table.Cell fontSize="xs">{i.quantityReceived ?? i.quantityDispatched} {i.unit}</Table.Cell>
-                    <Table.Cell fontSize="xs"><Badge size="xs" colorPalette="green">{i.condition || 'Sound'}</Badge></Table.Cell>
+            <Box overflowX="auto" mb={4}>
+              <Table.Root size="sm" variant="outline" minW="500px">
+                <Table.Header>
+                  <Table.Row bg="#f1f5f9">
+                    <Table.ColumnHeader fontSize="10px">Item #</Table.ColumnHeader>
+                    <Table.ColumnHeader fontSize="10px">Material Description</Table.ColumnHeader>
+                    <Table.ColumnHeader fontSize="10px">Dispatched Qty</Table.ColumnHeader>
+                    <Table.ColumnHeader fontSize="10px">Received Qty</Table.ColumnHeader>
+                    <Table.ColumnHeader fontSize="10px">Condition</Table.ColumnHeader>
                   </Table.Row>
-                ))}
-              </Table.Body>
-            </Table.Root>
+                </Table.Header>
+                <Table.Body>
+                  {viewingWaybill.items.map((i, idx) => (
+                    <Table.Row key={idx}>
+                      <Table.Cell fontSize="xs">{idx + 1}</Table.Cell>
+                      <Table.Cell fontSize="xs" fontWeight="semibold">{i.itemName}</Table.Cell>
+                      <Table.Cell fontSize="xs" fontWeight="bold">{i.quantityDispatched} {i.unit}</Table.Cell>
+                      <Table.Cell fontSize="xs">{i.quantityReceived ?? i.quantityDispatched} {i.unit}</Table.Cell>
+                      <Table.Cell fontSize="xs"><Badge size="xs" colorPalette="green">{i.condition || 'Sound'}</Badge></Table.Cell>
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table.Root>
+            </Box>
 
             {/* Signatures */}
-            <SimpleGrid columns={3} gap={3} pt={4} borderTop="1px dashed #cbd5e1" textAlign="center" fontSize="xs">
+            <SimpleGrid columns={{ base: 1, sm: 3 }} gap={3} pt={4} borderTop="1px dashed #cbd5e1" textAlign="center" fontSize="xs">
               <Box border="1px dashed #cbd5e1" p={2} borderRadius="8px">
                 <Text color="#64748b" fontSize="10px">DISPATCHED BY:</Text>
                 <Text fontWeight="bold" color="#0f172a" mt={2}>{viewingWaybill.dispatchedBy}</Text>

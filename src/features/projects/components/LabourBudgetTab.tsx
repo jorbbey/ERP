@@ -199,55 +199,57 @@ export const LabourBudgetTab: React.FC<LabourBudgetTabProps> = ({ project }) => 
             No labour budget entries recorded for this project yet. Click "Add Labour Budget Item" to begin.
           </Box>
         ) : (
-          <Table.Root size="sm" striped>
-            <Table.Header bg="#f8fafc">
-              <Table.Row>
-                <Table.ColumnHeader color="#475569">Task Scope</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Labour Trade / Category</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569" textAlign="right">Man-Days / Qty</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569" textAlign="right">Unit Rate ({activeCompany.currency})</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569" textAlign="right">Total Cost ({activeCompany.currency})</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Notes</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569" textAlign="right">Actions</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {currentLabour.map((item) => (
-                <Table.Row key={item.id}>
-                  <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a">
-                    {item.taskName}
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Badge size="xs" colorPalette="blue" variant="subtle">
-                      {item.labourType}
-                    </Badge>
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" color="#334155" textAlign="right">
-                    {item.quantity.toLocaleString()} Days
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" color="#334155" textAlign="right">
-                    {activeCompany.currency} {item.unitRate.toLocaleString()}
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" fontWeight="bold" color="#2563eb" textAlign="right">
-                    {activeCompany.currency} {(item.quantity * item.unitRate).toLocaleString()}
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" color="#64748b">
-                    {item.notes || 'Standard task staffing'}
-                  </Table.Cell>
-                  <Table.Cell textAlign="right">
-                    <Flex justify="flex-end" gap={1.5}>
-                      <Button size="xs" variant="subtle" onClick={() => handleOpenEdit(item)} title="Edit Labour Item">
-                        <Edit size={12} />
-                      </Button>
-                      <Button size="xs" variant="subtle" colorPalette="red" onClick={() => deleteLabourBudget(item.id)} title="Delete Labour Item">
-                        <Trash2 size={12} />
-                      </Button>
-                    </Flex>
-                  </Table.Cell>
+          <Box overflowX="auto" mx={{ base: -5, sm: 0 }} px={{ base: 5, sm: 0 }}>
+            <Table.Root size="sm" striped minW="750px">
+              <Table.Header bg="#f8fafc">
+                <Table.Row>
+                  <Table.ColumnHeader color="#475569">Task Scope</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Labour Trade / Category</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569" textAlign="right">Man-Days / Qty</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569" textAlign="right">Unit Rate ({activeCompany.currency})</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569" textAlign="right">Total Cost ({activeCompany.currency})</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Notes</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569" textAlign="right">Actions</Table.ColumnHeader>
                 </Table.Row>
-              ))}
-            </Table.Body>
-          </Table.Root>
+              </Table.Header>
+              <Table.Body>
+                {currentLabour.map((item) => (
+                  <Table.Row key={item.id}>
+                    <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a">
+                      {item.taskName}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Badge size="xs" colorPalette="blue" variant="subtle">
+                        {item.labourType}
+                      </Badge>
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" color="#334155" textAlign="right">
+                      {item.quantity.toLocaleString()} Days
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" color="#334155" textAlign="right">
+                      {activeCompany.currency} {item.unitRate.toLocaleString()}
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" fontWeight="bold" color="#2563eb" textAlign="right">
+                      {activeCompany.currency} {(item.quantity * item.unitRate).toLocaleString()}
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" color="#64748b">
+                      {item.notes || 'Standard task staffing'}
+                    </Table.Cell>
+                    <Table.Cell textAlign="right">
+                      <Flex justify="flex-end" gap={1.5}>
+                        <Button size="xs" variant="subtle" onClick={() => handleOpenEdit(item)} title="Edit Labour Item">
+                          <Edit size={12} />
+                        </Button>
+                        <Button size="xs" variant="subtle" colorPalette="red" onClick={() => deleteLabourBudget(item.id)} title="Delete Labour Item">
+                          <Trash2 size={12} />
+                        </Button>
+                      </Flex>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Root>
+          </Box>
         )}
 
         {/* Footer Total */}
@@ -263,8 +265,8 @@ export const LabourBudgetTab: React.FC<LabourBudgetTabProps> = ({ project }) => 
 
       {/* Modal: Add Labour Budget */}
       {showAddModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="550px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="550px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Add Project Labour Budget</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Specify task scope, trade category, man-days, and rate per day.</Text>
 
@@ -306,7 +308,7 @@ export const LabourBudgetTab: React.FC<LabourBudgetTabProps> = ({ project }) => 
                   </NativeSelect.Root>
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Quantity (Man-Days) *</Text>
                     <Input
@@ -366,8 +368,8 @@ export const LabourBudgetTab: React.FC<LabourBudgetTabProps> = ({ project }) => 
 
       {/* Modal: Edit Labour Budget */}
       {editingItem && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="550px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="550px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Edit Labour Budget Item</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Update trade, man-days, daily rate, or task scope.</Text>
 
@@ -408,7 +410,7 @@ export const LabourBudgetTab: React.FC<LabourBudgetTabProps> = ({ project }) => 
                   </NativeSelect.Root>
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Quantity (Man-Days) *</Text>
                     <Input

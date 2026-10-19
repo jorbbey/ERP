@@ -206,7 +206,7 @@ export const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
       display="flex"
       alignItems="center"
       justifyContent="center"
-      p={4}
+      p={{ base: 2, sm: 4 }}
     >
       <Box
         bg="white"
@@ -222,7 +222,7 @@ export const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
       >
         {/* Modal Header */}
         <Flex
-          px={6}
+          px={{ base: 4, sm: 6 }}
           py={4}
           borderBottom="1px solid #e2e8f0"
           justify="space-between"
@@ -248,7 +248,7 @@ export const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
         </Flex>
 
         {/* Modal Body */}
-        <Box p={6} overflowY="auto" flex="1">
+        <Box p={{ base: 4, sm: 6 }} overflowY="auto" flex="1">
           {formError && (
             <Box p={3} mb={4} bg="#fef2f2" border="1px solid #fecaca" borderRadius="8px" color="#991b1b" fontSize="xs" fontWeight="semibold">
               {formError}
@@ -552,14 +552,15 @@ export const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
 
         {/* Modal Footer */}
         <Flex
-          px={6}
+          px={{ base: 4, sm: 6 }}
           py={3}
           borderTop="1px solid #e2e8f0"
           justify="flex-end"
+          direction={{ base: 'column-reverse', sm: 'row' }}
           gap={3}
           bg="#f8fafc"
         >
-          <Button size="sm" variant="outline" onClick={onClose}>
+          <Button size="sm" variant="outline" onClick={onClose} w={{ base: '100%', sm: 'auto' }}>
             Cancel
           </Button>
           <Button
@@ -568,6 +569,7 @@ export const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
             type="submit"
             form="employee-form"
             fontWeight="bold"
+            w={{ base: '100%', sm: 'auto' }}
           >
             {employeeToEdit ? <Save size={14} /> : <UserPlus size={14} />}
             {employeeToEdit ? 'Save Employee Changes' : 'Confirm Registration'}

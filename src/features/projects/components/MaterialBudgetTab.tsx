@@ -203,59 +203,61 @@ export const MaterialBudgetTab: React.FC<MaterialBudgetTabProps> = ({ project })
             No material budget entries recorded for this project yet. Click "Add Material Budget Item" to begin.
           </Box>
         ) : (
-          <Table.Root size="sm" striped>
-            <Table.Header bg="#f8fafc">
-              <Table.Row>
-                <Table.ColumnHeader color="#475569">Material Name</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Category</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Unit</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569" textAlign="right">Quantity</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569" textAlign="right">Unit Cost ({activeCompany.currency})</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569" textAlign="right">Total Cost ({activeCompany.currency})</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Supplier</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569" textAlign="right">Actions</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {currentMaterials.map((item) => (
-                <Table.Row key={item.id}>
-                  <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a">
-                    {item.materialName}
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Badge size="xs" colorPalette="cyan" variant="subtle">
-                      {item.category || 'General'}
-                    </Badge>
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" color="#334155">
-                    {item.unit}
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" color="#334155" textAlign="right">
-                    {item.quantity.toLocaleString()}
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" color="#334155" textAlign="right">
-                    {activeCompany.currency} {item.unitCost.toLocaleString()}
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" fontWeight="bold" color="#2563eb" textAlign="right">
-                    {activeCompany.currency} {(item.quantity * item.unitCost).toLocaleString()}
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" color="#64748b">
-                    {item.supplier || 'Site Direct'}
-                  </Table.Cell>
-                  <Table.Cell textAlign="right">
-                    <Flex justify="flex-end" gap={1.5}>
-                      <Button size="xs" variant="subtle" onClick={() => handleOpenEdit(item)} title="Edit Material Item">
-                        <Edit size={12} />
-                      </Button>
-                      <Button size="xs" variant="subtle" colorPalette="red" onClick={() => deleteMaterialBudget(item.id)} title="Delete Material Item">
-                        <Trash2 size={12} />
-                      </Button>
-                    </Flex>
-                  </Table.Cell>
+          <Box overflowX="auto" mx={{ base: -5, sm: 0 }} px={{ base: 5, sm: 0 }}>
+            <Table.Root size="sm" striped minW="800px">
+              <Table.Header bg="#f8fafc">
+                <Table.Row>
+                  <Table.ColumnHeader color="#475569">Material Name</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Category</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Unit</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569" textAlign="right">Quantity</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569" textAlign="right">Unit Cost ({activeCompany.currency})</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569" textAlign="right">Total Cost ({activeCompany.currency})</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Supplier</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569" textAlign="right">Actions</Table.ColumnHeader>
                 </Table.Row>
-              ))}
-            </Table.Body>
-          </Table.Root>
+              </Table.Header>
+              <Table.Body>
+                {currentMaterials.map((item) => (
+                  <Table.Row key={item.id}>
+                    <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a">
+                      {item.materialName}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Badge size="xs" colorPalette="cyan" variant="subtle">
+                        {item.category || 'General'}
+                      </Badge>
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" color="#334155">
+                      {item.unit}
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" color="#334155" textAlign="right">
+                      {item.quantity.toLocaleString()}
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" color="#334155" textAlign="right">
+                      {activeCompany.currency} {item.unitCost.toLocaleString()}
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" fontWeight="bold" color="#2563eb" textAlign="right">
+                      {activeCompany.currency} {(item.quantity * item.unitCost).toLocaleString()}
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" color="#64748b">
+                      {item.supplier || 'Site Direct'}
+                    </Table.Cell>
+                    <Table.Cell textAlign="right">
+                      <Flex justify="flex-end" gap={1.5}>
+                        <Button size="xs" variant="subtle" onClick={() => handleOpenEdit(item)} title="Edit Material Item">
+                          <Edit size={12} />
+                        </Button>
+                        <Button size="xs" variant="subtle" colorPalette="red" onClick={() => deleteMaterialBudget(item.id)} title="Delete Material Item">
+                          <Trash2 size={12} />
+                        </Button>
+                      </Flex>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Root>
+          </Box>
         )}
 
         {/* Footer Total */}
@@ -271,8 +273,8 @@ export const MaterialBudgetTab: React.FC<MaterialBudgetTabProps> = ({ project })
 
       {/* Modal: Add Material Budget */}
       {showAddModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="550px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="550px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Add Project Material Budget</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Specify material description, measure unit, rate, and estimated quantity.</Text>
 
@@ -295,7 +297,7 @@ export const MaterialBudgetTab: React.FC<MaterialBudgetTabProps> = ({ project })
                   />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Category</Text>
                     <NativeSelect.Root size="sm">
@@ -326,7 +328,7 @@ export const MaterialBudgetTab: React.FC<MaterialBudgetTabProps> = ({ project })
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Quantity *</Text>
                     <Input
@@ -386,8 +388,8 @@ export const MaterialBudgetTab: React.FC<MaterialBudgetTabProps> = ({ project })
 
       {/* Modal: Edit Material Budget */}
       {editingItem && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="550px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="550px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Edit Material Budget Item</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Update quantity, unit rate, supplier, or category.</Text>
 
@@ -409,7 +411,7 @@ export const MaterialBudgetTab: React.FC<MaterialBudgetTabProps> = ({ project })
                   />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Category</Text>
                     <NativeSelect.Root size="sm">
@@ -439,7 +441,7 @@ export const MaterialBudgetTab: React.FC<MaterialBudgetTabProps> = ({ project })
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Quantity *</Text>
                     <Input

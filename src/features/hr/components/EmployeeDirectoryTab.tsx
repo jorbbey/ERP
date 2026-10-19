@@ -518,7 +518,8 @@ export const EmployeeDirectoryTab: React.FC = () => {
 
       {/* Main Table */}
       <Card.Root bg="white" borderRadius="14px" border="1px solid #e2e8f0" boxShadow="xs" overflow="hidden">
-        <Table.Root size="sm" variant="outline">
+        <Box overflowX="auto" w="100%">
+          <Table.Root size="sm" variant="outline" minW="950px">
           <Table.Header bg="#f8fafc">
             <Table.Row>
               {!disabledColumns.includes('code') && <Table.ColumnHeader>Code</Table.ColumnHeader>}
@@ -763,6 +764,7 @@ export const EmployeeDirectoryTab: React.FC = () => {
             )}
           </Table.Body>
         </Table.Root>
+        </Box>
       </Card.Root>
 
       {/* Employee Create / Edit Modal */}

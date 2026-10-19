@@ -251,12 +251,12 @@ export const AppLayout: React.FC = () => {
             >
               <Building2 size={19} />
             </Box>
-            <Box>
+            <Box minW="0">
               <Flex align="center" gap={1.5}>
-                <Text fontWeight="bold" fontSize="sm" lineHeight="shorter" color="#0f172a">
+                <Text fontWeight="bold" fontSize="sm" lineHeight="shorter" color="#0f172a" truncate maxW={{ base: '120px', sm: '180px', md: '260px', lg: 'none' }}>
                   {activeCompany.name}
                 </Text>
-                <Badge size="xs" colorPalette="blue" variant="subtle" fontSize="10px">
+                <Badge size="xs" colorPalette="blue" variant="subtle" fontSize="10px" flexShrink={0}>
                   {activeCompany.code}
                 </Badge>
               </Flex>
@@ -456,7 +456,7 @@ export const AppLayout: React.FC = () => {
       </Box>
 
       {/* Main Layout Area */}
-      <Flex flex="1" overflow="hidden">
+      <Flex flex="1" overflow="hidden" minW="0" w="100%">
         {/* Desktop Light Enterprise Sidebar */}
         <Box 
           as="aside" 
@@ -680,8 +680,8 @@ export const AppLayout: React.FC = () => {
         )}
 
         {/* Content Area */}
-        <Box as="main" flex="1" overflowY="auto" p={{ base: 3, md: 5, lg: 7 }} bg="#f8fafc">
-          <Box maxW="1520px" mx="auto">
+        <Box as="main" flex="1" minW="0" overflowY="auto" overflowX="hidden" p={{ base: 2.5, sm: 4, md: 5, lg: 6 }} bg="#f8fafc" w="100%">
+          <Box maxW="1520px" mx="auto" w="100%" minW="0">
             {/* Elegant Breadcrumb Header */}
             <Flex align="center" justify="space-between" mb={5} pb={3} borderBottom="1px solid #e2e8f0">
               <Flex align="center" gap={2} fontSize="xs" color="#64748b">

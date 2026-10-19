@@ -318,7 +318,8 @@ export const MilestonesTasksTab: React.FC<MilestonesTasksTabProps> = ({ project 
               No milestones defined for this project yet.
             </Box>
           ) : (
-            <Table.Root size="sm" striped>
+          <Box overflowX="auto" mx={{ base: -5, sm: 0 }} px={{ base: 5, sm: 0 }}>
+            <Table.Root size="sm" striped minW="650px">
               <Table.Header bg="#f8fafc">
                 <Table.Row>
                   <Table.ColumnHeader color="#475569">Milestone Name</Table.ColumnHeader>
@@ -370,31 +371,33 @@ export const MilestonesTasksTab: React.FC<MilestonesTasksTabProps> = ({ project 
                 ))}
               </Table.Body>
             </Table.Root>
-          )}
-        </Card.Root>
-      )}
+          </Box>
+        )}
+      </Card.Root>
+    )}
 
-      {/* VIEW 2: FIELD TASKS */}
-      {activeSubTab === 'tasks' && (
-        <Card.Root bg="white" borderRadius="14px" p={5} border="1px solid #e2e8f0" boxShadow="xs">
-          <Flex justify="space-between" align="center" mb={4} wrap="wrap" gap={3}>
-            <Box>
-              <Heading size="sm" color="#0f172a">Field Construction Tasks & Punch-List</Heading>
-              <Text fontSize="xs" color="#64748b">
-                Daily field task assignments delegated to site engineers and foremen.
-              </Text>
-            </Box>
-            <Button size="sm" bg="#2563eb" color="white" onClick={handleOpenAddTask}>
-              <Plus size={15} /> Create Field Task
-            </Button>
-          </Flex>
+    {/* VIEW 2: FIELD TASKS */}
+    {activeSubTab === 'tasks' && (
+      <Card.Root bg="white" borderRadius="14px" p={5} border="1px solid #e2e8f0" boxShadow="xs">
+        <Flex justify="space-between" align="center" mb={4} wrap="wrap" gap={3}>
+          <Box>
+            <Heading size="sm" color="#0f172a">Field Construction Tasks & Punch-List</Heading>
+            <Text fontSize="xs" color="#64748b">
+              Daily field task assignments delegated to site engineers and foremen.
+            </Text>
+          </Box>
+          <Button size="sm" bg="#2563eb" color="white" onClick={handleOpenAddTask}>
+            <Plus size={15} /> Create Field Task
+          </Button>
+        </Flex>
 
-          {currentTasks.length === 0 ? (
-            <Box py={8} textAlign="center" color="#94a3b8" fontSize="xs">
-              No field tasks assigned for this project yet. Click "Create Field Task" to delegate action items.
-            </Box>
-          ) : (
-            <Table.Root size="sm" striped>
+        {currentTasks.length === 0 ? (
+          <Box py={8} textAlign="center" color="#94a3b8" fontSize="xs">
+            No field tasks assigned for this project yet. Click "Create Field Task" to delegate action items.
+          </Box>
+        ) : (
+          <Box overflowX="auto" mx={{ base: -5, sm: 0 }} px={{ base: 5, sm: 0 }}>
+            <Table.Root size="sm" striped minW="650px">
               <Table.Header bg="#f8fafc">
                 <Table.Row>
                   <Table.ColumnHeader color="#475569">Task Title</Table.ColumnHeader>
@@ -451,14 +454,15 @@ export const MilestonesTasksTab: React.FC<MilestonesTasksTabProps> = ({ project 
                 ))}
               </Table.Body>
             </Table.Root>
-          )}
+          </Box>
+        )}
         </Card.Root>
       )}
 
       {/* Modal: Add Milestone */}
       {showAddMilestoneModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Define Project Milestone</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Set critical completion milestone gate and target finish date.</Text>
 
@@ -481,7 +485,7 @@ export const MilestonesTasksTab: React.FC<MilestonesTasksTabProps> = ({ project 
                   />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Target Due Date *</Text>
                     <Input
@@ -532,8 +536,8 @@ export const MilestonesTasksTab: React.FC<MilestonesTasksTabProps> = ({ project 
 
       {/* Modal: Edit Milestone */}
       {editingMilestone && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Edit Project Milestone</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Update milestone deliverable, progress %, or due date.</Text>
 
@@ -555,7 +559,7 @@ export const MilestonesTasksTab: React.FC<MilestonesTasksTabProps> = ({ project 
                   />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Target Due Date *</Text>
                     <Input
@@ -617,8 +621,8 @@ export const MilestonesTasksTab: React.FC<MilestonesTasksTabProps> = ({ project 
 
       {/* Modal: Add Field Task */}
       {showAddTaskModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Create Field Task</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Assign site work item to an engineer or foreman.</Text>
 
@@ -641,7 +645,7 @@ export const MilestonesTasksTab: React.FC<MilestonesTasksTabProps> = ({ project 
                   />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Assigned To *</Text>
                     <NativeSelect.Root size="sm">
@@ -667,7 +671,7 @@ export const MilestonesTasksTab: React.FC<MilestonesTasksTabProps> = ({ project 
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Priority</Text>
                     <NativeSelect.Root size="sm">
@@ -723,8 +727,8 @@ export const MilestonesTasksTab: React.FC<MilestonesTasksTabProps> = ({ project 
 
       {/* Modal: Edit Field Task */}
       {editingTask && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Edit Field Task</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Update status, assigned staff, priority, or due date.</Text>
 
@@ -746,7 +750,7 @@ export const MilestonesTasksTab: React.FC<MilestonesTasksTabProps> = ({ project 
                   />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Assigned To *</Text>
                     <NativeSelect.Root size="sm">
@@ -772,7 +776,7 @@ export const MilestonesTasksTab: React.FC<MilestonesTasksTabProps> = ({ project 
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Priority</Text>
                     <NativeSelect.Root size="sm">

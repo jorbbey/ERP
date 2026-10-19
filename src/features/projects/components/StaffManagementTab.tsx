@@ -179,50 +179,52 @@ export const StaffManagementTab: React.FC<StaffManagementTabProps> = ({
             No personnel assigned to this site yet. Click "Add Staff to Site" to mobilize engineers.
           </Box>
         ) : (
-          <Table.Root size="sm" striped>
-            <Table.Header bg="#f8fafc">
-              <Table.Row>
-                <Table.ColumnHeader color="#475569">Employee Name</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Designated Role on Site</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Mobilization / Assigned Date</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Status</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569" textAlign="right">Action</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {currentStaff.map((staff) => (
-                <Table.Row key={staff.id}>
-                  <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a">
-                    {staff.employeeName}
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Badge size="xs" colorPalette="blue" variant="subtle">
-                      {staff.role}
-                    </Badge>
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" color="#64748b">
-                    {staff.assignedDate}
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Badge size="xs" colorPalette={staff.status === 'Active' ? 'green' : 'gray'}>
-                      {staff.status}
-                    </Badge>
-                  </Table.Cell>
-                  <Table.Cell textAlign="right">
-                    <Button
-                      size="xs"
-                      variant="subtle"
-                      colorPalette="red"
-                      onClick={() => removeProjectStaff(staff.id)}
-                      title="Relieve staff member from site"
-                    >
-                      <UserX size={12} /> Relieve from Site
-                    </Button>
-                  </Table.Cell>
+          <Box overflowX="auto" mx={{ base: -5, sm: 0 }} px={{ base: 5, sm: 0 }}>
+            <Table.Root size="sm" striped minW="650px">
+              <Table.Header bg="#f8fafc">
+                <Table.Row>
+                  <Table.ColumnHeader color="#475569">Employee Name</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Designated Role on Site</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Mobilization / Assigned Date</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Status</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569" textAlign="right">Action</Table.ColumnHeader>
                 </Table.Row>
-              ))}
-            </Table.Body>
-          </Table.Root>
+              </Table.Header>
+              <Table.Body>
+                {currentStaff.map((staff) => (
+                  <Table.Row key={staff.id}>
+                    <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a">
+                      {staff.employeeName}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Badge size="xs" colorPalette="blue" variant="subtle">
+                        {staff.role}
+                      </Badge>
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" color="#64748b">
+                      {staff.assignedDate}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Badge size="xs" colorPalette={staff.status === 'Active' ? 'green' : 'gray'}>
+                        {staff.status}
+                      </Badge>
+                    </Table.Cell>
+                    <Table.Cell textAlign="right">
+                      <Button
+                        size="xs"
+                        variant="subtle"
+                        colorPalette="red"
+                        onClick={() => removeProjectStaff(staff.id)}
+                        title="Relieve staff member from site"
+                      >
+                        <UserX size={12} /> Relieve from Site
+                      </Button>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Root>
+          </Box>
         )}
       </Card.Root>
 
@@ -240,50 +242,52 @@ export const StaffManagementTab: React.FC<StaffManagementTabProps> = ({
             Zero historical staff transfer actions on record.
           </Box>
         ) : (
-          <Table.Root size="sm" striped>
-            <Table.Header bg="#f8fafc">
-              <Table.Row>
-                <Table.ColumnHeader color="#475569">Action Date / Time</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Action Type</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Employee Name</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Role / Position</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {currentHistory.map((hist) => (
-                <Table.Row key={hist.id}>
-                  <Table.Cell fontSize="xs" color="#64748b" fontFamily="mono">
-                    {hist.changedAt}
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Badge
-                      size="xs"
-                      colorPalette={
-                        hist.action === 'Assigned' ? 'green' :
-                        hist.action === 'Promoted' ? 'purple' :
-                        hist.action === 'Reassigned' ? 'blue' : 'gray'
-                      }
-                    >
-                      {hist.action}
-                    </Badge>
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a">
-                    {hist.employeeName}
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" color="#334155">
-                    {hist.role}
-                  </Table.Cell>
+          <Box overflowX="auto" mx={{ base: -5, sm: 0 }} px={{ base: 5, sm: 0 }}>
+            <Table.Root size="sm" striped minW="550px">
+              <Table.Header bg="#f8fafc">
+                <Table.Row>
+                  <Table.ColumnHeader color="#475569">Action Date / Time</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Action Type</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Employee Name</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Role / Position</Table.ColumnHeader>
                 </Table.Row>
-              ))}
-            </Table.Body>
-          </Table.Root>
+              </Table.Header>
+              <Table.Body>
+                {currentHistory.map((hist) => (
+                  <Table.Row key={hist.id}>
+                    <Table.Cell fontSize="xs" color="#64748b" fontFamily="mono">
+                      {hist.changedAt}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Badge
+                        size="xs"
+                        colorPalette={
+                          hist.action === 'Assigned' ? 'green' :
+                          hist.action === 'Promoted' ? 'purple' :
+                          hist.action === 'Reassigned' ? 'blue' : 'gray'
+                        }
+                      >
+                        {hist.action}
+                      </Badge>
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a">
+                      {hist.employeeName}
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" color="#334155">
+                      {hist.role}
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Root>
+          </Box>
         )}
       </Card.Root>
 
       {/* Modal: Assign Staff Member */}
       {showAssignModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" maxH="90vh" overflowY="auto" p={{ base: 4, sm: 6 }} boxShadow="2xl">
             <Heading size="md" color="#0f172a" mb={1}>Assign Staff to Project Site</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Select an active employee and assign their operational site role.</Text>
 

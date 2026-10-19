@@ -75,7 +75,7 @@ export const InventoryAuditTab: React.FC = () => {
 
       <Card.Root bg="white" borderRadius="16px" border="1px solid #e2e8f0" overflow="hidden" boxShadow="xs">
         <Box overflowX="auto">
-          <Table.Root size="sm" variant="outline">
+          <Table.Root size="sm" variant="outline" minW="750px">
             <Table.Header>
               <Table.Row bg="#f8fafc">
                 <Table.ColumnHeader fontSize="10px">Timestamp</Table.ColumnHeader>

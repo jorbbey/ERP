@@ -371,7 +371,7 @@ export const LandingPage: React.FC = () => {
                     Open Projects Workspace <ArrowRight size={14} />
                   </Button>
                 </Box>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box p={3.5} bg="#ffffff" borderRadius="10px" border="1px solid #e2e8f0">
                     <Text fontSize="xs" fontWeight="bold" color="#0f172a">BOQ Quantity Takeoff</Text>
                     <Text fontSize="11px" color="#64748b" mt={1}>Variance tracking against target contract</Text>
@@ -403,7 +403,7 @@ export const LandingPage: React.FC = () => {
                     Explore Subcontractor Portal <ArrowRight size={14} />
                   </Button>
                 </Box>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box p={3.5} bg="#ffffff" borderRadius="10px" border="1px solid #e2e8f0">
                     <Text fontSize="xs" fontWeight="bold" color="#0f172a">Digital Daily DPRs</Text>
                     <Text fontSize="11px" color="#64748b" mt={1}>Signed logs from site agents</Text>
@@ -435,7 +435,7 @@ export const LandingPage: React.FC = () => {
                     Review Contract Administration <ArrowRight size={14} />
                   </Button>
                 </Box>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box p={3.5} bg="#ffffff" borderRadius="10px" border="1px solid #e2e8f0">
                     <Text fontSize="xs" fontWeight="bold" color="#0f172a">Executive Dashboard</Text>
                     <Text fontSize="11px" color="#64748b" mt={1}>Multi-site capital rollups</Text>
@@ -467,7 +467,7 @@ export const LandingPage: React.FC = () => {
                     Inspect Batching Module <ArrowRight size={14} />
                   </Button>
                 </Box>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box p={3.5} bg="#ffffff" borderRadius="10px" border="1px solid #e2e8f0">
                     <Text fontSize="xs" fontWeight="bold" color="#0f172a">RMC Batch Recipes</Text>
                     <Text fontSize="11px" color="#64748b" mt={1}>M20 to M60 moisture correction</Text>

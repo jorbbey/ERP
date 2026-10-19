@@ -289,36 +289,38 @@ export const ContractAdminPage: React.FC = () => {
       </SimpleGrid>
 
       {/* Tabs Bar */}
-      <Flex borderBottom="1px solid #e2e8f0" gap={4} mb={6}>
-        <Button
-          variant="plain"
-          pb={3}
-          pt={1}
-          px={2}
-          borderBottom="2px solid"
-          borderColor={activeTab === 'contracts' ? '#2563eb' : 'transparent'}
-          color={activeTab === 'contracts' ? '#2563eb' : '#64748b'}
-          fontWeight={activeTab === 'contracts' ? 'bold' : 'medium'}
-          fontSize="sm"
-          onClick={() => setActiveTab('contracts')}
-        >
-          Contracts Catalog ({contracts.length})
-        </Button>
-        <Button
-          variant="plain"
-          pb={3}
-          pt={1}
-          px={2}
-          borderBottom="2px solid"
-          borderColor={activeTab === 'events' ? '#2563eb' : 'transparent'}
-          color={activeTab === 'events' ? '#2563eb' : '#64748b'}
-          fontWeight={activeTab === 'events' ? 'bold' : 'medium'}
-          fontSize="sm"
-          onClick={() => setActiveTab('events')}
-        >
-          Variations & Legal Events ({contractEvents.length})
-        </Button>
-      </Flex>
+      <Box overflowX="auto" borderBottom="1px solid #e2e8f0" mb={6}>
+        <Flex gap={4} minW="max-content">
+          <Button
+            variant="plain"
+            pb={3}
+            pt={1}
+            px={2}
+            borderBottom="2px solid"
+            borderColor={activeTab === 'contracts' ? '#2563eb' : 'transparent'}
+            color={activeTab === 'contracts' ? '#2563eb' : '#64748b'}
+            fontWeight={activeTab === 'contracts' ? 'bold' : 'medium'}
+            fontSize="sm"
+            onClick={() => setActiveTab('contracts')}
+          >
+            Contracts Catalog ({contracts.length})
+          </Button>
+          <Button
+            variant="plain"
+            pb={3}
+            pt={1}
+            px={2}
+            borderBottom="2px solid"
+            borderColor={activeTab === 'events' ? '#2563eb' : 'transparent'}
+            color={activeTab === 'events' ? '#2563eb' : '#64748b'}
+            fontWeight={activeTab === 'events' ? 'bold' : 'medium'}
+            fontSize="sm"
+            onClick={() => setActiveTab('events')}
+          >
+            Variations & Legal Events ({contractEvents.length})
+          </Button>
+        </Flex>
+      </Box>
 
       {/* Contracts Tab */}
       {activeTab === 'contracts' && (
@@ -445,50 +447,52 @@ export const ContractAdminPage: React.FC = () => {
             Official Contract Variations, Instructions & Event Logs
           </Heading>
 
-          <Table.Root size="sm" striped>
-            <Table.Header bg="#f8fafc">
-              <Table.Row>
-                <Table.ColumnHeader color="#475569">Event Date</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Contract</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Type</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Official Notes / Variation Scope</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {contractEvents.map((evt) => {
-                const parentContract = contracts.find(c => c.id === evt.contractId);
-                return (
-                  <Table.Row key={evt.id}>
-                    <Table.Cell fontSize="xs" color="#64748b" fontWeight="medium">
-                      {evt.eventDate}
-                    </Table.Cell>
-                    <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a">
-                      {parentContract ? parentContract.contractNumber : `CNT #${evt.contractId}`}
-                      <Text fontSize="10px" color="#64748b" fontWeight="normal">
-                        {parentContract?.title}
-                      </Text>
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Badge 
-                        colorPalette={
-                          evt.eventType === 'Variation' ? 'purple' :
-                          evt.eventType === 'Extension of Time' ? 'yellow' :
-                          evt.eventType === 'Payment Application' ? 'green' : 'blue'
-                        }
-                        size="xs"
-                        variant="subtle"
-                      >
-                        {evt.eventType}
-                      </Badge>
-                    </Table.Cell>
-                    <Table.Cell fontSize="xs" color="#334155">
-                      {evt.notes}
-                    </Table.Cell>
-                  </Table.Row>
-                );
-              })}
-            </Table.Body>
-          </Table.Root>
+          <Box overflowX="auto" mx={{ base: -5, sm: 0 }} px={{ base: 5, sm: 0 }}>
+            <Table.Root size="sm" striped minW="650px">
+              <Table.Header bg="#f8fafc">
+                <Table.Row>
+                  <Table.ColumnHeader color="#475569">Event Date</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Contract</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Type</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Official Notes / Variation Scope</Table.ColumnHeader>
+                </Table.Row>
+              </Table.Header>
+              <Table.Body>
+                {contractEvents.map((evt) => {
+                  const parentContract = contracts.find(c => c.id === evt.contractId);
+                  return (
+                    <Table.Row key={evt.id}>
+                      <Table.Cell fontSize="xs" color="#64748b" fontWeight="medium">
+                        {evt.eventDate}
+                      </Table.Cell>
+                      <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a">
+                        {parentContract ? parentContract.contractNumber : `CNT #${evt.contractId}`}
+                        <Text fontSize="10px" color="#64748b" fontWeight="normal">
+                          {parentContract?.title}
+                        </Text>
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Badge 
+                          colorPalette={
+                            evt.eventType === 'Variation' ? 'purple' :
+                            evt.eventType === 'Extension of Time' ? 'yellow' :
+                            evt.eventType === 'Payment Application' ? 'green' : 'blue'
+                          }
+                          size="xs"
+                          variant="subtle"
+                        >
+                          {evt.eventType}
+                        </Badge>
+                      </Table.Cell>
+                      <Table.Cell fontSize="xs" color="#334155">
+                        {evt.notes}
+                      </Table.Cell>
+                    </Table.Row>
+                  );
+                })}
+              </Table.Body>
+            </Table.Root>
+          </Box>
         </Card.Root>
       )}
 
@@ -502,9 +506,9 @@ export const ContractAdminPage: React.FC = () => {
           display="flex" 
           alignItems="center" 
           justifyContent="center" 
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="580px" w="100%" p={6} boxShadow="xl">
+          <Box bg="white" borderRadius="16px" maxW="580px" w="100%" maxH="90vh" overflowY="auto" p={{ base: 4, sm: 6 }} boxShadow="xl">
             <Heading size="md" color="#0f172a" mb={1}>
               Add New Contract Record
             </Heading>
@@ -514,7 +518,7 @@ export const ContractAdminPage: React.FC = () => {
 
             <form onSubmit={handleCreateContract}>
               <Stack gap={3}>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Contract Reference</Text>
                     <Input
@@ -551,7 +555,7 @@ export const ContractAdminPage: React.FC = () => {
                   />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Client Entity</Text>
                     <Input
@@ -579,7 +583,7 @@ export const ContractAdminPage: React.FC = () => {
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Estimated Value ({activeCompany.currency})</Text>
                     <Input
@@ -634,9 +638,9 @@ export const ContractAdminPage: React.FC = () => {
           display="flex" 
           alignItems="center" 
           justifyContent="center" 
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} boxShadow="xl">
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" maxH="90vh" overflowY="auto" p={{ base: 4, sm: 6 }} boxShadow="xl">
             <Heading size="md" color="#0f172a" mb={1}>
               Log Contract Variation / Formal Event
             </Heading>
@@ -662,7 +666,7 @@ export const ContractAdminPage: React.FC = () => {
                   </NativeSelect.Root>
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Event Category</Text>
                     <NativeSelect.Root size="sm">
@@ -725,9 +729,9 @@ export const ContractAdminPage: React.FC = () => {
           display="flex" 
           alignItems="center" 
           justifyContent="center" 
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="600px" w="100%" p={6} boxShadow="xl">
+          <Box bg="white" borderRadius="16px" maxW="600px" w="100%" maxH="90vh" overflowY="auto" p={{ base: 4, sm: 6 }} boxShadow="xl">
             <Flex justify="space-between" align="center" mb={3}>
               <Badge colorPalette="blue" size="sm">{selectedContract.contractNumber}</Badge>
               {getStatusBadge(selectedContract.status)}
@@ -736,7 +740,7 @@ export const ContractAdminPage: React.FC = () => {
             <Heading size="md" color="#0f172a" mb={1}>{selectedContract.title}</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Client: {selectedContract.clientName}</Text>
 
-            <SimpleGrid columns={2} gap={3} p={4} bg="#f8fafc" borderRadius="12px" mb={4} fontSize="xs">
+            <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3} p={4} bg="#f8fafc" borderRadius="12px" mb={4} fontSize="xs">
               <Box>
                 <Text color="#64748b" textTransform="uppercase" fontSize="10px" fontWeight="bold">Procurement Route</Text>
                 <Text fontWeight="bold" color="#0f172a">{selectedContract.procurementRoute}</Text>

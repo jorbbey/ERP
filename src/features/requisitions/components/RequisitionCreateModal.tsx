@@ -270,8 +270,8 @@ export const RequisitionCreateModal: React.FC<RequisitionCreateModalProps> = ({ 
   };
 
   return (
-    <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-      <Box bg="white" borderRadius="16px" maxW="880px" w="100%" p={6} boxShadow="2xl" maxH="92vh" overflowY="auto">
+    <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+      <Box bg="white" borderRadius="16px" maxW="880px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="92vh" overflowY="auto">
         {/* Header */}
         <Flex justify="space-between" align="flex-start" mb={3} borderBottom="1px solid #f1f5f9" pb={3}>
           <Box>

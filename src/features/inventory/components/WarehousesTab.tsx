@@ -193,7 +193,7 @@ export const WarehousesTab: React.FC<WarehousesTabProps> = ({ onInitiateTransfer
               </Stack>
 
               {/* Stored Stats */}
-              <SimpleGrid columns={2} gap={3} mt={4} pt={3} borderTop="1px dashed #e2e8f0">
+              <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3} mt={4} pt={3} borderTop="1px dashed #e2e8f0">
                 <Box bg="#f8fafc" p={2.5} borderRadius="10px">
                   <Text fontSize="10px" textTransform="uppercase" fontWeight="bold" color="#64748b">Stored SKUs</Text>
                   <Text fontSize="md" fontWeight="bold" color="#0f172a" mt={0.5}>
@@ -223,8 +223,8 @@ export const WarehousesTab: React.FC<WarehousesTabProps> = ({ onInitiateTransfer
 
       {/* Add / Edit Modal */}
       {(showAddModal || editingWarehouse) && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>
               {editingWarehouse ? 'Edit Storage Yard / Warehouse' : 'Register New Storage Yard / Warehouse'}
             </Heading>
@@ -234,7 +234,7 @@ export const WarehousesTab: React.FC<WarehousesTabProps> = ({ onInitiateTransfer
 
             <form onSubmit={handleSave}>
               <Stack gap={3}>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Store Code *</Text>
                     <Input
@@ -280,7 +280,7 @@ export const WarehousesTab: React.FC<WarehousesTabProps> = ({ onInitiateTransfer
                   />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Storekeeper Name *</Text>
                     <Input
@@ -335,8 +335,8 @@ export const WarehousesTab: React.FC<WarehousesTabProps> = ({ onInitiateTransfer
 
       {/* View Warehouse Stored Items Modal */}
       {viewingWarehouse && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="700px" w="100%" p={6} boxShadow="2xl" maxH="85vh" overflowY="auto">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="700px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="85vh" overflowY="auto">
             <Flex justify="space-between" align="center" mb={4}>
               <Box>
                 <Heading size="md" color="#0f172a">{viewingWarehouse.name}</Heading>
@@ -350,37 +350,39 @@ export const WarehousesTab: React.FC<WarehousesTabProps> = ({ onInitiateTransfer
                 No inventory materials currently registered under this warehouse.
               </Box>
             ) : (
-              <Table.Root size="sm" variant="outline">
-                <Table.Header>
-                  <Table.Row bg="#f8fafc">
-                    <Table.ColumnHeader fontSize="10px">SKU Code</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px">Material Description</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px">In Stock</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px">Unit Rate</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px">Stock Valuation</Table.ColumnHeader>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                  {getItemsForWarehouse(viewingWarehouse).map((item) => (
-                    <Table.Row key={item.id}>
-                      <Table.Cell fontSize="xs" fontFamily="mono" fontWeight="bold">{item.itemCode}</Table.Cell>
-                      <Table.Cell fontSize="xs">
-                        <Text fontWeight="medium">{item.name}</Text>
-                        <Text fontSize="10px" color="#94a3b8">{item.categoryName}</Text>
-                      </Table.Cell>
-                      <Table.Cell fontSize="xs" fontWeight="bold">
-                        {Number(item.currentStock) || 0} {item.unit}
-                      </Table.Cell>
-                      <Table.Cell fontSize="xs">
-                        {activeCompany.currency} {(Number(item.costPrice) || 0).toFixed(2)}
-                      </Table.Cell>
-                      <Table.Cell fontSize="xs" fontWeight="bold" color="#16a34a">
-                        {activeCompany.currency} {((Number(item.currentStock) || 0) * (Number(item.costPrice) || 0)).toLocaleString()}
-                      </Table.Cell>
+              <Box overflowX="auto" mx={{ base: -4, sm: 0 }} px={{ base: 4, sm: 0 }}>
+                <Table.Root size="sm" variant="outline" minW="550px">
+                  <Table.Header>
+                    <Table.Row bg="#f8fafc">
+                      <Table.ColumnHeader fontSize="10px">SKU Code</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px">Material Description</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px">In Stock</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px">Unit Rate</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px">Stock Valuation</Table.ColumnHeader>
                     </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table.Root>
+                  </Table.Header>
+                  <Table.Body>
+                    {getItemsForWarehouse(viewingWarehouse).map((item) => (
+                      <Table.Row key={item.id}>
+                        <Table.Cell fontSize="xs" fontFamily="mono" fontWeight="bold">{item.itemCode}</Table.Cell>
+                        <Table.Cell fontSize="xs">
+                          <Text fontWeight="medium">{item.name}</Text>
+                          <Text fontSize="10px" color="#94a3b8">{item.categoryName}</Text>
+                        </Table.Cell>
+                        <Table.Cell fontSize="xs" fontWeight="bold">
+                          {Number(item.currentStock) || 0} {item.unit}
+                        </Table.Cell>
+                        <Table.Cell fontSize="xs">
+                          {activeCompany.currency} {(Number(item.costPrice) || 0).toFixed(2)}
+                        </Table.Cell>
+                        <Table.Cell fontSize="xs" fontWeight="bold" color="#16a34a">
+                          {activeCompany.currency} {((Number(item.currentStock) || 0) * (Number(item.costPrice) || 0)).toLocaleString()}
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table.Root>
+              </Box>
             )}
           </Box>
         </Box>

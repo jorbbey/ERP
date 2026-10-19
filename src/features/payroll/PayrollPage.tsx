@@ -55,6 +55,8 @@ export const PayrollPage: React.FC = () => {
 
   // CSV Import Modal
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showConfirmRunModal, setShowConfirmRunModal] = useState(false);
+  const [payrollToast, setPayrollToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [csvContent, setCsvContent] = useState(
 `employee_code,payroll_month,basic_salary,allowances,deductions
 EMP-001,2026-10,5000,600,1200
@@ -67,9 +69,13 @@ EMP-004,2026-10,3800,450,850`
   const canRunPayroll = ['Managing Director', 'Finance Manager', 'Accountant', 'Super Admin'].includes(activeRole);
 
   const handleRunPayroll = () => {
-    if (confirm(`Run automated payroll calculations for all active staff for ${selectedMonth}?`)) {
-      processPayrollMonth(selectedMonth);
-    }
+    setShowConfirmRunModal(true);
+  };
+
+  const handleConfirmRunPayroll = () => {
+    processPayrollMonth(selectedMonth);
+    setShowConfirmRunModal(false);
+    setPayrollToast({ message: `Automated payroll calculations completed for ${selectedMonth}!`, type: 'success' });
   };
 
   const handleImportCSVSubmit = (e: React.FormEvent) => {
@@ -78,7 +84,7 @@ EMP-004,2026-10,3800,450,850`
     const res = importPayrollCSV(csvContent);
     if (res.success) {
       setShowImportModal(false);
-      alert(`Payroll successfully imported for ${res.run?.monthYear} with ${res.run?.employeeCount} employees!`);
+      setPayrollToast({ message: `Payroll successfully imported for ${res.run?.monthYear} with ${res.run?.employeeCount} employees!`, type: 'success' });
     } else {
       setImportError(res.error || 'Failed to import payroll CSV.');
     }
@@ -138,6 +144,13 @@ EMP-004,2026-10,3800,450,850`
 
   return (
     <Stack gap={6}>
+      {payrollToast && (
+        <Box p={3.5} borderRadius="10px" bg={payrollToast.type === 'error' ? '#fef2f2' : '#f0fdf4'} border={payrollToast.type === 'error' ? '1px solid #fecaca' : '1px solid #bbf7d0'} color={payrollToast.type === 'error' ? '#b91c1c' : '#166534'} fontSize="xs" display="flex" justifyContent="space-between" alignItems="center">
+          <Text fontWeight="medium">{payrollToast.message}</Text>
+          <Button size="xs" variant="ghost" onClick={() => setPayrollToast(null)}>Dismiss</Button>
+        </Box>
+      )}
+
       {/* Top Banner */}
       <Card.Root bg="white" borderRadius="16px" p={5} border="1px solid #e2e8f0" boxShadow="xs">
         <Flex direction={{ base: 'column', md: 'row' }} justify="space-between" align={{ md: 'center' }} gap={4}>
@@ -182,34 +195,36 @@ EMP-004,2026-10,3800,450,850`
       </Card.Root>
 
       {/* Tabs */}
-      <Flex borderBottom="2px solid #e2e8f0" gap={6}>
-        <Box
-          as="button"
-          pb={3}
-          fontSize="sm"
-          fontWeight="bold"
-          color={activeTab === 'payroll' ? '#2563eb' : '#64748b'}
-          borderBottom={activeTab === 'payroll' ? '2px solid #2563eb' : 'none'}
-          mb="-2px"
-          cursor="pointer"
-          onClick={() => setActiveTab('payroll')}
-        >
-          Payroll Runs & Employee Payslips ({payrollRuns.length} Runs)
-        </Box>
-        <Box
-          as="button"
-          pb={3}
-          fontSize="sm"
-          fontWeight="bold"
-          color={activeTab === 'ledger' ? '#2563eb' : '#64748b'}
-          borderBottom={activeTab === 'ledger' ? '2px solid #2563eb' : 'none'}
-          mb="-2px"
-          cursor="pointer"
-          onClick={() => setActiveTab('ledger')}
-        >
-          Chart of Accounts & General Ledger ({accountsLedger.length})
-        </Box>
-      </Flex>
+      <Box overflowX="auto" borderBottom="2px solid #e2e8f0">
+        <Flex gap={6} minW="max-content">
+          <Box
+            as="button"
+            pb={3}
+            fontSize="sm"
+            fontWeight="bold"
+            color={activeTab === 'payroll' ? '#2563eb' : '#64748b'}
+            borderBottom={activeTab === 'payroll' ? '2px solid #2563eb' : 'none'}
+            mb="-2px"
+            cursor="pointer"
+            onClick={() => setActiveTab('payroll')}
+          >
+            Payroll Runs & Employee Payslips ({payrollRuns.length} Runs)
+          </Box>
+          <Box
+            as="button"
+            pb={3}
+            fontSize="sm"
+            fontWeight="bold"
+            color={activeTab === 'ledger' ? '#2563eb' : '#64748b'}
+            borderBottom={activeTab === 'ledger' ? '2px solid #2563eb' : 'none'}
+            mb="-2px"
+            cursor="pointer"
+            onClick={() => setActiveTab('ledger')}
+          >
+            Chart of Accounts & General Ledger ({accountsLedger.length})
+          </Box>
+        </Flex>
+      </Box>
 
       {/* Tab: Payroll */}
       {activeTab === 'payroll' && (
@@ -228,7 +243,7 @@ EMP-004,2026-10,3800,450,850`
                   </Badge>
                 </Flex>
 
-                <SimpleGrid columns={3} gap={2} my={3} p={3} bg="#f8fafc" borderRadius="10px" fontSize="xs">
+                <SimpleGrid columns={{ base: 1, sm: 3 }} gap={2} my={3} p={3} bg="#f8fafc" borderRadius="10px" fontSize="xs">
                   <Box>
                     <Text color="#64748b">Gross Wages:</Text>
                     <Text fontWeight="bold" fontFamily="mono">{activeCompany.currency} {run.totalGross.toLocaleString()}</Text>
@@ -312,51 +327,53 @@ EMP-004,2026-10,3800,450,850`
               </Flex>
             </Box>
 
-            <Table.Root size="sm" striped>
-              <Table.Header bg="#f8fafc">
-                <Table.Row>
-                  <Table.ColumnHeader color="#64748b" fontWeight="bold">Employee Name</Table.ColumnHeader>
-                  <Table.ColumnHeader color="#64748b" fontWeight="bold">Department</Table.ColumnHeader>
-                  <Table.ColumnHeader color="#64748b" fontWeight="bold" textAlign="right">Basic Salary</Table.ColumnHeader>
-                  <Table.ColumnHeader color="#64748b" fontWeight="bold" textAlign="right">Allowances</Table.ColumnHeader>
-                  <Table.ColumnHeader color="#64748b" fontWeight="bold" textAlign="right">PAYE & Pension</Table.ColumnHeader>
-                  <Table.ColumnHeader color="#64748b" fontWeight="bold" textAlign="right">Loan Deductions</Table.ColumnHeader>
-                  <Table.ColumnHeader color="#64748b" fontWeight="bold" textAlign="right">Net Salary</Table.ColumnHeader>
-                  <Table.ColumnHeader color="#64748b" fontWeight="bold" textAlign="right">Action</Table.ColumnHeader>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {filteredPayslips.map((slip) => (
-                  <Table.Row key={slip.id}>
-                    <Table.Cell>
-                      <Text fontWeight="bold" color="#0f172a">{slip.employeeName}</Text>
-                      <Text fontSize="10px" color="#94a3b8" fontFamily="mono">{slip.employeeCode}</Text>
-                    </Table.Cell>
-                    <Table.Cell fontSize="xs" color="#475569">{slip.department}</Table.Cell>
-                    <Table.Cell textAlign="right" fontSize="xs" fontFamily="mono">
-                      {activeCompany.currency} {slip.basicSalary.toLocaleString()}
-                    </Table.Cell>
-                    <Table.Cell textAlign="right" fontSize="xs" fontFamily="mono" color="#059669">
-                      +{activeCompany.currency} {slip.allowances.toLocaleString()}
-                    </Table.Cell>
-                    <Table.Cell textAlign="right" fontSize="xs" fontFamily="mono" color="#dc2626">
-                      -{activeCompany.currency} {(slip.tax + slip.pension).toLocaleString()}
-                    </Table.Cell>
-                    <Table.Cell textAlign="right" fontSize="xs" fontFamily="mono" color="#dc2626">
-                      {slip.loanDeduction > 0 ? `-${activeCompany.currency} ${slip.loanDeduction.toLocaleString()}` : '—'}
-                    </Table.Cell>
-                    <Table.Cell textAlign="right" fontSize="xs" fontFamily="mono" fontWeight="bold" color="#0f172a">
-                      {activeCompany.currency} {slip.netPay.toLocaleString()}
-                    </Table.Cell>
-                    <Table.Cell textAlign="right">
-                      <Button size="xs" colorPalette="blue" variant="subtle" onClick={() => setSelectedPayslip(slip)}>
-                        <FileText size={12} /> View Slip
-                      </Button>
-                    </Table.Cell>
+            <Box overflowX="auto" w="100%">
+              <Table.Root size="sm" striped minW="750px">
+                <Table.Header bg="#f8fafc">
+                  <Table.Row>
+                    <Table.ColumnHeader color="#64748b" fontWeight="bold">Employee Name</Table.ColumnHeader>
+                    <Table.ColumnHeader color="#64748b" fontWeight="bold">Department</Table.ColumnHeader>
+                    <Table.ColumnHeader color="#64748b" fontWeight="bold" textAlign="right">Basic Salary</Table.ColumnHeader>
+                    <Table.ColumnHeader color="#64748b" fontWeight="bold" textAlign="right">Allowances</Table.ColumnHeader>
+                    <Table.ColumnHeader color="#64748b" fontWeight="bold" textAlign="right">PAYE & Pension</Table.ColumnHeader>
+                    <Table.ColumnHeader color="#64748b" fontWeight="bold" textAlign="right">Loan Deductions</Table.ColumnHeader>
+                    <Table.ColumnHeader color="#64748b" fontWeight="bold" textAlign="right">Net Salary</Table.ColumnHeader>
+                    <Table.ColumnHeader color="#64748b" fontWeight="bold" textAlign="right">Action</Table.ColumnHeader>
                   </Table.Row>
-                ))}
-              </Table.Body>
-            </Table.Root>
+                </Table.Header>
+                <Table.Body>
+                  {filteredPayslips.map((slip) => (
+                    <Table.Row key={slip.id}>
+                      <Table.Cell>
+                        <Text fontWeight="bold" color="#0f172a">{slip.employeeName}</Text>
+                        <Text fontSize="10px" color="#94a3b8" fontFamily="mono">{slip.employeeCode}</Text>
+                      </Table.Cell>
+                      <Table.Cell fontSize="xs" color="#475569">{slip.department}</Table.Cell>
+                      <Table.Cell textAlign="right" fontSize="xs" fontFamily="mono">
+                        {activeCompany.currency} {slip.basicSalary.toLocaleString()}
+                      </Table.Cell>
+                      <Table.Cell textAlign="right" fontSize="xs" fontFamily="mono" color="#059669">
+                        +{activeCompany.currency} {slip.allowances.toLocaleString()}
+                      </Table.Cell>
+                      <Table.Cell textAlign="right" fontSize="xs" fontFamily="mono" color="#dc2626">
+                        -{activeCompany.currency} {(slip.tax + slip.pension).toLocaleString()}
+                      </Table.Cell>
+                      <Table.Cell textAlign="right" fontSize="xs" fontFamily="mono" color="#dc2626">
+                        {slip.loanDeduction > 0 ? `-${activeCompany.currency} ${slip.loanDeduction.toLocaleString()}` : '—'}
+                      </Table.Cell>
+                      <Table.Cell textAlign="right" fontSize="xs" fontFamily="mono" fontWeight="bold" color="#0f172a">
+                        {activeCompany.currency} {slip.netPay.toLocaleString()}
+                      </Table.Cell>
+                      <Table.Cell textAlign="right">
+                        <Button size="xs" colorPalette="blue" variant="subtle" onClick={() => setSelectedPayslip(slip)}>
+                          <FileText size={12} /> View Slip
+                        </Button>
+                      </Table.Cell>
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table.Root>
+            </Box>
           </Card.Root>
         </Stack>
       )}
@@ -364,32 +381,34 @@ EMP-004,2026-10,3800,450,850`
       {/* Tab: Chart of Accounts */}
       {activeTab === 'ledger' && (
         <Card.Root bg="white" borderRadius="16px" border="1px solid #e2e8f0" overflow="hidden">
-          <Table.Root size="sm" striped>
-            <Table.Header bg="#f8fafc">
-              <Table.Row>
-                <Table.ColumnHeader color="#64748b" fontWeight="bold">Account Code</Table.ColumnHeader>
-                <Table.ColumnHeader color="#64748b" fontWeight="bold">Account Title</Table.ColumnHeader>
-                <Table.ColumnHeader color="#64748b" fontWeight="bold">Classification</Table.ColumnHeader>
-                <Table.ColumnHeader color="#64748b" fontWeight="bold" textAlign="right">Current Balance</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {accountsLedger.map((acc) => (
-                <Table.Row key={acc.id}>
-                  <Table.Cell fontFamily="mono" fontWeight="bold" fontSize="xs">{acc.accountCode}</Table.Cell>
-                  <Table.Cell fontWeight="bold" color="#0f172a">{acc.name}</Table.Cell>
-                  <Table.Cell>
-                    <Badge size="xs" colorPalette={acc.type === 'Asset' ? 'green' : acc.type === 'Liability' ? 'red' : 'blue'}>
-                      {acc.type}
-                    </Badge>
-                  </Table.Cell>
-                  <Table.Cell textAlign="right" fontFamily="mono" fontWeight="bold" fontSize="xs">
-                    {activeCompany.currency} {acc.balance.toLocaleString()}
-                  </Table.Cell>
+          <Box overflowX="auto">
+            <Table.Root size="sm" striped minW="600px">
+              <Table.Header bg="#f8fafc">
+                <Table.Row>
+                  <Table.ColumnHeader color="#64748b" fontWeight="bold">Account Code</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#64748b" fontWeight="bold">Account Title</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#64748b" fontWeight="bold">Classification</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#64748b" fontWeight="bold" textAlign="right">Current Balance</Table.ColumnHeader>
                 </Table.Row>
-              ))}
-            </Table.Body>
-          </Table.Root>
+              </Table.Header>
+              <Table.Body>
+                {accountsLedger.map((acc) => (
+                  <Table.Row key={acc.id}>
+                    <Table.Cell fontFamily="mono" fontWeight="bold" fontSize="xs">{acc.accountCode}</Table.Cell>
+                    <Table.Cell fontWeight="bold" color="#0f172a">{acc.name}</Table.Cell>
+                    <Table.Cell>
+                      <Badge size="xs" colorPalette={acc.type === 'Asset' ? 'green' : acc.type === 'Liability' ? 'red' : 'blue'}>
+                        {acc.type}
+                      </Badge>
+                    </Table.Cell>
+                    <Table.Cell textAlign="right" fontFamily="mono" fontWeight="bold" fontSize="xs">
+                      {activeCompany.currency} {acc.balance.toLocaleString()}
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Root>
+          </Box>
         </Card.Root>
       )}
 
@@ -403,9 +422,9 @@ EMP-004,2026-10,3800,450,850`
           display="flex" 
           alignItems="center" 
           justifyContent="center" 
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="550px" w="100%" p={6} border="1px solid #e2e8f0" boxShadow="2xl">
+          <Box bg="white" borderRadius="16px" maxW="550px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Flex justify="space-between" align="center" borderBottom="2px solid #0f172a" pb={3} mb={4}>
               <Box>
                 <Heading size="md" color="#0f172a">{activeCompany.name}</Heading>
@@ -496,9 +515,9 @@ EMP-004,2026-10,3800,450,850`
           display="flex"
           alignItems="center"
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="600px" w="100%" p={6} border="1px solid #e2e8f0" boxShadow="2xl">
+          <Box bg="white" borderRadius="16px" maxW="600px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Flex justify="space-between" align="center" mb={2}>
               <Heading size="md" color="#0f172a">
                 Import Monthly Payroll CSV
@@ -528,11 +547,11 @@ EMP-004,2026-10,3800,450,850`
                 required
               />
 
-              <Flex justify="space-between" align="center">
-                <Button size="xs" variant="outline" onClick={handleDownloadTemplate}>
+              <Flex justify="space-between" align="center" direction={{ base: 'column', sm: 'row' }} gap={3}>
+                <Button size="xs" variant="outline" onClick={handleDownloadTemplate} w={{ base: '100%', sm: 'auto' }}>
                   <Download size={12} /> Download Template
                 </Button>
-                <Flex gap={2}>
+                <Flex gap={2} w={{ base: '100%', sm: 'auto' }} justify={{ base: 'flex-end', sm: 'flex-end' }}>
                   <Button size="sm" variant="outline" onClick={() => setShowImportModal(false)}>
                     Cancel
                   </Button>
@@ -542,6 +561,37 @@ EMP-004,2026-10,3800,450,850`
                 </Flex>
               </Flex>
             </form>
+          </Box>
+        </Box>
+      )}
+      {/* Automated Payroll Run Confirmation Modal */}
+      {showConfirmRunModal && (
+        <Box
+          position="fixed"
+          inset="0"
+          zIndex="1450"
+          bg="rgba(15, 23, 42, 0.65)"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          p={{ base: 2, sm: 4 }}
+        >
+          <Box bg="white" borderRadius="16px" maxW="460px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
+            <Heading size="md" color="#0f172a" mb={2}>Confirm Automated Payroll Run</Heading>
+            <Text fontSize="sm" color="#475569" mb={4}>
+              Are you sure you want to run automated payroll calculations for all active personnel for <strong>{selectedMonth}</strong>?
+            </Text>
+            <Box p={3} mb={4} bg="#f8fafc" borderRadius="8px" border="1px solid #e2e8f0" fontSize="xs" color="#64748b">
+              This will compute gross salary, statutory PAYE tax withholdings, pension deductions, and create downloadable payslips.
+            </Box>
+            <Flex justify="flex-end" gap={2}>
+              <Button size="sm" variant="outline" onClick={() => setShowConfirmRunModal(false)}>
+                Cancel
+              </Button>
+              <Button size="sm" colorPalette="green" onClick={handleConfirmRunPayroll} fontWeight="bold">
+                Run Calculations
+              </Button>
+            </Flex>
           </Box>
         </Box>
       )}

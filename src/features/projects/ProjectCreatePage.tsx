@@ -206,7 +206,7 @@ export const ProjectCreatePage: React.FC = () => {
       <form onSubmit={handleSubmit}>
         <Stack gap={6}>
           {/* Section 1: Basic Project Identifiers */}
-          <Card.Root bg="white" borderRadius="16px" p={6} border="1px solid #e2e8f0" boxShadow="xs">
+          <Card.Root bg="white" borderRadius="16px" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="xs">
             <Heading size="sm" color="#0f172a" mb={1} display="flex" alignItems="center" gap={2}>
               <HardHat size={18} color="#2563eb" /> Project Identity & Classification
             </Heading>
@@ -309,7 +309,7 @@ export const ProjectCreatePage: React.FC = () => {
           </Card.Root>
 
           {/* Section 2: Client & Consultant Information */}
-          <Card.Root bg="white" borderRadius="16px" p={6} border="1px solid #e2e8f0" boxShadow="xs">
+          <Card.Root bg="white" borderRadius="16px" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="xs">
             <Heading size="sm" color="#0f172a" mb={1} display="flex" alignItems="center" gap={2}>
               <Building2 size={18} color="#2563eb" /> Client & Engineering Consultant
             </Heading>
@@ -404,7 +404,7 @@ export const ProjectCreatePage: React.FC = () => {
           </Card.Root>
 
           {/* Section 3: Financial Parameters */}
-          <Card.Root bg="white" borderRadius="16px" p={6} border="1px solid #e2e8f0" boxShadow="xs">
+          <Card.Root bg="white" borderRadius="16px" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="xs">
             <Heading size="sm" color="#0f172a" mb={1} display="flex" alignItems="center" gap={2}>
               <DollarSign size={18} color="#16a34a" /> Contract Financials & Budget Allocation
             </Heading>
@@ -460,7 +460,7 @@ export const ProjectCreatePage: React.FC = () => {
           </Card.Root>
 
           {/* Section 4: Schedule Dates & Staff Assignment */}
-          <Card.Root bg="white" borderRadius="16px" p={6} border="1px solid #e2e8f0" boxShadow="xs">
+          <Card.Root bg="white" borderRadius="16px" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="xs">
             <Heading size="sm" color="#0f172a" mb={1} display="flex" alignItems="center" gap={2}>
               <Calendar size={18} color="#2563eb" /> Schedule Dates & Resident Engineers
             </Heading>

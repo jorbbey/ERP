@@ -82,36 +82,38 @@ export const WorkflowPage: React.FC = () => {
       </Flex>
 
       {/* Tabs */}
-      <Flex borderBottom="1px solid #e2e8f0" gap={4} mb={6}>
-        <Button
-          variant="plain"
-          pb={3}
-          pt={1}
-          px={2}
-          borderBottom="2px solid"
-          borderColor={activeTab === 'pending' ? '#2563eb' : 'transparent'}
-          color={activeTab === 'pending' ? '#2563eb' : '#64748b'}
-          fontWeight={activeTab === 'pending' ? 'bold' : 'medium'}
-          fontSize="sm"
-          onClick={() => setActiveTab('pending')}
-        >
-          Pending My Approval ({totalPendingActions})
-        </Button>
-        <Button
-          variant="plain"
-          pb={3}
-          pt={1}
-          px={2}
-          borderBottom="2px solid"
-          borderColor={activeTab === 'matrix' ? '#2563eb' : 'transparent'}
-          color={activeTab === 'matrix' ? '#2563eb' : '#64748b'}
-          fontWeight={activeTab === 'matrix' ? 'bold' : 'medium'}
-          fontSize="sm"
-          onClick={() => setActiveTab('matrix')}
-        >
-          Authorization Matrices
-        </Button>
-      </Flex>
+      <Box overflowX="auto" borderBottom="1px solid #e2e8f0" mb={6}>
+        <Flex gap={4} minW="max-content">
+          <Button
+            variant="plain"
+            pb={3}
+            pt={1}
+            px={2}
+            borderBottom="2px solid"
+            borderColor={activeTab === 'pending' ? '#2563eb' : 'transparent'}
+            color={activeTab === 'pending' ? '#2563eb' : '#64748b'}
+            fontWeight={activeTab === 'pending' ? 'bold' : 'medium'}
+            fontSize="sm"
+            onClick={() => setActiveTab('pending')}
+          >
+            Pending My Approval ({totalPendingActions})
+          </Button>
+          <Button
+            variant="plain"
+            pb={3}
+            pt={1}
+            px={2}
+            borderBottom="2px solid"
+            borderColor={activeTab === 'matrix' ? '#2563eb' : 'transparent'}
+            color={activeTab === 'matrix' ? '#2563eb' : '#64748b'}
+            fontWeight={activeTab === 'matrix' ? 'bold' : 'medium'}
+            fontSize="sm"
+            onClick={() => setActiveTab('matrix')}
+          >
+            Authorization Matrices
+          </Button>
+        </Flex>
+      </Box>
 
       {/* Pending Items Tab */}
       {activeTab === 'pending' && (
@@ -133,58 +135,60 @@ export const WorkflowPage: React.FC = () => {
                 All site requisitions have been approved or dispatched.
               </Box>
             ) : (
-              <Table.Root size="sm" striped>
-                <Table.Header bg="#f8fafc">
-                  <Table.Row>
-                    <Table.ColumnHeader color="#475569">Req Code</Table.ColumnHeader>
-                    <Table.ColumnHeader color="#475569">Project / Site</Table.ColumnHeader>
-                    <Table.ColumnHeader color="#475569">Requester</Table.ColumnHeader>
-                    <Table.ColumnHeader color="#475569">Materials Scope</Table.ColumnHeader>
-                    <Table.ColumnHeader color="#475569" textAlign="right">Est. Cost</Table.ColumnHeader>
-                    <Table.ColumnHeader color="#475569" textAlign="right">Actions</Table.ColumnHeader>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                  {pendingReqs.map(r => (
-                    <Table.Row key={r.id}>
-                      <Table.Cell fontSize="xs" fontWeight="bold" color="#2563eb">
-                        {r.requisitionNo}
-                      </Table.Cell>
-                      <Table.Cell fontSize="xs" color="#0f172a" fontWeight="medium">
-                        {r.projectName}
-                      </Table.Cell>
-                      <Table.Cell fontSize="xs" color="#64748b">
-                        {r.requestedBy} ({r.department})
-                      </Table.Cell>
-                      <Table.Cell fontSize="xs" color="#334155">
-                        {r.title} ({r.items.length} line items)
-                      </Table.Cell>
-                      <Table.Cell fontSize="xs" textAlign="right" fontWeight="bold" color="#0f172a">
-                        {r.totalEstimatedAmount !== undefined ? `${activeCompany.currency} ${r.totalEstimatedAmount.toLocaleString()}` : 'Unpriced'}
-                      </Table.Cell>
-                      <Table.Cell textAlign="right">
-                        <Flex justify="flex-end" gap={2}>
-                          <Button
-                            size="xs"
-                            colorPalette="green"
-                            onClick={() => updateRequisitionStatus(r.id, 'Approved')}
-                          >
-                            <CheckCircle2 size={13} /> Approve
-                          </Button>
-                          <Button
-                            size="xs"
-                            colorPalette="red"
-                            variant="subtle"
-                            onClick={() => updateRequisitionStatus(r.id, 'Rejected')}
-                          >
-                            <XCircle size={13} /> Reject
-                          </Button>
-                        </Flex>
-                      </Table.Cell>
+              <Box overflowX="auto">
+                <Table.Root size="sm" striped minW="750px">
+                  <Table.Header bg="#f8fafc">
+                    <Table.Row>
+                      <Table.ColumnHeader color="#475569">Req Code</Table.ColumnHeader>
+                      <Table.ColumnHeader color="#475569">Project / Site</Table.ColumnHeader>
+                      <Table.ColumnHeader color="#475569">Requester</Table.ColumnHeader>
+                      <Table.ColumnHeader color="#475569">Materials Scope</Table.ColumnHeader>
+                      <Table.ColumnHeader color="#475569" textAlign="right">Est. Cost</Table.ColumnHeader>
+                      <Table.ColumnHeader color="#475569" textAlign="right">Actions</Table.ColumnHeader>
                     </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table.Root>
+                  </Table.Header>
+                  <Table.Body>
+                    {pendingReqs.map(r => (
+                      <Table.Row key={r.id}>
+                        <Table.Cell fontSize="xs" fontWeight="bold" color="#2563eb">
+                          {r.requisitionNo}
+                        </Table.Cell>
+                        <Table.Cell fontSize="xs" color="#0f172a" fontWeight="medium">
+                          {r.projectName}
+                        </Table.Cell>
+                        <Table.Cell fontSize="xs" color="#64748b">
+                          {r.requestedBy} ({r.department})
+                        </Table.Cell>
+                        <Table.Cell fontSize="xs" color="#334155">
+                          {r.title} ({r.items.length} line items)
+                        </Table.Cell>
+                        <Table.Cell fontSize="xs" textAlign="right" fontWeight="bold" color="#0f172a">
+                          {r.totalEstimatedAmount !== undefined ? `${activeCompany.currency} ${r.totalEstimatedAmount.toLocaleString()}` : 'Unpriced'}
+                        </Table.Cell>
+                        <Table.Cell textAlign="right">
+                          <Flex justify="flex-end" gap={2}>
+                            <Button
+                              size="xs"
+                              colorPalette="green"
+                              onClick={() => updateRequisitionStatus(r.id, 'Approved')}
+                            >
+                              <CheckCircle2 size={13} /> Approve
+                            </Button>
+                            <Button
+                              size="xs"
+                              colorPalette="red"
+                              variant="subtle"
+                              onClick={() => updateRequisitionStatus(r.id, 'Rejected')}
+                            >
+                              <XCircle size={13} /> Reject
+                            </Button>
+                          </Flex>
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table.Root>
+              </Box>
             )}
           </Card.Root>
 
@@ -205,58 +209,60 @@ export const WorkflowPage: React.FC = () => {
                 No purchase orders pending approval.
               </Box>
             ) : (
-              <Table.Root size="sm" striped>
-                <Table.Header bg="#f8fafc">
-                  <Table.Row>
-                    <Table.ColumnHeader color="#475569">PO Number</Table.ColumnHeader>
-                    <Table.ColumnHeader color="#475569">Vendor / Supplier</Table.ColumnHeader>
-                    <Table.ColumnHeader color="#475569">Delivery Date</Table.ColumnHeader>
-                    <Table.ColumnHeader color="#475569">Payment Terms</Table.ColumnHeader>
-                    <Table.ColumnHeader color="#475569" textAlign="right">Total Value</Table.ColumnHeader>
-                    <Table.ColumnHeader color="#475569" textAlign="right">Actions</Table.ColumnHeader>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                  {pendingPOs.map(po => (
-                    <Table.Row key={po.id}>
-                      <Table.Cell fontSize="xs" fontWeight="bold" color="#7c3aed">
-                        {po.poNumber}
-                      </Table.Cell>
-                      <Table.Cell fontSize="xs" color="#0f172a" fontWeight="medium">
-                        {po.supplierName}
-                      </Table.Cell>
-                      <Table.Cell fontSize="xs" color="#64748b">
-                        {po.expectedDelivery}
-                      </Table.Cell>
-                      <Table.Cell fontSize="xs" color="#334155">
-                        {po.paymentTerms}
-                      </Table.Cell>
-                      <Table.Cell fontSize="xs" textAlign="right" fontWeight="bold" color="#0f172a">
-                        {activeCompany.currency} {po.totalAmount.toLocaleString()}
-                      </Table.Cell>
-                      <Table.Cell textAlign="right">
-                        <Flex justify="flex-end" gap={2}>
-                          <Button
-                            size="xs"
-                            colorPalette="green"
-                            onClick={() => updatePOStatus(po.id, 'approved')}
-                          >
-                            <CheckCircle2 size={13} /> Authorize PO
-                          </Button>
-                          <Button
-                            size="xs"
-                            colorPalette="red"
-                            variant="subtle"
-                            onClick={() => updatePOStatus(po.id, 'cancelled')}
-                          >
-                            <XCircle size={13} /> Decline
-                          </Button>
-                        </Flex>
-                      </Table.Cell>
+              <Box overflowX="auto">
+                <Table.Root size="sm" striped minW="750px">
+                  <Table.Header bg="#f8fafc">
+                    <Table.Row>
+                      <Table.ColumnHeader color="#475569">PO Number</Table.ColumnHeader>
+                      <Table.ColumnHeader color="#475569">Vendor / Supplier</Table.ColumnHeader>
+                      <Table.ColumnHeader color="#475569">Delivery Date</Table.ColumnHeader>
+                      <Table.ColumnHeader color="#475569">Payment Terms</Table.ColumnHeader>
+                      <Table.ColumnHeader color="#475569" textAlign="right">Total Value</Table.ColumnHeader>
+                      <Table.ColumnHeader color="#475569" textAlign="right">Actions</Table.ColumnHeader>
                     </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table.Root>
+                  </Table.Header>
+                  <Table.Body>
+                    {pendingPOs.map(po => (
+                      <Table.Row key={po.id}>
+                        <Table.Cell fontSize="xs" fontWeight="bold" color="#7c3aed">
+                          {po.poNumber}
+                        </Table.Cell>
+                        <Table.Cell fontSize="xs" color="#0f172a" fontWeight="medium">
+                          {po.supplierName}
+                        </Table.Cell>
+                        <Table.Cell fontSize="xs" color="#64748b">
+                          {po.expectedDelivery}
+                        </Table.Cell>
+                        <Table.Cell fontSize="xs" color="#334155">
+                          {po.paymentTerms}
+                        </Table.Cell>
+                        <Table.Cell fontSize="xs" textAlign="right" fontWeight="bold" color="#0f172a">
+                          {activeCompany.currency} {po.totalAmount.toLocaleString()}
+                        </Table.Cell>
+                        <Table.Cell textAlign="right">
+                          <Flex justify="flex-end" gap={2}>
+                            <Button
+                              size="xs"
+                              colorPalette="green"
+                              onClick={() => updatePOStatus(po.id, 'approved')}
+                            >
+                              <CheckCircle2 size={13} /> Authorize PO
+                            </Button>
+                            <Button
+                              size="xs"
+                              colorPalette="red"
+                              variant="subtle"
+                              onClick={() => updatePOStatus(po.id, 'cancelled')}
+                            >
+                              <XCircle size={13} /> Decline
+                            </Button>
+                          </Flex>
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table.Root>
+              </Box>
             )}
           </Card.Root>
 
@@ -277,54 +283,56 @@ export const WorkflowPage: React.FC = () => {
                 No employee salary advances pending review.
               </Box>
             ) : (
-              <Table.Root size="sm" striped>
-                <Table.Header bg="#f8fafc">
-                  <Table.Row>
-                    <Table.ColumnHeader color="#475569">Employee</Table.ColumnHeader>
-                    <Table.ColumnHeader color="#475569">Reason</Table.ColumnHeader>
-                    <Table.ColumnHeader color="#475569">Deduction Month</Table.ColumnHeader>
-                    <Table.ColumnHeader color="#475569" textAlign="right">Amount</Table.ColumnHeader>
-                    <Table.ColumnHeader color="#475569" textAlign="right">Actions</Table.ColumnHeader>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                  {pendingAdvances.map(adv => (
-                    <Table.Row key={adv.id}>
-                      <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a">
-                        {adv.employeeName}
-                      </Table.Cell>
-                      <Table.Cell fontSize="xs" color="#334155">
-                        {adv.reason}
-                      </Table.Cell>
-                      <Table.Cell fontSize="xs" color="#64748b">
-                        {adv.deductionMonth}
-                      </Table.Cell>
-                      <Table.Cell fontSize="xs" textAlign="right" fontWeight="bold" color="#16a34a">
-                        {activeCompany.currency} {adv.amount.toLocaleString()}
-                      </Table.Cell>
-                      <Table.Cell textAlign="right">
-                        <Flex justify="flex-end" gap={2}>
-                          <Button
-                            size="xs"
-                            colorPalette="green"
-                            onClick={() => decideSalaryAdvance(adv.id, 'Approved')}
-                          >
-                            <CheckCircle2 size={13} /> Approve
-                          </Button>
-                          <Button
-                            size="xs"
-                            colorPalette="red"
-                            variant="subtle"
-                            onClick={() => decideSalaryAdvance(adv.id, 'Rejected')}
-                          >
-                            <XCircle size={13} /> Reject
-                          </Button>
-                        </Flex>
-                      </Table.Cell>
+              <Box overflowX="auto">
+                <Table.Root size="sm" striped minW="650px">
+                  <Table.Header bg="#f8fafc">
+                    <Table.Row>
+                      <Table.ColumnHeader color="#475569">Employee</Table.ColumnHeader>
+                      <Table.ColumnHeader color="#475569">Reason</Table.ColumnHeader>
+                      <Table.ColumnHeader color="#475569">Deduction Month</Table.ColumnHeader>
+                      <Table.ColumnHeader color="#475569" textAlign="right">Amount</Table.ColumnHeader>
+                      <Table.ColumnHeader color="#475569" textAlign="right">Actions</Table.ColumnHeader>
                     </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table.Root>
+                  </Table.Header>
+                  <Table.Body>
+                    {pendingAdvances.map(adv => (
+                      <Table.Row key={adv.id}>
+                        <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a">
+                          {adv.employeeName}
+                        </Table.Cell>
+                        <Table.Cell fontSize="xs" color="#334155">
+                          {adv.reason}
+                        </Table.Cell>
+                        <Table.Cell fontSize="xs" color="#64748b">
+                          {adv.deductionMonth}
+                        </Table.Cell>
+                        <Table.Cell fontSize="xs" textAlign="right" fontWeight="bold" color="#16a34a">
+                          {activeCompany.currency} {adv.amount.toLocaleString()}
+                        </Table.Cell>
+                        <Table.Cell textAlign="right">
+                          <Flex justify="flex-end" gap={2}>
+                            <Button
+                              size="xs"
+                              colorPalette="green"
+                              onClick={() => decideSalaryAdvance(adv.id, 'Approved')}
+                            >
+                              <CheckCircle2 size={13} /> Approve
+                            </Button>
+                            <Button
+                              size="xs"
+                              colorPalette="red"
+                              variant="subtle"
+                              onClick={() => decideSalaryAdvance(adv.id, 'Rejected')}
+                            >
+                              <XCircle size={13} /> Reject
+                            </Button>
+                          </Flex>
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table.Root>
+              </Box>
             )}
           </Card.Root>
         </Stack>

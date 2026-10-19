@@ -140,7 +140,8 @@ export const SiteProcurementTab: React.FC<SiteProcurementTabProps> = ({ project 
               No store requisitions raised for this site yet.
             </Box>
           ) : (
-            <Table.Root size="sm" striped>
+            <Box overflowX="auto" mx={{ base: -5, sm: 0 }} px={{ base: 5, sm: 0 }}>
+            <Table.Root size="sm" striped minW="700px">
               <Table.Header bg="#f8fafc">
                 <Table.Row>
                   <Table.ColumnHeader color="#475569">Req No</Table.ColumnHeader>
@@ -192,31 +193,33 @@ export const SiteProcurementTab: React.FC<SiteProcurementTabProps> = ({ project 
                 ))}
               </Table.Body>
             </Table.Root>
-          )}
-        </Card.Root>
-      )}
+          </Box>
+        )}
+      </Card.Root>
+    )}
 
-      {/* VIEW 2: PURCHASE ORDERS */}
-      {activeSubTab === 'purchaseOrders' && (
-        <Card.Root bg="white" borderRadius="14px" p={5} border="1px solid #e2e8f0" boxShadow="xs">
-          <Flex justify="space-between" align="center" mb={4} wrap="wrap" gap={3}>
-            <Box>
-              <Heading size="sm" color="#0f172a">Site Vendor Purchase Orders (POs)</Heading>
-              <Text fontSize="xs" color="#64748b">
-                Vendor purchase orders allocated and dispatched to this project site.
-              </Text>
-            </Box>
-            <Button size="sm" bg="#2563eb" color="white" onClick={() => navigate('/procurement')}>
-              Open Procurement Module
-            </Button>
-          </Flex>
+    {/* VIEW 2: PURCHASE ORDERS */}
+    {activeSubTab === 'purchaseOrders' && (
+      <Card.Root bg="white" borderRadius="14px" p={5} border="1px solid #e2e8f0" boxShadow="xs">
+        <Flex justify="space-between" align="center" mb={4} wrap="wrap" gap={3}>
+          <Box>
+            <Heading size="sm" color="#0f172a">Site Vendor Purchase Orders (POs)</Heading>
+            <Text fontSize="xs" color="#64748b">
+              Vendor purchase orders allocated and dispatched to this project site.
+            </Text>
+          </Box>
+          <Button size="sm" bg="#2563eb" color="white" onClick={() => navigate('/procurement')}>
+            Open Procurement Module
+          </Button>
+        </Flex>
 
-          {currentPOs.length === 0 ? (
-            <Box py={8} textAlign="center" color="#94a3b8" fontSize="xs">
-              No purchase orders committed specifically for this site yet.
-            </Box>
-          ) : (
-            <Table.Root size="sm" striped>
+        {currentPOs.length === 0 ? (
+          <Box py={8} textAlign="center" color="#94a3b8" fontSize="xs">
+            No purchase orders committed specifically for this site yet.
+          </Box>
+        ) : (
+          <Box overflowX="auto" mx={{ base: -5, sm: 0 }} px={{ base: 5, sm: 0 }}>
+            <Table.Root size="sm" striped minW="700px">
               <Table.Header bg="#f8fafc">
                 <Table.Row>
                   <Table.ColumnHeader color="#475569">PO Number</Table.ColumnHeader>
@@ -261,6 +264,7 @@ export const SiteProcurementTab: React.FC<SiteProcurementTabProps> = ({ project 
                 ))}
               </Table.Body>
             </Table.Root>
+          </Box>
           )}
         </Card.Root>
       )}

@@ -157,59 +157,61 @@ export const AccountingPage: React.FC = () => {
       </SimpleGrid>
 
       {/* Tabs */}
-      <Flex borderBottom="1px solid #e2e8f0" gap={4} mb={6}>
-        <Button
-          variant="plain"
-          pb={3}
-          pt={1}
-          px={2}
-          borderBottom="2px solid"
-          borderColor={activeTab === 'chart' ? '#2563eb' : 'transparent'}
-          color={activeTab === 'chart' ? '#2563eb' : '#64748b'}
-          fontWeight={activeTab === 'chart' ? 'bold' : 'medium'}
-          fontSize="sm"
-          onClick={() => setActiveTab('chart')}
-        >
-          Chart of Accounts ({accountsLedger.length})
-        </Button>
-        <Button
-          variant="plain"
-          pb={3}
-          pt={1}
-          px={2}
-          borderBottom="2px solid"
-          borderColor={activeTab === 'pnl' ? '#2563eb' : 'transparent'}
-          color={activeTab === 'pnl' ? '#2563eb' : '#64748b'}
-          fontWeight={activeTab === 'pnl' ? 'bold' : 'medium'}
-          fontSize="sm"
-          onClick={() => setActiveTab('pnl')}
-        >
-          Profit & Loss Statement
-        </Button>
-        <Button
-          variant="plain"
-          pb={3}
-          pt={1}
-          px={2}
-          borderBottom="2px solid"
-          borderColor={activeTab === 'balancesheet' ? '#2563eb' : 'transparent'}
-          color={activeTab === 'balancesheet' ? '#2563eb' : '#64748b'}
-          fontWeight={activeTab === 'balancesheet' ? 'bold' : 'medium'}
-          fontSize="sm"
-          onClick={() => setActiveTab('balancesheet')}
-        >
-          Balance Sheet Statement
-        </Button>
-      </Flex>
+      <Box overflowX="auto" borderBottom="1px solid #e2e8f0" mb={6}>
+        <Flex gap={4} minW="max-content">
+          <Button
+            variant="plain"
+            pb={3}
+            pt={1}
+            px={2}
+            borderBottom="2px solid"
+            borderColor={activeTab === 'chart' ? '#2563eb' : 'transparent'}
+            color={activeTab === 'chart' ? '#2563eb' : '#64748b'}
+            fontWeight={activeTab === 'chart' ? 'bold' : 'medium'}
+            fontSize="sm"
+            onClick={() => setActiveTab('chart')}
+          >
+            Chart of Accounts ({accountsLedger.length})
+          </Button>
+          <Button
+            variant="plain"
+            pb={3}
+            pt={1}
+            px={2}
+            borderBottom="2px solid"
+            borderColor={activeTab === 'pnl' ? '#2563eb' : 'transparent'}
+            color={activeTab === 'pnl' ? '#2563eb' : '#64748b'}
+            fontWeight={activeTab === 'pnl' ? 'bold' : 'medium'}
+            fontSize="sm"
+            onClick={() => setActiveTab('pnl')}
+          >
+            Profit & Loss Statement
+          </Button>
+          <Button
+            variant="plain"
+            pb={3}
+            pt={1}
+            px={2}
+            borderBottom="2px solid"
+            borderColor={activeTab === 'balancesheet' ? '#2563eb' : 'transparent'}
+            color={activeTab === 'balancesheet' ? '#2563eb' : '#64748b'}
+            fontWeight={activeTab === 'balancesheet' ? 'bold' : 'medium'}
+            fontSize="sm"
+            onClick={() => setActiveTab('balancesheet')}
+          >
+            Balance Sheet Statement
+          </Button>
+        </Flex>
+      </Box>
 
       {/* Chart of Accounts */}
       {activeTab === 'chart' && (
-        <Card.Root bg="white" border="1px solid #e2e8f0" borderRadius="14px" p={5}>
-          <Flex justify="space-between" align="center" mb={4}>
+        <Card.Root bg="white" border="1px solid #e2e8f0" borderRadius="14px" p={{ base: 4, sm: 5 }}>
+          <Flex justify="space-between" align={{ base: 'flex-start', sm: 'center' }} direction={{ base: 'column', sm: 'row' }} gap={3} mb={4}>
             <Heading size="sm" color="#0f172a">
               General Ledger Accounts
             </Heading>
-            <Flex gap={2} align="center">
+            <Flex gap={2} align="center" wrap="wrap">
               <Text fontSize="xs" color="#64748b">Filter Classification:</Text>
               <NativeSelect.Root size="sm">
                 <NativeSelect.Field
@@ -228,51 +230,53 @@ export const AccountingPage: React.FC = () => {
             </Flex>
           </Flex>
 
-          <Table.Root size="sm" striped>
-            <Table.Header bg="#f8fafc">
-              <Table.Row>
-                <Table.ColumnHeader color="#475569">Account Code</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Account Name</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Classification</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569" textAlign="right">Current Balance</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {filteredAccounts.map((acc) => (
-                <Table.Row key={acc.id}>
-                  <Table.Cell fontSize="xs" fontFamily="mono" fontWeight="bold" color="#2563eb">
-                    {acc.accountCode}
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" fontWeight="semibold" color="#0f172a">
-                    {acc.name}
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Badge
-                      size="xs"
-                      colorPalette={
-                        acc.type === 'Asset' ? 'blue' :
-                        acc.type === 'Liability' ? 'red' :
-                        acc.type === 'Equity' ? 'purple' :
-                        acc.type === 'Revenue' ? 'green' : 'orange'
-                      }
-                      variant="subtle"
-                    >
-                      {acc.type}
-                    </Badge>
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" textAlign="right" fontWeight="bold" color="#0f172a">
-                    {activeCompany.currency} {acc.balance.toLocaleString()}
-                  </Table.Cell>
+          <Box overflowX="auto">
+            <Table.Root size="sm" striped minW="600px">
+              <Table.Header bg="#f8fafc">
+                <Table.Row>
+                  <Table.ColumnHeader color="#475569">Account Code</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Account Name</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Classification</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569" textAlign="right">Current Balance</Table.ColumnHeader>
                 </Table.Row>
-              ))}
-            </Table.Body>
-          </Table.Root>
+              </Table.Header>
+              <Table.Body>
+                {filteredAccounts.map((acc) => (
+                  <Table.Row key={acc.id}>
+                    <Table.Cell fontSize="xs" fontFamily="mono" fontWeight="bold" color="#2563eb">
+                      {acc.accountCode}
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" fontWeight="semibold" color="#0f172a">
+                      {acc.name}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Badge
+                        size="xs"
+                        colorPalette={
+                          acc.type === 'Asset' ? 'blue' :
+                          acc.type === 'Liability' ? 'red' :
+                          acc.type === 'Equity' ? 'purple' :
+                          acc.type === 'Revenue' ? 'green' : 'orange'
+                        }
+                        variant="subtle"
+                      >
+                        {acc.type}
+                      </Badge>
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" textAlign="right" fontWeight="bold" color="#0f172a">
+                      {activeCompany.currency} {acc.balance.toLocaleString()}
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Root>
+          </Box>
         </Card.Root>
       )}
 
       {/* P&L View */}
       {activeTab === 'pnl' && (
-        <Card.Root bg="white" border="1px solid #e2e8f0" borderRadius="14px" p={6} maxW="800px" mx="auto">
+        <Card.Root bg="white" border="1px solid #e2e8f0" borderRadius="14px" p={{ base: 4, sm: 6 }} maxW="800px" mx="auto">
           <Box textAlign="center" pb={4} borderBottom="1px solid #e2e8f0" mb={4}>
             <Text fontSize="xs" fontWeight="bold" color="#64748b" textTransform="uppercase">
               {activeCompany.name}

@@ -96,6 +96,9 @@ export const RecruitmentTab: React.FC = () => {
   });
 
   const [hireApp, setHireApp] = useState<RecruitmentApplication | null>(null);
+  const [rejectingApp, setRejectingApp] = useState<RecruitmentApplication | null>(null);
+  const [rejectReason, setRejectReason] = useState('Qualifications not aligned with current requirements');
+  const [hireFeedback, setHireFeedback] = useState<{ message: string; isError?: boolean } | null>(null);
   const [hireForm, setHireForm] = useState({
     salary: 5000,
     hireDate: new Date().toISOString().split('T')[0],
@@ -205,9 +208,9 @@ export const RecruitmentTab: React.FC = () => {
     });
 
     if (res.success) {
-      alert(`Candidate ${hireApp.applicantName} successfully hired! Employee profile created with code ${res.employee?.code}.`);
+      setHireFeedback({ message: `Candidate ${hireApp.applicantName} successfully hired! Employee profile created with code ${res.employee?.code}.`, isError: false });
     } else {
-      alert(res.error || 'Failed to hire candidate');
+      setHireFeedback({ message: res.error || 'Failed to hire candidate', isError: true });
     }
 
     setHireApp(null);
@@ -219,6 +222,13 @@ export const RecruitmentTab: React.FC = () => {
 
   return (
     <Stack gap={6}>
+      {hireFeedback && (
+        <Box p={3.5} borderRadius="10px" bg={hireFeedback.isError ? '#fef2f2' : '#f0fdf4'} border={hireFeedback.isError ? '1px solid #fecaca' : '1px solid #bbf7d0'} color={hireFeedback.isError ? '#b91c1c' : '#166534'} fontSize="xs" display="flex" justifyContent="space-between" alignItems="center">
+          <Text>{hireFeedback.message}</Text>
+          <Button size="xs" variant="ghost" onClick={() => setHireFeedback(null)}>Dismiss</Button>
+        </Box>
+      )}
+
       {/* Top Metric Cards */}
       <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} gap={4}>
         <Card.Root bg="white" borderRadius="14px" p={4} border="1px solid #e2e8f0" boxShadow="xs">
@@ -367,7 +377,8 @@ export const RecruitmentTab: React.FC = () => {
 
           {/* Candidates Table */}
           <Card.Root bg="white" borderRadius="14px" border="1px solid #e2e8f0" boxShadow="xs" overflow="hidden">
-            <Table.Root size="sm" variant="outline">
+            <Box overflowX="auto">
+              <Table.Root size="sm" variant="outline" minW="900px">
               <Table.Header bg="#f8fafc">
                 <Table.Row>
                   <Table.ColumnHeader>Applicant Name</Table.ColumnHeader>
@@ -478,11 +489,7 @@ export const RecruitmentTab: React.FC = () => {
                                 size="xs"
                                 variant="ghost"
                                 color="#dc2626"
-                                onClick={() => {
-                                  if (confirm(`Reject applicant ${app.applicantName}?`)) {
-                                    updateApplicationStage(app.id, 'rejected', { rejectionReason: 'Qualifications not aligned' });
-                                  }
-                                }}
+                                onClick={() => setRejectingApp(app)}
                               >
                                 Reject
                               </Button>
@@ -500,7 +507,8 @@ export const RecruitmentTab: React.FC = () => {
                 )}
               </Table.Body>
             </Table.Root>
-          </Card.Root>
+          </Box>
+        </Card.Root>
         </Stack>
       )}
 
@@ -594,9 +602,9 @@ export const RecruitmentTab: React.FC = () => {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="550px" w="100%" p={6} border="1px solid #e2e8f0" boxShadow="2xl">
+          <Box bg="white" borderRadius="16px" maxW="550px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>
               Post Engineering / Project Vacancy
             </Heading>
@@ -617,7 +625,7 @@ export const RecruitmentTab: React.FC = () => {
                   />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="semibold" color="#334155" mb={1}>Department *</Text>
                     <NativeSelect.Root size="sm">
@@ -642,7 +650,7 @@ export const RecruitmentTab: React.FC = () => {
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="semibold" color="#334155" mb={1}>Employment Type</Text>
                     <NativeSelect.Root size="sm">
@@ -667,7 +675,7 @@ export const RecruitmentTab: React.FC = () => {
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="semibold" color="#334155" mb={1}>Target Salary Range</Text>
                     <Input
@@ -726,9 +734,9 @@ export const RecruitmentTab: React.FC = () => {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} border="1px solid #e2e8f0" boxShadow="2xl">
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>
               Log Candidate Application
             </Heading>
@@ -749,7 +757,7 @@ export const RecruitmentTab: React.FC = () => {
                   />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="semibold" color="#334155" mb={1}>Email Address *</Text>
                     <Input
@@ -773,7 +781,7 @@ export const RecruitmentTab: React.FC = () => {
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="semibold" color="#334155" mb={1}>Target Position *</Text>
                     <Input
@@ -836,9 +844,9 @@ export const RecruitmentTab: React.FC = () => {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="450px" w="100%" p={6} border="1px solid #e2e8f0" boxShadow="2xl">
+          <Box bg="white" borderRadius="16px" maxW="450px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>
               Schedule Candidate Interview
             </Heading>
@@ -905,9 +913,9 @@ export const RecruitmentTab: React.FC = () => {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="450px" w="100%" p={6} border="1px solid #e2e8f0" boxShadow="2xl">
+          <Box bg="white" borderRadius="16px" maxW="450px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>
               Evaluate & Rate Candidate
             </Heading>
@@ -971,9 +979,9 @@ export const RecruitmentTab: React.FC = () => {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} border="1px solid #e2e8f0" boxShadow="2xl">
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>
               Hire & Provision Employee Record
             </Heading>
@@ -1040,6 +1048,52 @@ export const RecruitmentTab: React.FC = () => {
                 </Flex>
               </Stack>
             </form>
+          </Box>
+        </Box>
+      )}
+
+      {/* Reject Applicant Modal */}
+      {rejectingApp && (
+        <Box
+          position="fixed"
+          inset="0"
+          zIndex="1450"
+          bg="rgba(15, 23, 42, 0.65)"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          p={{ base: 2, sm: 4 }}
+        >
+          <Box bg="white" borderRadius="16px" maxW="460px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
+            <Heading size="md" color="#0f172a" mb={2}>Reject Job Application</Heading>
+            <Text fontSize="sm" color="#475569" mb={3}>
+              Are you sure you want to mark candidate <strong>{rejectingApp.applicantName}</strong> for <strong>{rejectingApp.position}</strong> as rejected?
+            </Text>
+            <Box mb={4}>
+              <Text fontSize="xs" fontWeight="semibold" color="#334155" mb={1}>Reason / Audit Note</Text>
+              <Input
+                size="sm"
+                value={rejectReason}
+                onChange={e => setRejectReason(e.target.value)}
+                placeholder="e.g. Qualifications not aligned, vacancy filled"
+              />
+            </Box>
+            <Flex justify="flex-end" gap={2}>
+              <Button size="sm" variant="outline" onClick={() => setRejectingApp(null)}>
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                colorPalette="red"
+                onClick={() => {
+                  updateApplicationStage(rejectingApp.id, 'rejected', { rejectionReason: rejectReason || 'Qualifications not aligned' });
+                  setHireFeedback({ message: `Applicant ${rejectingApp.applicantName} transitioned to Rejected status.`, isError: false });
+                  setRejectingApp(null);
+                }}
+              >
+                Confirm Rejection
+              </Button>
+            </Flex>
           </Box>
         </Box>
       )}

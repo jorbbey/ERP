@@ -282,7 +282,7 @@ export const SuppliersTab: React.FC = () => {
                 </Flex>
               </Stack>
 
-              <SimpleGrid columns={2} gap={3} mt={4} pt={3} borderTop="1px dashed #e2e8f0">
+              <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3} mt={4} pt={3} borderTop="1px dashed #e2e8f0">
                 <Box bg="#f8fafc" p={2.5} borderRadius="10px">
                   <Text fontSize="10px" textTransform="uppercase" fontWeight="bold" color="#64748b">Purchase Orders</Text>
                   <Text fontSize="md" fontWeight="bold" color="#0f172a" mt={0.5}>
@@ -303,8 +303,8 @@ export const SuppliersTab: React.FC = () => {
 
       {/* Add / Edit Supplier Modal */}
       {(showAddModal || editingSupplier) && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="560px" w="100%" p={6} boxShadow="2xl" maxH="90vh" overflowY="auto">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="560px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>
               {editingSupplier ? 'Edit Vendor / Supplier Profile' : 'Register New Vendor / Supplier'}
             </Heading>
@@ -314,7 +314,7 @@ export const SuppliersTab: React.FC = () => {
 
             <form onSubmit={handleSave}>
               <Stack gap={3}>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Supplier Code *</Text>
                     <Input
@@ -352,7 +352,7 @@ export const SuppliersTab: React.FC = () => {
                   />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Contact Person *</Text>
                     <Input
@@ -375,7 +375,7 @@ export const SuppliersTab: React.FC = () => {
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Official Email *</Text>
                     <Input
@@ -425,9 +425,9 @@ export const SuppliersTab: React.FC = () => {
 
       {/* View Supplier Details Modal */}
       {viewingSupplier && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="700px" w="100%" p={6} boxShadow="2xl" maxH="85vh" overflowY="auto">
-            <Flex justify="space-between" align="center" mb={4}>
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="700px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="85vh" overflowY="auto">
+            <Flex justify="space-between" align="center" mb={4} wrap="wrap" gap={2}>
               <Box>
                 <Flex align="center" gap={2}>
                   <Badge size="xs" colorPalette="blue" fontFamily="mono">{viewingSupplier.supplierCode}</Badge>
@@ -447,34 +447,36 @@ export const SuppliersTab: React.FC = () => {
                 No purchase orders issued to this vendor yet.
               </Box>
             ) : (
-              <Table.Root size="sm" variant="outline" mb={4}>
-                <Table.Header>
-                  <Table.Row bg="#f8fafc">
-                    <Table.ColumnHeader fontSize="10px">PO Number</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px">Project</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px">Order Date</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px">Amount</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px">Status</Table.ColumnHeader>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                  {getPOsForSupplier(viewingSupplier.id).map(po => (
-                    <Table.Row key={po.id}>
-                      <Table.Cell fontSize="xs" fontFamily="mono" fontWeight="bold">{po.poNumber}</Table.Cell>
-                      <Table.Cell fontSize="xs">{po.projectName || 'General Site Stores'}</Table.Cell>
-                      <Table.Cell fontSize="xs">{po.orderDate}</Table.Cell>
-                      <Table.Cell fontSize="xs" fontWeight="bold" color="#16a34a">
-                        {activeCompany.currency} {po.totalAmount.toLocaleString()}
-                      </Table.Cell>
-                      <Table.Cell fontSize="xs">
-                        <Badge size="xs" colorPalette={po.status === 'received' ? 'green' : 'blue'}>
-                          {po.status.replace('_', ' ').toUpperCase()}
-                        </Badge>
-                      </Table.Cell>
+              <Box overflowX="auto" mb={4}>
+                <Table.Root size="sm" variant="outline" minW="500px">
+                  <Table.Header>
+                    <Table.Row bg="#f8fafc">
+                      <Table.ColumnHeader fontSize="10px">PO Number</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px">Project</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px">Order Date</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px">Amount</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px">Status</Table.ColumnHeader>
                     </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table.Root>
+                  </Table.Header>
+                  <Table.Body>
+                    {getPOsForSupplier(viewingSupplier.id).map(po => (
+                      <Table.Row key={po.id}>
+                        <Table.Cell fontSize="xs" fontFamily="mono" fontWeight="bold">{po.poNumber}</Table.Cell>
+                        <Table.Cell fontSize="xs">{po.projectName || 'General Site Stores'}</Table.Cell>
+                        <Table.Cell fontSize="xs">{po.orderDate}</Table.Cell>
+                        <Table.Cell fontSize="xs" fontWeight="bold" color="#16a34a">
+                          {activeCompany.currency} {po.totalAmount.toLocaleString()}
+                        </Table.Cell>
+                        <Table.Cell fontSize="xs">
+                          <Badge size="xs" colorPalette={po.status === 'received' ? 'green' : 'blue'}>
+                            {po.status.replace('_', ' ').toUpperCase()}
+                          </Badge>
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table.Root>
+              </Box>
             )}
 
             <Heading size="xs" color="#334155" textTransform="uppercase" mb={2}>
@@ -485,32 +487,34 @@ export const SuppliersTab: React.FC = () => {
                 No delivery receipt notes recorded for this vendor.
               </Box>
             ) : (
-              <Table.Root size="sm" variant="outline">
-                <Table.Header>
-                  <Table.Row bg="#f8fafc">
-                    <Table.ColumnHeader fontSize="10px">GRN Number</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px">PO Ref</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px">Received Date</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px">Store Location</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px">QC Status</Table.ColumnHeader>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                  {getGRNsForSupplier(viewingSupplier.id).map(g => (
-                    <Table.Row key={g.id}>
-                      <Table.Cell fontSize="xs" fontFamily="mono" fontWeight="bold">{g.grnNumber}</Table.Cell>
-                      <Table.Cell fontSize="xs">{g.poNumber}</Table.Cell>
-                      <Table.Cell fontSize="xs">{g.receivedDate}</Table.Cell>
-                      <Table.Cell fontSize="xs">{g.warehouseName}</Table.Cell>
-                      <Table.Cell fontSize="xs">
-                        <Badge size="xs" colorPalette={g.qcInspectionStatus === 'Passed' ? 'green' : 'orange'}>
-                          {g.qcInspectionStatus}
-                        </Badge>
-                      </Table.Cell>
+              <Box overflowX="auto">
+                <Table.Root size="sm" variant="outline" minW="500px">
+                  <Table.Header>
+                    <Table.Row bg="#f8fafc">
+                      <Table.ColumnHeader fontSize="10px">GRN Number</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px">PO Ref</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px">Received Date</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px">Store Location</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px">QC Status</Table.ColumnHeader>
                     </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table.Root>
+                  </Table.Header>
+                  <Table.Body>
+                    {getGRNsForSupplier(viewingSupplier.id).map(g => (
+                      <Table.Row key={g.id}>
+                        <Table.Cell fontSize="xs" fontFamily="mono" fontWeight="bold">{g.grnNumber}</Table.Cell>
+                        <Table.Cell fontSize="xs">{g.poNumber}</Table.Cell>
+                        <Table.Cell fontSize="xs">{g.receivedDate}</Table.Cell>
+                        <Table.Cell fontSize="xs">{g.warehouseName}</Table.Cell>
+                        <Table.Cell fontSize="xs">
+                          <Badge size="xs" colorPalette={g.qcInspectionStatus === 'Passed' ? 'green' : 'orange'}>
+                            {g.qcInspectionStatus}
+                          </Badge>
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table.Root>
+              </Box>
             )}
           </Box>
         </Box>

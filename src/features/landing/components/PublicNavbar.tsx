@@ -147,7 +147,7 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ onOpenDemo }) => {
           </Flex>
 
           {/* Right Action CTAs */}
-          <Flex align="center" gap={3}>
+          <Flex align="center" gap={{ base: 1.5, sm: 3 }}>
             {onOpenDemo && (
               <Button
                 size="sm"
@@ -178,8 +178,9 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ onOpenDemo }) => {
               }}
               onClick={() => navigate('/login?mode=signin')}
               fontWeight="semibold"
-              px={4}
-              h="36px"
+              px={{ base: 2.5, sm: 4 }}
+              fontSize={{ base: 'xs', sm: 'sm' }}
+              h={{ base: '32px', sm: '36px' }}
             >
               Sign in
             </Button>
@@ -190,15 +191,16 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ onOpenDemo }) => {
               _hover={{ bg: '#1d4ed8' }}
               onClick={() => navigate('/login?mode=signup')}
               fontWeight="semibold"
-              px={4}
-              h="36px"
+              px={{ base: 2.5, sm: 4 }}
+              fontSize={{ base: 'xs', sm: 'sm' }}
+              h={{ base: '32px', sm: '36px' }}
               boxShadow={
                 isScrolled
                   ? '0 2px 6px rgba(37, 99, 235, 0.25)'
                   : '0 2px 10px rgba(37, 99, 235, 0.45)'
               }
             >
-              Launch Software <ArrowRight size={14} />
+              Launch<Box as="span" display={{ base: 'none', sm: 'inline' }}> Software</Box> <ArrowRight size={13} />
             </Button>
 
             {/* Mobile Menu Toggle (STRICTLY HIDDEN ON DESKTOP) */}

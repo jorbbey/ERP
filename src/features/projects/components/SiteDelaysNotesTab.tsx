@@ -277,7 +277,8 @@ export const SiteDelaysNotesTab: React.FC<SiteDelaysNotesTabProps> = ({ project 
               Zero delays recorded for this project! Schedule execution is on track.
             </Box>
           ) : (
-            <Table.Root size="sm" striped>
+          <Box overflowX="auto" mx={{ base: -5, sm: 0 }} px={{ base: 5, sm: 0 }}>
+            <Table.Root size="sm" striped minW="600px">
               <Table.Header bg="#f8fafc">
                 <Table.Row>
                   <Table.ColumnHeader color="#475569">Occurrence Date</Table.ColumnHeader>
@@ -305,6 +306,7 @@ export const SiteDelaysNotesTab: React.FC<SiteDelaysNotesTabProps> = ({ project 
                 ))}
               </Table.Body>
             </Table.Root>
+          </Box>
           )}
         </Card.Root>
       )}
@@ -329,65 +331,67 @@ export const SiteDelaysNotesTab: React.FC<SiteDelaysNotesTabProps> = ({ project 
               No delay notes recorded for this project yet.
             </Box>
           ) : (
-            <Table.Root size="sm" striped>
-              <Table.Header bg="#f8fafc">
-                <Table.Row>
-                  <Table.ColumnHeader color="#475569">Date</Table.ColumnHeader>
-                  <Table.ColumnHeader color="#475569">Issue Summary</Table.ColumnHeader>
-                  <Table.ColumnHeader color="#475569">Critical Path Impact</Table.ColumnHeader>
-                  <Table.ColumnHeader color="#475569">Action Taken / Mitigated</Table.ColumnHeader>
-                  <Table.ColumnHeader color="#475569">Status</Table.ColumnHeader>
-                  <Table.ColumnHeader color="#475569" textAlign="right">Actions</Table.ColumnHeader>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {currentDelayNotes.map((n) => (
-                  <Table.Row key={n.id}>
-                    <Table.Cell fontSize="xs" color="#64748b">
-                      {n.logDate}
-                    </Table.Cell>
-                    <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a">
-                      {n.issueSummary}
-                    </Table.Cell>
-                    <Table.Cell fontSize="xs" color="#334155">
-                      {n.impact || 'Under assessment'}
-                    </Table.Cell>
-                    <Table.Cell fontSize="xs" color="#16a34a">
-                      {n.actionTaken || 'None specified'}
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Badge
-                        size="xs"
-                        colorPalette={
-                          n.status === 'resolved' ? 'green' :
-                          n.status === 'monitoring' ? 'blue' : 'yellow'
-                        }
-                      >
-                        {n.status}
-                      </Badge>
-                    </Table.Cell>
-                    <Table.Cell textAlign="right">
-                      <Flex justify="flex-end" gap={1.5}>
-                        <Button size="xs" variant="subtle" onClick={() => handleOpenEditNote(n)} title="Edit Note">
-                          <Edit size={12} />
-                        </Button>
-                        <Button size="xs" variant="subtle" colorPalette="red" onClick={() => deleteDelayNote(n.id)} title="Delete Note">
-                          <Trash2 size={12} />
-                        </Button>
-                      </Flex>
-                    </Table.Cell>
+            <Box overflowX="auto" mx={{ base: -5, sm: 0 }} px={{ base: 5, sm: 0 }}>
+              <Table.Root size="sm" striped minW="700px">
+                <Table.Header bg="#f8fafc">
+                  <Table.Row>
+                    <Table.ColumnHeader color="#475569">Date</Table.ColumnHeader>
+                    <Table.ColumnHeader color="#475569">Issue Summary</Table.ColumnHeader>
+                    <Table.ColumnHeader color="#475569">Critical Path Impact</Table.ColumnHeader>
+                    <Table.ColumnHeader color="#475569">Action Taken / Mitigated</Table.ColumnHeader>
+                    <Table.ColumnHeader color="#475569">Status</Table.ColumnHeader>
+                    <Table.ColumnHeader color="#475569" textAlign="right">Actions</Table.ColumnHeader>
                   </Table.Row>
-                ))}
-              </Table.Body>
-            </Table.Root>
+                </Table.Header>
+                <Table.Body>
+                  {currentDelayNotes.map((n) => (
+                    <Table.Row key={n.id}>
+                      <Table.Cell fontSize="xs" color="#64748b">
+                        {n.logDate}
+                      </Table.Cell>
+                      <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a">
+                        {n.issueSummary}
+                      </Table.Cell>
+                      <Table.Cell fontSize="xs" color="#334155">
+                        {n.impact || 'Under assessment'}
+                      </Table.Cell>
+                      <Table.Cell fontSize="xs" color="#16a34a">
+                        {n.actionTaken || 'None specified'}
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Badge
+                          size="xs"
+                          colorPalette={
+                            n.status === 'resolved' ? 'green' :
+                            n.status === 'monitoring' ? 'blue' : 'yellow'
+                          }
+                        >
+                          {n.status}
+                        </Badge>
+                      </Table.Cell>
+                      <Table.Cell textAlign="right">
+                        <Flex justify="flex-end" gap={1.5}>
+                          <Button size="xs" variant="subtle" onClick={() => handleOpenEditNote(n)} title="Edit Note">
+                            <Edit size={12} />
+                          </Button>
+                          <Button size="xs" variant="subtle" colorPalette="red" onClick={() => deleteDelayNote(n.id)} title="Delete Note">
+                            <Trash2 size={12} />
+                          </Button>
+                        </Flex>
+                      </Table.Cell>
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table.Root>
+            </Box>
           )}
         </Card.Root>
       )}
 
       {/* Modal: Record Delay Event */}
       {showAddLogModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Record Site Delay Event</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Document certified delay event and days added to overall schedule.</Text>
 
@@ -399,7 +403,7 @@ export const SiteDelaysNotesTab: React.FC<SiteDelaysNotesTabProps> = ({ project 
 
             <form onSubmit={handleSaveAddLog}>
               <Stack gap={3}>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Delay Date *</Text>
                     <Input
@@ -460,8 +464,8 @@ export const SiteDelaysNotesTab: React.FC<SiteDelaysNotesTabProps> = ({ project 
 
       {/* Modal: Add Delay Note */}
       {showAddNoteModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Add Site Delay Note</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Document site delay issue and mitigation measures taken.</Text>
 
@@ -473,7 +477,7 @@ export const SiteDelaysNotesTab: React.FC<SiteDelaysNotesTabProps> = ({ project 
 
             <form onSubmit={handleSaveAddNote}>
               <Stack gap={3}>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Log Date *</Text>
                     <Input
@@ -546,8 +550,8 @@ export const SiteDelaysNotesTab: React.FC<SiteDelaysNotesTabProps> = ({ project 
 
       {/* Modal: Edit Delay Note */}
       {editingNote && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Edit Site Delay Note</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Update status, mitigation actions, or issue description.</Text>
 
@@ -559,7 +563,7 @@ export const SiteDelaysNotesTab: React.FC<SiteDelaysNotesTabProps> = ({ project 
 
             <form onSubmit={handleSaveEditNote}>
               <Stack gap={3}>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Log Date *</Text>
                     <Input

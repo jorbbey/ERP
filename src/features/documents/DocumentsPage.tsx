@@ -445,7 +445,7 @@ export const DocumentsPage: React.FC = () => {
       {/* Documents Table */}
       <Card.Root bg="white" borderRadius="14px" border="1px solid #e2e8f0" overflow="hidden" boxShadow="xs">
         <Box overflowX="auto">
-          <Table.Root size="sm" variant="outline">
+          <Table.Root size="sm" variant="outline" minW="900px">
             <Table.Header bg="#f8fafc">
               <Table.Row>
                 <Table.ColumnHeader color="#475569" fontWeight="bold">Document Details</Table.ColumnHeader>
@@ -611,8 +611,8 @@ export const DocumentsPage: React.FC = () => {
 
       {/* MODAL 1: UPLOAD NEW DOCUMENT */}
       {showUploadModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="580px" w="100%" p={6} boxShadow="2xl" maxH="90vh" overflowY="auto">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="580px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Flex justify="space-between" align="center" mb={1}>
               <Heading size="md" color="#0f172a">Upload Enterprise Document</Heading>
               <Box as="button" onClick={() => setShowUploadModal(false)} color="#94a3b8" cursor="pointer">
@@ -663,7 +663,7 @@ export const DocumentsPage: React.FC = () => {
                   />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Category *</Text>
                     <NativeSelect.Root size="sm">
@@ -696,7 +696,7 @@ export const DocumentsPage: React.FC = () => {
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Related Module</Text>
                     <NativeSelect.Root size="sm">
@@ -762,8 +762,8 @@ export const DocumentsPage: React.FC = () => {
 
       {/* MODAL 2: INTERACTIVE DOCUMENT PREVIEW */}
       {previewDoc && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.7)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="700px" w="100%" p={6} boxShadow="2xl" maxH="92vh" overflowY="auto">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.7)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="700px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="92vh" overflowY="auto">
             <Flex justify="space-between" align="flex-start" mb={3} borderBottom="1px solid #e2e8f0" pb={3}>
               <Box>
                 <Flex align="center" gap={2}>
@@ -880,8 +880,8 @@ export const DocumentsPage: React.FC = () => {
 
       {/* MODAL 3: VERSION REPLACEMENT / REVISION */}
       {versioningDoc && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Flex justify="space-between" align="center" mb={1}>
               <Heading size="md" color="#0f172a">Upload Document Revision</Heading>
               <Box as="button" onClick={() => setVersioningDoc(null)} color="#94a3b8" cursor="pointer">
@@ -946,8 +946,8 @@ export const DocumentsPage: React.FC = () => {
 
       {/* MODAL 4: DELETE CONFIRMATION */}
       {deleteConfirmDoc && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="450px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="450px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Flex align="center" gap={3} mb={3}>
               <Box p={2.5} bg="#fee2e2" color="#dc2626" borderRadius="10px">
                 <AlertCircle size={22} />

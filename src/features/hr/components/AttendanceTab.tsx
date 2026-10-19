@@ -107,17 +107,25 @@ export const AttendanceTab: React.FC = () => {
   const onLeaveCount = employees.filter(e => e.status === 'On Leave').length;
   const absentCount = Math.max(0, employees.filter(e => e.status === 'Active').length - todayLogs.length);
 
+  const [terminalFeedback, setTerminalFeedback] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
+
   const handleClockIn = () => {
+    setTerminalFeedback(null);
     const res = clockIn(currentEmp?.id);
     if (!res.success && res.error) {
-      alert(res.error);
+      setTerminalFeedback({ message: res.error, type: 'error' });
+    } else {
+      setTerminalFeedback({ message: 'Clocked in successfully at ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), type: 'success' });
     }
   };
 
   const handleClockOut = () => {
+    setTerminalFeedback(null);
     const res = clockOut(currentEmp?.id);
     if (!res.success && res.error) {
-      alert(res.error);
+      setTerminalFeedback({ message: res.error, type: 'error' });
+    } else {
+      setTerminalFeedback({ message: 'Clocked out successfully at ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), type: 'success' });
     }
   };
 
@@ -201,7 +209,7 @@ export const AttendanceTab: React.FC = () => {
                 )}
               </Flex>
               {userTodayAttendance && (
-                <SimpleGrid columns={3} gap={2} mt={2} pt={2} borderTop="1px solid #334155" fontSize="11px">
+                <SimpleGrid columns={{ base: 1, sm: 3 }} gap={2} mt={2} pt={2} borderTop="1px solid #334155" fontSize="11px">
                   <Box>
                     <Text color="#64748b">In:</Text>
                     <Text fontWeight="mono" color="#4ade80">{userTodayAttendance.checkIn || '—'}</Text>
@@ -217,6 +225,12 @@ export const AttendanceTab: React.FC = () => {
                 </SimpleGrid>
               )}
             </Box>
+
+            {terminalFeedback && (
+              <Box p={2.5} mb={3} borderRadius="8px" bg={terminalFeedback.type === 'error' ? '#450a0a' : '#052e16'} border={terminalFeedback.type === 'error' ? '1px solid #dc2626' : '1px solid #16a34a'} color={terminalFeedback.type === 'error' ? '#fca5a5' : '#86efac'} fontSize="xs">
+                {terminalFeedback.message}
+              </Box>
+            )}
 
             {/* Action Buttons */}
             <Flex gap={3}>
@@ -398,7 +412,8 @@ export const AttendanceTab: React.FC = () => {
 
           {/* Records Table */}
           <Card.Root bg="white" borderRadius="14px" border="1px solid #e2e8f0" boxShadow="xs" overflow="hidden">
-            <Table.Root size="sm" variant="outline">
+            <Box overflowX="auto">
+              <Table.Root size="sm" variant="outline" minW="950px">
               <Table.Header bg="#f8fafc">
                 <Table.Row>
                   <Table.ColumnHeader>Staff Code</Table.ColumnHeader>
@@ -473,7 +488,8 @@ export const AttendanceTab: React.FC = () => {
                 )}
               </Table.Body>
             </Table.Root>
-          </Card.Root>
+          </Box>
+        </Card.Root>
         </Stack>
       )}
 
@@ -493,57 +509,59 @@ export const AttendanceTab: React.FC = () => {
               No pending attendance correction requests. All records are verified!
             </Box>
           ) : (
-            <Table.Root size="sm" variant="outline">
-              <Table.Header bg="#f8fafc">
-                <Table.Row>
-                  <Table.ColumnHeader>Employee</Table.ColumnHeader>
-                  <Table.ColumnHeader>Shift Date</Table.ColumnHeader>
-                  <Table.ColumnHeader>Punch Logged</Table.ColumnHeader>
-                  <Table.ColumnHeader>Correction Reason / Justification</Table.ColumnHeader>
-                  <Table.ColumnHeader>Status</Table.ColumnHeader>
-                  <Table.ColumnHeader textAlign="right">Manager Decisions</Table.ColumnHeader>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {pendingCorrections.map(c => (
-                  <Table.Row key={c.id}>
-                    <Table.Cell>
-                      <Text fontWeight="bold" fontSize="xs">{c.employeeName}</Text>
-                      <Text fontSize="10px" color="#64748b">{c.employeeCode} • {c.department}</Text>
-                    </Table.Cell>
-                    <Table.Cell fontSize="xs">{c.attendanceDate}</Table.Cell>
-                    <Table.Cell fontFamily="mono" fontSize="xs">
-                      {c.checkIn || 'None'} - {c.checkOut || 'None'} ({c.status})
-                    </Table.Cell>
-                    <Table.Cell fontSize="xs" maxW="300px">
-                      {c.correctionReason}
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Badge colorPalette="yellow" size="sm">Pending Approval</Badge>
-                    </Table.Cell>
-                    <Table.Cell textAlign="right">
-                      <Flex justify="flex-end" gap={2}>
-                        <Button
-                          size="xs"
-                          colorPalette="green"
-                          onClick={() => decideAttendanceCorrection(c.id, 'Approved', 'Approved by supervisor')}
-                        >
-                          Approve
-                        </Button>
-                        <Button
-                          size="xs"
-                          colorPalette="red"
-                          variant="outline"
-                          onClick={() => decideAttendanceCorrection(c.id, 'Rejected', 'Insufficient verification')}
-                        >
-                          Reject
-                        </Button>
-                      </Flex>
-                    </Table.Cell>
+            <Box overflowX="auto" mx={{ base: -5, sm: 0 }} px={{ base: 5, sm: 0 }}>
+              <Table.Root size="sm" variant="outline" minW="750px">
+                <Table.Header bg="#f8fafc">
+                  <Table.Row>
+                    <Table.ColumnHeader>Employee</Table.ColumnHeader>
+                    <Table.ColumnHeader>Shift Date</Table.ColumnHeader>
+                    <Table.ColumnHeader>Punch Logged</Table.ColumnHeader>
+                    <Table.ColumnHeader>Correction Reason / Justification</Table.ColumnHeader>
+                    <Table.ColumnHeader>Status</Table.ColumnHeader>
+                    <Table.ColumnHeader textAlign="right">Manager Decisions</Table.ColumnHeader>
                   </Table.Row>
-                ))}
-              </Table.Body>
-            </Table.Root>
+                </Table.Header>
+                <Table.Body>
+                  {pendingCorrections.map(c => (
+                    <Table.Row key={c.id}>
+                      <Table.Cell>
+                        <Text fontWeight="bold" fontSize="xs">{c.employeeName}</Text>
+                        <Text fontSize="10px" color="#64748b">{c.employeeCode} • {c.department}</Text>
+                      </Table.Cell>
+                      <Table.Cell fontSize="xs">{c.attendanceDate}</Table.Cell>
+                      <Table.Cell fontFamily="mono" fontSize="xs">
+                        {c.checkIn || 'None'} - {c.checkOut || 'None'} ({c.status})
+                      </Table.Cell>
+                      <Table.Cell fontSize="xs" maxW="300px">
+                        {c.correctionReason}
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Badge colorPalette="yellow" size="sm">Pending Approval</Badge>
+                      </Table.Cell>
+                      <Table.Cell textAlign="right">
+                        <Flex justify="flex-end" gap={2}>
+                          <Button
+                            size="xs"
+                            colorPalette="green"
+                            onClick={() => decideAttendanceCorrection(c.id, 'Approved', 'Approved by supervisor')}
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            size="xs"
+                            colorPalette="red"
+                            variant="outline"
+                            onClick={() => decideAttendanceCorrection(c.id, 'Rejected', 'Insufficient verification')}
+                          >
+                            Reject
+                          </Button>
+                        </Flex>
+                      </Table.Cell>
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table.Root>
+            </Box>
           )}
         </Card.Root>
       )}
@@ -561,9 +579,9 @@ export const AttendanceTab: React.FC = () => {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} border="1px solid #e2e8f0" boxShadow="2xl">
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>
               Manual Attendance Entry
             </Heading>
@@ -600,7 +618,7 @@ export const AttendanceTab: React.FC = () => {
                   />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="semibold" color="#334155" mb={1}>Check-In Time</Text>
                     <Input
@@ -673,9 +691,9 @@ export const AttendanceTab: React.FC = () => {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="450px" w="100%" p={6} border="1px solid #e2e8f0" boxShadow="2xl">
+          <Box bg="white" borderRadius="16px" maxW="450px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>
               Request Attendance Correction
             </Heading>

@@ -594,16 +594,16 @@ export const InventoryPage: React.FC = () => {
   const handleExportCSV = () => {
     const headers = ['Item Code', 'Item Name', 'Category', 'Unit', 'Current Stock', 'Min Level', 'Cost Price', 'Selling Price', 'Total Valuation', 'Location'];
     const rows = filteredItems.map(i => [
-      i.itemCode,
-      `"${i.name.replace(/"/g, '""')}"`,
-      `"${i.categoryName}"`,
-      i.unit,
-      i.currentStock,
-      i.minLevel,
-      i.costPrice,
-      i.sellingPrice,
-      ((Number(i.currentStock) || 0) * (Number(i.costPrice) || 0)).toFixed(2),
-      `"${i.warehouseLocation}"`
+      i?.itemCode || '',
+      `"${(i?.name || '').replace(/"/g, '""')}"`,
+      `"${(i?.categoryName || '').replace(/"/g, '""')}"`,
+      i?.unit || '',
+      i?.currentStock ?? 0,
+      i?.minLevel ?? 0,
+      i?.costPrice ?? 0,
+      i?.sellingPrice ?? 0,
+      ((Number(i?.currentStock) || 0) * (Number(i?.costPrice) || 0)).toFixed(2),
+      `"${(i?.warehouseLocation || '').replace(/"/g, '""')}"`
     ]);
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
@@ -808,7 +808,7 @@ export const InventoryPage: React.FC = () => {
           {/* Items Table */}
           <Card.Root bg="white" borderRadius="16px" border="1px solid #e2e8f0" overflow="hidden" boxShadow="xs">
             <Box overflowX="auto">
-              <Table.Root size="sm" variant="outline">
+              <Table.Root size="sm" variant="outline" minW="900px">
                 <Table.Header>
                   <Table.Row bg="#f8fafc">
                     <Table.ColumnHeader fontSize="10px">SKU Code</Table.ColumnHeader>
@@ -950,8 +950,8 @@ export const InventoryPage: React.FC = () => {
 
       {/* RECEIVE STOCK MODAL (GRN / INWARD) */}
       {showReceiveModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="600px" w="100%" p={6} boxShadow="2xl" maxH="90vh" overflowY="auto">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="600px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Flex justify="space-between" align="center" mb={2}>
               <Flex align="center" gap={2}>
                 <Box p={2} bg="#f0fdf4" color="#16a34a" borderRadius="8px">
@@ -993,7 +993,7 @@ export const InventoryPage: React.FC = () => {
                   </NativeSelect.Root>
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Quantity Received *</Text>
                     <Input
@@ -1037,7 +1037,7 @@ export const InventoryPage: React.FC = () => {
                 {/* Source or Supplier Mode */}
                 <Card.Root bg="#f8fafc" p={3.5} borderRadius="10px" border="1px solid #e2e8f0">
                   <Text fontSize="xs" fontWeight="bold" color="#334155" mb={2}>Source / Supplier Origin</Text>
-                  <SimpleGrid columns={3} gap={2} mb={3}>
+                  <SimpleGrid columns={{ base: 1, sm: 3 }} gap={2} mb={3}>
                     <Button
                       type="button"
                       size="xs"
@@ -1089,7 +1089,7 @@ export const InventoryPage: React.FC = () => {
                         onChange={(e) => setReceiveForm({ ...receiveForm, newSupplierName: e.target.value })}
                         required
                       />
-                      <SimpleGrid columns={2} gap={2}>
+                      <SimpleGrid columns={{ base: 1, sm: 2 }} gap={2}>
                         <Input
                           size="xs"
                           placeholder="Contact Person (e.g. Sales Rep)"
@@ -1107,7 +1107,7 @@ export const InventoryPage: React.FC = () => {
                   )}
                 </Card.Root>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Document / Waybill Ref</Text>
                     <Input
@@ -1144,8 +1144,8 @@ export const InventoryPage: React.FC = () => {
 
       {/* ISSUE STOCK MODAL (OUTWARD ALLOCATION) */}
       {showIssueModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="640px" w="100%" p={6} boxShadow="2xl" maxH="90vh" overflowY="auto">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="640px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Flex justify="space-between" align="center" mb={2}>
               <Flex align="center" gap={2}>
                 <Box p={2} bg="#eff6ff" color="#2563eb" borderRadius="8px">
@@ -1205,7 +1205,7 @@ export const InventoryPage: React.FC = () => {
                   </Flex>
                 )}
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Quantity to Issue *</Text>
                     <Input
@@ -1314,7 +1314,7 @@ export const InventoryPage: React.FC = () => {
                     </Box>
                   )}
 
-                  <SimpleGrid columns={2} gap={2}>
+                  <SimpleGrid columns={{ base: 1, sm: 2 }} gap={2}>
                     <Box>
                       <Text fontSize="11px" color="#64748b" mb={1}>Recipient Person *</Text>
                       <Input
@@ -1357,7 +1357,7 @@ export const InventoryPage: React.FC = () => {
                   </NativeSelect.Root>
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Issuance Purpose / Job Order *</Text>
                     <Input
@@ -1399,8 +1399,8 @@ export const InventoryPage: React.FC = () => {
 
       {/* ADD ITEM MODAL */}
       {showAddModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="680px" w="100%" p={6} boxShadow="2xl" maxH="90vh" overflowY="auto">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="680px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Register New Material SKU</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>
               Define catalog item code, unit rate, safety buffer threshold, warehouse location, and optional supplier details.
@@ -1408,7 +1408,7 @@ export const InventoryPage: React.FC = () => {
 
             <form onSubmit={handleCreateItem}>
               <Stack gap={3}>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Material SKU Code *</Text>
                     <Input
@@ -1444,7 +1444,7 @@ export const InventoryPage: React.FC = () => {
                   />
                 </Box>
 
-                <SimpleGrid columns={3} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 3 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Unit of Measure *</Text>
                     <NativeSelect.Root size="sm">
@@ -1485,7 +1485,7 @@ export const InventoryPage: React.FC = () => {
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Unit Cost Price ({activeCompany.currency}) *</Text>
                     <Input
@@ -1532,7 +1532,7 @@ export const InventoryPage: React.FC = () => {
                     Associate with an existing supplier or enter new vendor credentials. Not required if in-house or not applicable.
                   </Text>
 
-                  <SimpleGrid columns={3} gap={2} mb={3}>
+                  <SimpleGrid columns={{ base: 1, sm: 3 }} gap={2} mb={3}>
                     <Button
                       type="button"
                       size="xs"
@@ -1580,7 +1580,7 @@ export const InventoryPage: React.FC = () => {
 
                   {itemForm.supplierMode === 'new' && (
                     <Stack gap={2}>
-                      <SimpleGrid columns={2} gap={2}>
+                      <SimpleGrid columns={{ base: 1, sm: 2 }} gap={2}>
                         <Box>
                           <Text fontSize="10px" color="#64748b">Supplier Company Name *</Text>
                           <Input
@@ -1601,7 +1601,7 @@ export const InventoryPage: React.FC = () => {
                           />
                         </Box>
                       </SimpleGrid>
-                      <SimpleGrid columns={2} gap={2}>
+                      <SimpleGrid columns={{ base: 1, sm: 2 }} gap={2}>
                         <Box>
                           <Text fontSize="10px" color="#64748b">Phone Number</Text>
                           <Input
@@ -1650,8 +1650,8 @@ export const InventoryPage: React.FC = () => {
 
       {/* EDIT ITEM MODAL */}
       {editingItem && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="600px" w="100%" p={6} boxShadow="2xl" maxH="90vh" overflowY="auto">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="600px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Edit Material SKU Specifications</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>
               Updating item details automatically writes to the persistent audit change trail.
@@ -1659,7 +1659,7 @@ export const InventoryPage: React.FC = () => {
 
             <form onSubmit={handleSaveEdit}>
               <Stack gap={3}>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Material SKU Code</Text>
                     <Input
@@ -1694,7 +1694,7 @@ export const InventoryPage: React.FC = () => {
                   />
                 </Box>
 
-                <SimpleGrid columns={3} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 3 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Unit</Text>
                     <Input
@@ -1723,7 +1723,7 @@ export const InventoryPage: React.FC = () => {
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Cost Price ({activeCompany.currency})</Text>
                     <Input
@@ -1765,8 +1765,8 @@ export const InventoryPage: React.FC = () => {
 
       {/* ADJUST STOCK MODAL */}
       {adjustItem && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="480px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="480px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>
               Physical Stock Adjustment
             </Heading>
@@ -1789,7 +1789,7 @@ export const InventoryPage: React.FC = () => {
 
             <form onSubmit={handleApplyAdjustment}>
               <Stack gap={3}>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Operation</Text>
                     <NativeSelect.Root size="sm">
@@ -1856,8 +1856,8 @@ export const InventoryPage: React.FC = () => {
 
       {/* VIEW ITEM MODAL */}
       {viewingItem && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="540px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="540px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Flex justify="space-between" align="center" mb={4}>
               <Box>
                 <Badge size="xs" colorPalette="blue" fontFamily="mono">{viewingItem.itemCode}</Badge>
@@ -1867,7 +1867,7 @@ export const InventoryPage: React.FC = () => {
               <Button size="xs" variant="outline" onClick={() => setViewingItem(null)}>Close</Button>
             </Flex>
 
-            <SimpleGrid columns={2} gap={3} mb={4}>
+            <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3} mb={4}>
               <Box bg="#f8fafc" p={3} borderRadius="10px">
                 <Text fontSize="10px" textTransform="uppercase" fontWeight="bold" color="#64748b">Current Stock</Text>
                 <Text fontSize="xl" fontWeight="black" color="#0f172a" mt={1}>

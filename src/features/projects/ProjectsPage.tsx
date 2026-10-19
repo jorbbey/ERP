@@ -739,7 +739,7 @@ export const ProjectsPage: React.FC = () => {
           {/* Table View */}
           {viewMode === 'table' && filteredProjects.length > 0 && (
             <Card.Root bg="white" border="1px solid #e2e8f0" borderRadius="14px" p={4} overflowX="auto">
-              <Table.Root size="sm" striped>
+              <Table.Root size="sm" striped minW="800px">
                 <Table.Header bg="#f8fafc">
                   <Table.Row>
                     <Table.ColumnHeader color="#475569">Project Code</Table.ColumnHeader>
@@ -894,9 +894,9 @@ export const ProjectsPage: React.FC = () => {
           display="flex" 
           alignItems="center" 
           justifyContent="center" 
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="600px" w="100%" p={6} boxShadow="2xl" maxH="90vh" overflowY="auto">
+          <Box bg="white" borderRadius="16px" maxW="600px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Flex justify="space-between" align="flex-start" mb={4}>
               <Box>
                 <Heading size="md" color="#0f172a" mb={1}>
@@ -928,7 +928,7 @@ export const ProjectsPage: React.FC = () => {
 
             <form onSubmit={handleCreateProject}>
               <Stack gap={3}>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Project Code *</Text>
                     <Input
@@ -953,7 +953,7 @@ export const ProjectsPage: React.FC = () => {
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Project Title / Contract Name *</Text>
                     <Input
@@ -991,7 +991,7 @@ export const ProjectsPage: React.FC = () => {
                   />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Client Organization *</Text>
                     <Input
@@ -1024,7 +1024,7 @@ export const ProjectsPage: React.FC = () => {
                   />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Contract Value ({activeCompany.currency}) *</Text>
                     <Input
@@ -1047,7 +1047,7 @@ export const ProjectsPage: React.FC = () => {
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Commencement Date</Text>
                     <Input
@@ -1108,9 +1108,9 @@ export const ProjectsPage: React.FC = () => {
           display="flex" 
           alignItems="center" 
           justifyContent="center" 
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="600px" w="100%" p={6} boxShadow="2xl" maxH="90vh" overflowY="auto">
+          <Box bg="white" borderRadius="16px" maxW="600px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Flex justify="space-between" align="center" mb={1}>
               <Heading size="md" color="#0f172a">
                 Edit Project: {editingProject.projectNumber}
@@ -1129,7 +1129,7 @@ export const ProjectsPage: React.FC = () => {
 
             <form onSubmit={handleUpdateProject}>
               <Stack gap={3}>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Project Name *</Text>
                     <Input
@@ -1165,7 +1165,7 @@ export const ProjectsPage: React.FC = () => {
                   />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Client Name *</Text>
                     <Input
@@ -1194,7 +1194,7 @@ export const ProjectsPage: React.FC = () => {
                   />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Contract Value ({activeCompany.currency})</Text>
                     <Input
@@ -1215,7 +1215,7 @@ export const ProjectsPage: React.FC = () => {
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Status</Text>
                     <NativeSelect.Root size="sm">
@@ -1244,7 +1244,7 @@ export const ProjectsPage: React.FC = () => {
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Start Date</Text>
                     <Input
@@ -1289,9 +1289,9 @@ export const ProjectsPage: React.FC = () => {
           display="flex" 
           alignItems="center" 
           justifyContent="center" 
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="520px" w="100%" p={6} boxShadow="2xl">
+          <Box bg="white" borderRadius="16px" maxW="520px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>
               Log Daily Site Progress
             </Heading>
@@ -1338,7 +1338,7 @@ export const ProjectsPage: React.FC = () => {
                   />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Manpower Breakdown</Text>
                     <Input

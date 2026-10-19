@@ -145,8 +145,8 @@ export const RequisitionDetailModal: React.FC<RequisitionDetailModalProps> = ({
   const isFlagged = requisition.status === 'Flagged for Clarification';
 
   return (
-    <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-      <Box bg="white" borderRadius="16px" maxW="840px" w="100%" p={6} boxShadow="2xl" maxH="92vh" overflowY="auto">
+    <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+      <Box bg="white" borderRadius="16px" maxW="840px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="92vh" overflowY="auto">
         {/* Top Header */}
         <Flex justify="space-between" align="flex-start" borderBottom="1px solid #e2e8f0" pb={4} mb={4}>
           <Box>
@@ -406,53 +406,55 @@ export const RequisitionDetailModal: React.FC<RequisitionDetailModalProps> = ({
           )}
         </Flex>
 
-        <Table.Root size="sm" variant="outline" mb={4}>
-          <Table.Header>
-            <Table.Row bg="#f8fafc">
-              <Table.ColumnHeader fontSize="10px">SKU / Type</Table.ColumnHeader>
-              <Table.ColumnHeader fontSize="10px">Item or Service Description</Table.ColumnHeader>
-              <Table.ColumnHeader fontSize="10px">Unit</Table.ColumnHeader>
-              <Table.ColumnHeader fontSize="10px">Req Qty</Table.ColumnHeader>
-              <Table.ColumnHeader fontSize="10px">Dispatched</Table.ColumnHeader>
-              <Table.ColumnHeader fontSize="10px">Est. Rate</Table.ColumnHeader>
-              <Table.ColumnHeader fontSize="10px">Total Value</Table.ColumnHeader>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            {requisition.items.map((item, idx) => (
-              <Table.Row key={idx}>
-                <Table.Cell fontSize="xs">
-                  {item.inventoryItemId ? (
-                    <Badge size="xs" colorPalette="blue" fontFamily="mono">{item.itemCode || 'MAT'}</Badge>
-                  ) : (
-                    <Badge size="xs" colorPalette="purple">CUSTOM / SERVICE</Badge>
-                  )}
-                </Table.Cell>
-                <Table.Cell fontSize="xs">
-                  <Text fontWeight="semibold" color="#0f172a">{item.itemName}</Text>
-                  {item.description && (
-                    <Text fontSize="10px" color="#64748b">{item.description}</Text>
-                  )}
-                </Table.Cell>
-                <Table.Cell fontSize="xs">{item.unit}</Table.Cell>
-                <Table.Cell fontSize="xs" fontWeight="bold">{item.quantityRequired}</Table.Cell>
-                <Table.Cell fontSize="xs" color={item.quantityDispatched ? '#16a34a' : '#94a3b8'}>
-                  {item.quantityDispatched || 0}
-                </Table.Cell>
-                <Table.Cell fontSize="xs">
-                  {item.price !== undefined && item.price !== null && !isNaN(Number(item.price))
-                    ? `${activeCompany.currency} ${(Number(item.price) || 0).toFixed(2)}`
-                    : <Text as="span" color="#94a3b8">Unpriced</Text>}
-                </Table.Cell>
-                <Table.Cell fontSize="xs" fontWeight="bold" color={item.value ? '#16a34a' : '#94a3b8'}>
-                  {item.value !== undefined && item.value !== null
-                    ? `${activeCompany.currency} ${item.value.toLocaleString()}`
-                    : 'Unpriced'}
-                </Table.Cell>
+        <Box overflowX="auto" mb={4}>
+          <Table.Root size="sm" variant="outline" minW="600px">
+            <Table.Header>
+              <Table.Row bg="#f8fafc">
+                <Table.ColumnHeader fontSize="10px">SKU / Type</Table.ColumnHeader>
+                <Table.ColumnHeader fontSize="10px">Item or Service Description</Table.ColumnHeader>
+                <Table.ColumnHeader fontSize="10px">Unit</Table.ColumnHeader>
+                <Table.ColumnHeader fontSize="10px">Req Qty</Table.ColumnHeader>
+                <Table.ColumnHeader fontSize="10px">Dispatched</Table.ColumnHeader>
+                <Table.ColumnHeader fontSize="10px">Est. Rate</Table.ColumnHeader>
+                <Table.ColumnHeader fontSize="10px">Total Value</Table.ColumnHeader>
               </Table.Row>
-            ))}
-          </Table.Body>
-        </Table.Root>
+            </Table.Header>
+            <Table.Body>
+              {requisition.items.map((item, idx) => (
+                <Table.Row key={idx}>
+                  <Table.Cell fontSize="xs">
+                    {item.inventoryItemId ? (
+                      <Badge size="xs" colorPalette="blue" fontFamily="mono">{item.itemCode || 'MAT'}</Badge>
+                    ) : (
+                      <Badge size="xs" colorPalette="purple">CUSTOM / SERVICE</Badge>
+                    )}
+                  </Table.Cell>
+                  <Table.Cell fontSize="xs">
+                    <Text fontWeight="semibold" color="#0f172a">{item.itemName}</Text>
+                    {item.description && (
+                      <Text fontSize="10px" color="#64748b">{item.description}</Text>
+                    )}
+                  </Table.Cell>
+                  <Table.Cell fontSize="xs">{item.unit}</Table.Cell>
+                  <Table.Cell fontSize="xs" fontWeight="bold">{item.quantityRequired}</Table.Cell>
+                  <Table.Cell fontSize="xs" color={item.quantityDispatched ? '#16a34a' : '#94a3b8'}>
+                    {item.quantityDispatched || 0}
+                  </Table.Cell>
+                  <Table.Cell fontSize="xs">
+                    {item.price !== undefined && item.price !== null && !isNaN(Number(item.price))
+                      ? `${activeCompany.currency} ${(Number(item.price) || 0).toFixed(2)}`
+                      : <Text as="span" color="#94a3b8">Unpriced</Text>}
+                  </Table.Cell>
+                  <Table.Cell fontSize="xs" fontWeight="bold" color={item.value ? '#16a34a' : '#94a3b8'}>
+                    {item.value !== undefined && item.value !== null
+                      ? `${activeCompany.currency} ${item.value.toLocaleString()}`
+                      : 'Unpriced'}
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table.Root>
+        </Box>
 
         {/* Financial Summary & Technical Purpose */}
         <Flex justify="space-between" align="center" p={3.5} bg="#f8fafc" borderRadius="10px" mb={4} fontSize="xs" border="1px solid #e2e8f0">

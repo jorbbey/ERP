@@ -112,8 +112,8 @@ export const DailyReportsTab: React.FC<DailyReportsTabProps> = ({ project }) => 
 
       {/* Modal: Add Executive Report */}
       {showAddModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Add Executive Daily Site Report</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Draft formal daily executive overview for stakeholders.</Text>
 
@@ -125,7 +125,7 @@ export const DailyReportsTab: React.FC<DailyReportsTabProps> = ({ project }) => 
 
             <form onSubmit={handleSaveAdd}>
               <Stack gap={3}>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Report Date *</Text>
                     <Input

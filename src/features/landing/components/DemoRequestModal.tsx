@@ -38,14 +38,16 @@ export const DemoRequestModal: React.FC<DemoRequestModalProps> = ({ isOpen, onCl
       display="flex"
       alignItems="center"
       justifyContent="center"
-      p={4}
+      p={{ base: 2, sm: 4 }}
     >
       <Box
         bg="#ffffff"
-        borderRadius="20px"
+        borderRadius={{ base: '14px', sm: '20px' }}
         maxW="520px"
         w="100%"
-        p={{ base: 5, md: 7 }}
+        maxH="92vh"
+        overflowY="auto"
+        p={{ base: 4, sm: 6, md: 7 }}
         border="1px solid #cbd5e1"
         boxShadow="0 25px 50px -12px rgba(0, 0, 0, 0.25)"
       >

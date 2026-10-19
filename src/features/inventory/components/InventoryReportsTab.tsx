@@ -126,34 +126,36 @@ export const InventoryReportsTab: React.FC = () => {
             </Heading>
           </Flex>
 
-          <Table.Root size="sm" variant="outline" bg="white" borderRadius="8px" overflow="hidden">
-            <Table.Header>
-              <Table.Row bg="#fef3c7">
-                <Table.ColumnHeader fontSize="10px">SKU</Table.ColumnHeader>
-                <Table.ColumnHeader fontSize="10px">Material</Table.ColumnHeader>
-                <Table.ColumnHeader fontSize="10px">Current Stock</Table.ColumnHeader>
-                <Table.ColumnHeader fontSize="10px">Min Buffer Limit</Table.ColumnHeader>
-                <Table.ColumnHeader fontSize="10px">Deficit</Table.ColumnHeader>
-                <Table.ColumnHeader fontSize="10px">Storage Location</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {lowStockItems.map(item => (
-                <Table.Row key={item.id}>
-                  <Table.Cell fontSize="xs" fontFamily="mono" fontWeight="bold">{item.itemCode}</Table.Cell>
-                  <Table.Cell fontSize="xs" fontWeight="semibold">{item.name}</Table.Cell>
-                  <Table.Cell fontSize="xs" fontWeight="bold" color="#dc2626">
-                    {item.currentStock} {item.unit}
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs">{item.minLevel} {item.unit}</Table.Cell>
-                  <Table.Cell fontSize="xs" fontWeight="bold" color="#b45309">
-                    {Math.max(0, item.minLevel - item.currentStock)} {item.unit}
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" color="#64748b">{item.warehouseLocation}</Table.Cell>
+          <Box overflowX="auto" mx={{ base: -5, sm: 0 }} px={{ base: 5, sm: 0 }}>
+            <Table.Root size="sm" variant="outline" bg="white" borderRadius="8px" minW="650px">
+              <Table.Header>
+                <Table.Row bg="#fef3c7">
+                  <Table.ColumnHeader fontSize="10px">SKU</Table.ColumnHeader>
+                  <Table.ColumnHeader fontSize="10px">Material</Table.ColumnHeader>
+                  <Table.ColumnHeader fontSize="10px">Current Stock</Table.ColumnHeader>
+                  <Table.ColumnHeader fontSize="10px">Min Buffer Limit</Table.ColumnHeader>
+                  <Table.ColumnHeader fontSize="10px">Deficit</Table.ColumnHeader>
+                  <Table.ColumnHeader fontSize="10px">Storage Location</Table.ColumnHeader>
                 </Table.Row>
-              ))}
-            </Table.Body>
-          </Table.Root>
+              </Table.Header>
+              <Table.Body>
+                {lowStockItems.map(item => (
+                  <Table.Row key={item.id}>
+                    <Table.Cell fontSize="xs" fontFamily="mono" fontWeight="bold">{item.itemCode}</Table.Cell>
+                    <Table.Cell fontSize="xs" fontWeight="semibold">{item.name}</Table.Cell>
+                    <Table.Cell fontSize="xs" fontWeight="bold" color="#dc2626">
+                      {item.currentStock} {item.unit}
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs">{item.minLevel} {item.unit}</Table.Cell>
+                    <Table.Cell fontSize="xs" fontWeight="bold" color="#b45309">
+                      {Math.max(0, item.minLevel - item.currentStock)} {item.unit}
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" color="#64748b">{item.warehouseLocation}</Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Root>
+          </Box>
         </Card.Root>
       )}
 
@@ -163,7 +165,8 @@ export const InventoryReportsTab: React.FC = () => {
           Valuation Breakdown by Category
         </Heading>
 
-        <Table.Root size="sm" variant="outline">
+        <Box overflowX="auto" mx={{ base: -5, sm: 0 }} px={{ base: 5, sm: 0 }}>
+          <Table.Root size="sm" variant="outline" minW="650px">
           <Table.Header>
             <Table.Row bg="#f8fafc">
               <Table.ColumnHeader fontSize="10px">Category Name</Table.ColumnHeader>
@@ -198,7 +201,8 @@ export const InventoryReportsTab: React.FC = () => {
             })}
           </Table.Body>
         </Table.Root>
-      </Card.Root>
+      </Box>
+    </Card.Root>
     </Stack>
   );
 };

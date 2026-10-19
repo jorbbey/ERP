@@ -1149,7 +1149,7 @@ export const ProjectDetailPage: React.FC = () => {
                 No Bill of Quantities items match your search or filter.
               </Box>
             ) : (
-              <Table.Root size="sm" striped>
+              <Table.Root size="sm" striped minW="850px">
                 <Table.Header bg="#f8fafc">
                   <Table.Row>
                     <Table.ColumnHeader color="#475569">Item / Scope</Table.ColumnHeader>
@@ -1312,7 +1312,7 @@ export const ProjectDetailPage: React.FC = () => {
                   No schedule tasks added yet.
                 </Box>
               ) : (
-                <Table.Root size="sm" striped>
+                <Table.Root size="sm" striped minW="750px">
                   <Table.Header bg="#f8fafc">
                     <Table.Row>
                       <Table.ColumnHeader color="#475569">Milestone Task Name</Table.ColumnHeader>
@@ -1388,13 +1388,13 @@ export const ProjectDetailPage: React.FC = () => {
               </Button>
             </Flex>
 
-            <Card.Root bg="white" borderRadius="14px" p={4} border="1px solid #e2e8f0">
+            <Card.Root bg="white" borderRadius="14px" p={4} border="1px solid #e2e8f0" overflowX="auto">
               {currentDelays.length === 0 ? (
                 <Box py={6} textAlign="center" color="#94a3b8" fontSize="xs">
                   Zero delays recorded on this project. Schedule execution is on time.
                 </Box>
               ) : (
-                <Table.Root size="sm" striped>
+                <Table.Root size="sm" striped minW="600px">
                   <Table.Header bg="#f8fafc">
                     <Table.Row>
                       <Table.ColumnHeader color="#475569">Delay Date</Table.ColumnHeader>
@@ -1496,13 +1496,13 @@ export const ProjectDetailPage: React.FC = () => {
             </Button>
           </Flex>
 
-          <Card.Root bg="white" borderRadius="14px" p={4} border="1px solid #e2e8f0">
+          <Card.Root bg="white" borderRadius="14px" p={4} border="1px solid #e2e8f0" overflowX="auto">
             {currentRFIs.length === 0 ? (
               <Box py={8} textAlign="center" color="#94a3b8" fontSize="xs">
                 No RFIs submitted for this project.
               </Box>
             ) : (
-              <Table.Root size="sm" striped>
+              <Table.Root size="sm" striped minW="750px">
                 <Table.Header bg="#f8fafc">
                   <Table.Row>
                     <Table.ColumnHeader color="#475569">Date</Table.ColumnHeader>
@@ -1561,13 +1561,13 @@ export const ProjectDetailPage: React.FC = () => {
             </Button>
           </Flex>
 
-          <Card.Root bg="white" borderRadius="14px" p={4} border="1px solid #e2e8f0">
+          <Card.Root bg="white" borderRadius="14px" p={4} border="1px solid #e2e8f0" overflowX="auto">
             {currentSafety.length === 0 ? (
               <Box py={8} textAlign="center" color="#16a34a" fontSize="xs" fontWeight="medium">
                 Zero safety incidents reported on this site! Excellent HSE compliance.
               </Box>
             ) : (
-              <Table.Root size="sm" striped>
+              <Table.Root size="sm" striped minW="700px">
                 <Table.Header bg="#f8fafc">
                   <Table.Row>
                     <Table.ColumnHeader color="#475569">Incident Date</Table.ColumnHeader>
@@ -1747,8 +1747,8 @@ export const ProjectDetailPage: React.FC = () => {
 
       {/* MODAL: EDIT PROJECT */}
       {showEditProjectModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="600px" w="100%" p={6} boxShadow="2xl" maxH="90vh" overflowY="auto">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="600px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Edit Project Details</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Modify contractual parameters, budget allocations, and site dates.</Text>
 
@@ -1758,7 +1758,7 @@ export const ProjectDetailPage: React.FC = () => {
                   <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Project Name *</Text>
                   <Input size="sm" value={projectEditForm.name} onChange={(e) => setProjectEditForm({ ...projectEditForm, name: e.target.value })} required />
                 </Box>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Client Name *</Text>
                     <Input size="sm" value={projectEditForm.clientName} onChange={(e) => setProjectEditForm({ ...projectEditForm, clientName: e.target.value })} required />
@@ -1772,7 +1772,7 @@ export const ProjectDetailPage: React.FC = () => {
                   <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Site Location</Text>
                   <Input size="sm" value={projectEditForm.siteLocation} onChange={(e) => setProjectEditForm({ ...projectEditForm, siteLocation: e.target.value })} />
                 </Box>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Contract Value ({activeCompany.currency})</Text>
                     <Input size="sm" type="number" value={projectEditForm.contractValue} onChange={(e) => setProjectEditForm({ ...projectEditForm, contractValue: Number(e.target.value) })} />
@@ -1782,7 +1782,7 @@ export const ProjectDetailPage: React.FC = () => {
                     <Input size="sm" type="number" value={projectEditForm.budget} onChange={(e) => setProjectEditForm({ ...projectEditForm, budget: Number(e.target.value) })} />
                   </Box>
                 </SimpleGrid>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Status</Text>
                     <NativeSelect.Root size="sm">
@@ -1800,7 +1800,7 @@ export const ProjectDetailPage: React.FC = () => {
                     <Input size="sm" type="number" min={0} max={100} value={projectEditForm.progressPercent} onChange={(e) => setProjectEditForm({ ...projectEditForm, progressPercent: Number(e.target.value) })} />
                   </Box>
                 </SimpleGrid>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Start Date</Text>
                     <Input size="sm" type="date" value={projectEditForm.startDate} onChange={(e) => setProjectEditForm({ ...projectEditForm, startDate: e.target.value })} />
@@ -1823,8 +1823,8 @@ export const ProjectDetailPage: React.FC = () => {
 
       {/* MODAL: ADD BOQ ITEM */}
       {showAddBudgetModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="540px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="540px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Add Bill of Quantities (BOQ) Item</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Specify quantity, unit of measure, and unit cost rate for live calculation.</Text>
 
@@ -1841,7 +1841,7 @@ export const ProjectDetailPage: React.FC = () => {
                   <Input size="sm" placeholder="e.g. Ready-Mix Concrete Grade M35" value={newBudget.budgetName} onChange={(e) => setNewBudget({ ...newBudget, budgetName: e.target.value })} required />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Category</Text>
                     <NativeSelect.Root size="sm">
@@ -1860,7 +1860,7 @@ export const ProjectDetailPage: React.FC = () => {
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Quantity *</Text>
                     <Input size="sm" type="number" step="any" min={0} value={newBudget.quantity} onChange={(e) => setNewBudget({ ...newBudget, quantity: Number(e.target.value) })} required />
@@ -1881,7 +1881,7 @@ export const ProjectDetailPage: React.FC = () => {
                   </Flex>
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Supplier / Contractor</Text>
                     <Input size="sm" placeholder="e.g. Continental Steel Mills" value={newBudget.supplier} onChange={(e) => setNewBudget({ ...newBudget, supplier: e.target.value })} />
@@ -1915,8 +1915,8 @@ export const ProjectDetailPage: React.FC = () => {
 
       {/* MODAL: EDIT BOQ ITEM */}
       {editingBudget && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="540px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="540px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Edit BOQ Line Item</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Update quantity, unit price rate, supplier, or approval status.</Text>
 
@@ -1933,7 +1933,7 @@ export const ProjectDetailPage: React.FC = () => {
                   <Input size="sm" value={budgetEditForm.budgetName || ''} onChange={(e) => setBudgetEditForm({ ...budgetEditForm, budgetName: e.target.value })} required />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Category</Text>
                     <NativeSelect.Root size="sm">
@@ -1952,7 +1952,7 @@ export const ProjectDetailPage: React.FC = () => {
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Quantity</Text>
                     <Input size="sm" type="number" step="any" value={budgetEditForm.quantity ?? 0} onChange={(e) => setBudgetEditForm({ ...budgetEditForm, quantity: Number(e.target.value) })} required />
@@ -1972,7 +1972,7 @@ export const ProjectDetailPage: React.FC = () => {
                   </Flex>
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Supplier</Text>
                     <Input size="sm" value={budgetEditForm.supplier || ''} onChange={(e) => setBudgetEditForm({ ...budgetEditForm, supplier: e.target.value })} />
@@ -2001,8 +2001,8 @@ export const ProjectDetailPage: React.FC = () => {
 
       {/* MODAL: ADD DAILY SITE LOG */}
       {showAddDailyLogModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="520px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="520px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Log Daily Site Progress Report</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Record daily works, workforce deployment, and plant utilization on site.</Text>
 
@@ -2018,7 +2018,7 @@ export const ProjectDetailPage: React.FC = () => {
                   <Input size="sm" placeholder="e.g. Poured 45m³ deck slab, verified rebar clearances..." value={newDailyLog.completedWork} onChange={(e) => setNewDailyLog({ ...newDailyLog, completedWork: e.target.value })} required />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Manpower Breakdown</Text>
                     <Input size="sm" value={newDailyLog.manpower} onChange={(e) => setNewDailyLog({ ...newDailyLog, manpower: e.target.value })} />
@@ -2064,8 +2064,8 @@ export const ProjectDetailPage: React.FC = () => {
 
       {/* MODAL: ADD SCHEDULE TASK */}
       {showAddTaskModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Add Schedule Task / Phase</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Set milestone duration, assigned engineer, and target status.</Text>
 
@@ -2075,7 +2075,7 @@ export const ProjectDetailPage: React.FC = () => {
                   <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Task Name *</Text>
                   <Input size="sm" placeholder="e.g. Substructure Concrete Piling" value={newTask.taskName} onChange={(e) => setNewTask({ ...newTask, taskName: e.target.value })} required />
                 </Box>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Start Date</Text>
                     <Input size="sm" type="date" value={newTask.startDate} onChange={(e) => setNewTask({ ...newTask, startDate: e.target.value })} required />
@@ -2085,7 +2085,7 @@ export const ProjectDetailPage: React.FC = () => {
                     <Input size="sm" type="date" value={newTask.endDate} onChange={(e) => setNewTask({ ...newTask, endDate: e.target.value })} required />
                   </Box>
                 </SimpleGrid>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Initial Status</Text>
                     <NativeSelect.Root size="sm">
@@ -2123,8 +2123,8 @@ export const ProjectDetailPage: React.FC = () => {
 
       {/* MODAL: EDIT SCHEDULE TASK */}
       {editingTask && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Edit Schedule Task</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Update progress percentage, status, and milestone dates.</Text>
 
@@ -2134,7 +2134,7 @@ export const ProjectDetailPage: React.FC = () => {
                   <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Task Name *</Text>
                   <Input size="sm" value={taskEditForm.taskName || ''} onChange={(e) => setTaskEditForm({ ...taskEditForm, taskName: e.target.value })} required />
                 </Box>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Start Date</Text>
                     <Input size="sm" type="date" value={taskEditForm.startDate || ''} onChange={(e) => setTaskEditForm({ ...taskEditForm, startDate: e.target.value })} />
@@ -2144,7 +2144,7 @@ export const ProjectDetailPage: React.FC = () => {
                     <Input size="sm" type="date" value={taskEditForm.endDate || ''} onChange={(e) => setTaskEditForm({ ...taskEditForm, endDate: e.target.value })} />
                   </Box>
                 </SimpleGrid>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Status</Text>
                     <NativeSelect.Root size="sm">
@@ -2182,14 +2182,14 @@ export const ProjectDetailPage: React.FC = () => {
 
       {/* MODAL: ADD DELAY LOG */}
       {showAddDelayModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Record Site Delay / EOT</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Document schedule delays with impact days and root cause.</Text>
 
             <form onSubmit={handleCreateDelay}>
               <Stack gap={3}>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Delay Date</Text>
                     <Input size="sm" type="date" value={newDelay.delayDate} onChange={(e) => setNewDelay({ ...newDelay, delayDate: e.target.value })} required />
@@ -2220,14 +2220,14 @@ export const ProjectDetailPage: React.FC = () => {
 
       {/* MODAL: ADD SAFETY INCIDENT */}
       {showAddSafetyModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Report Health & Safety Incident</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Record incident details, severity, and mandatory corrective actions.</Text>
 
             <form onSubmit={handleCreateSafety}>
               <Stack gap={3}>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Incident Date</Text>
                     <Input size="sm" type="date" value={newSafety.incidentDate} onChange={(e) => setNewSafety({ ...newSafety, incidentDate: e.target.value })} required />
@@ -2265,8 +2265,8 @@ export const ProjectDetailPage: React.FC = () => {
 
       {/* MODAL: ADD RFI */}
       {showAddRFIModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Submit Engineering RFI</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Request clarification or approval for structural/architectural detail.</Text>
 
@@ -2293,8 +2293,8 @@ export const ProjectDetailPage: React.FC = () => {
 
       {/* MODAL: RESOLVE RFI */}
       {resolvingRFI && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Resolve Technical RFI</Heading>
             <Text fontSize="xs" color="#64748b" mb={3}>Subject: {resolvingRFI.subject}</Text>
 
@@ -2317,8 +2317,8 @@ export const ProjectDetailPage: React.FC = () => {
 
       {/* MODAL: ADD DOCUMENT */}
       {showAddDocumentModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="520px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="520px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Flex justify="space-between" align="center" mb={1}>
               <Heading size="md" color="#0f172a">Upload Project Technical Document</Heading>
               <Box as="button" onClick={() => setShowAddDocumentModal(false)} color="#94a3b8" cursor="pointer">
@@ -2388,7 +2388,7 @@ export const ProjectDetailPage: React.FC = () => {
                   />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Category</Text>
                     <NativeSelect.Root size="sm">
@@ -2441,8 +2441,8 @@ export const ProjectDetailPage: React.FC = () => {
 
       {/* MODAL: PREVIEW PROJECT DOCUMENT */}
       {previewProjectDoc && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.7)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="640px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.7)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="640px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Flex justify="space-between" align="flex-start" mb={3} borderBottom="1px solid #e2e8f0" pb={3}>
               <Box>
                 <Flex align="center" gap={2}>
@@ -2465,36 +2465,36 @@ export const ProjectDetailPage: React.FC = () => {
             <Box
               bg="#0f172a"
               color="#38bdf8"
-              p={6}
+              p={{ base: 4, sm: 6 }}
               borderRadius="12px"
               mb={4}
               display="flex"
               flexDirection="column"
               alignItems="center"
               justifyContent="center"
-              minH="220px"
+              minH="200px"
               border="1px solid #1e293b"
             >
               <Box p={3} bg="rgba(56, 189, 248, 0.1)" borderRadius="full" mb={2}>
                 <FileCode size={36} color="#38bdf8" />
               </Box>
-              <Text fontSize="sm" fontWeight="bold" color="white">
+              <Text fontSize="sm" fontWeight="bold" color="white" textAlign="center">
                 Technical Drawing / Specification View
               </Text>
-              <Text fontSize="xs" color="#94a3b8" mt={0.5} fontFamily="mono">
+              <Text fontSize="xs" color="#94a3b8" mt={0.5} fontFamily="mono" textAlign="center">
                 Project: {project.name}
               </Text>
-              <Text fontSize="11px" color="#cbd5e1" mt={1}>
+              <Text fontSize="11px" color="#cbd5e1" mt={1} textAlign="center">
                 Uploaded by {previewProjectDoc.uploadedBy || 'Engineering Office'} on {previewProjectDoc.uploadDate}
               </Text>
             </Box>
 
-            <Flex justify="space-between" align="center">
+            <Flex justify="space-between" align="center" gap={2} wrap="wrap">
               <Button size="sm" variant="outline" onClick={() => setPreviewProjectDoc(null)}>
                 Close
               </Button>
               <Button size="sm" bg="#2563eb" color="white" onClick={() => handleDownloadProjectDoc(previewProjectDoc)}>
-                <Download size={14} /> Download File ({previewProjectDoc.size})
+                <Download size={14} /> Download File
               </Button>
             </Flex>
           </Box>
@@ -2503,8 +2503,8 @@ export const ProjectDetailPage: React.FC = () => {
 
       {/* MODAL: DELETE PROJECT DOCUMENT CONFIRMATION */}
       {deleteProjectDocConfirm && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="450px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="450px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl">
             <Flex align="center" gap={3} mb={3}>
               <Box p={2.5} bg="#fee2e2" color="#dc2626" borderRadius="10px">
                 <AlertCircle size={22} />

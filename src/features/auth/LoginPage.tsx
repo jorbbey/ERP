@@ -173,7 +173,7 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <Box minH="100vh" bg="#f8fafc" display="flex" flexDirection="column" alignItems="center" justifyContent="center" p={4} py={8}>
+    <Box minH="100vh" bg="#f8fafc" display="flex" flexDirection="column" alignItems="center" justifyContent="center" p={{ base: 2.5, sm: 4 }} py={{ base: 6, sm: 8 }}>
       {/* Return to Public Site */}
       <Flex justify="center" mb={4}>
         <Button
@@ -191,8 +191,8 @@ export const LoginPage: React.FC = () => {
         bg="white" 
         maxW={authMode === 'signup' ? '680px' : '440px'} 
         w="100%" 
-        borderRadius="20px" 
-        p={{ base: 6, md: 8 }} 
+        borderRadius={{ base: '14px', sm: '20px' }} 
+        p={{ base: 4, sm: 6, md: 8 }} 
         border="1px solid #cbd5e1" 
         boxShadow="0 20px 25px -5px rgba(0, 0, 0, 0.08)"
       >
@@ -223,7 +223,7 @@ export const LoginPage: React.FC = () => {
         </Flex>
 
         {/* Tab Toggle: Sign in vs Register Company */}
-        <Flex bg="#f1f5f9" p={1} borderRadius="10px" mb={5}>
+        <Flex bg="#f1f5f9" p={1} borderRadius="10px" mb={5} gap={1}>
           <Button
             flex="1"
             size="sm"
@@ -231,6 +231,7 @@ export const LoginPage: React.FC = () => {
             bg={authMode === 'signin' ? 'white' : 'transparent'}
             color={authMode === 'signin' ? '#0f172a' : '#64748b'}
             fontWeight={authMode === 'signin' ? 'bold' : 'medium'}
+            fontSize={{ base: 'xs', sm: 'sm' }}
             boxShadow={authMode === 'signin' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'}
             borderRadius="8px"
             onClick={() => switchMode('signin')}
@@ -244,11 +245,12 @@ export const LoginPage: React.FC = () => {
             bg={authMode === 'signup' ? 'white' : 'transparent'}
             color={authMode === 'signup' ? '#0f172a' : '#64748b'}
             fontWeight={authMode === 'signup' ? 'bold' : 'medium'}
+            fontSize={{ base: 'xs', sm: 'sm' }}
             boxShadow={authMode === 'signup' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'}
             borderRadius="8px"
             onClick={() => switchMode('signup')}
           >
-            Register Company (Free Trial)
+            Register<Box as="span" display={{ base: 'none', sm: 'inline' }}> Company</Box><Box as="span" display={{ base: 'none', md: 'inline' }}> (Free Trial)</Box>
           </Button>
         </Flex>
 

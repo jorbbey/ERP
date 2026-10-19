@@ -308,7 +308,8 @@ export const LeaveManagementTab: React.FC = () => {
 
           {/* Table */}
           <Card.Root bg="white" borderRadius="14px" border="1px solid #e2e8f0" boxShadow="xs" overflow="hidden">
-            <Table.Root size="sm" variant="outline">
+            <Box overflowX="auto">
+              <Table.Root size="sm" variant="outline" minW="950px">
               <Table.Header bg="#f8fafc">
                 <Table.Row>
                   <Table.ColumnHeader>Staff Code</Table.ColumnHeader>
@@ -406,7 +407,8 @@ export const LeaveManagementTab: React.FC = () => {
                 )}
               </Table.Body>
             </Table.Root>
-          </Card.Root>
+          </Box>
+        </Card.Root>
         </Stack>
       )}
 
@@ -420,7 +422,8 @@ export const LeaveManagementTab: React.FC = () => {
             Automated quota tracking deducting verified leaves upon approval.
           </Text>
 
-          <Table.Root size="sm" variant="outline">
+          <Box overflowX="auto" mx={{ base: -5, sm: 0 }} px={{ base: 5, sm: 0 }}>
+            <Table.Root size="sm" variant="outline" minW="750px">
             <Table.Header bg="#f8fafc">
               <Table.Row>
                 <Table.ColumnHeader>Staff Member</Table.ColumnHeader>
@@ -476,7 +479,8 @@ export const LeaveManagementTab: React.FC = () => {
               })}
             </Table.Body>
           </Table.Root>
-        </Card.Root>
+        </Box>
+      </Card.Root>
       )}
 
       {/* Apply Leave Modal */}
@@ -492,9 +496,9 @@ export const LeaveManagementTab: React.FC = () => {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} border="1px solid #e2e8f0" boxShadow="2xl">
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>
               Apply for Leave of Absence
             </Heading>
@@ -537,7 +541,7 @@ export const LeaveManagementTab: React.FC = () => {
                   </NativeSelect.Root>
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="semibold" color="#334155" mb={1}>Start Date *</Text>
                     <Input
@@ -605,9 +609,9 @@ export const LeaveManagementTab: React.FC = () => {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="450px" w="100%" p={6} border="1px solid #e2e8f0" boxShadow="2xl">
+          <Box bg="white" borderRadius="16px" maxW="450px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>
               {decisionType === 'Approved' ? 'Approve Leave Request' : 'Reject Leave Request'}
             </Heading>

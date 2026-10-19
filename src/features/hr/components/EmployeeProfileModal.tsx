@@ -102,7 +102,7 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
       display="flex"
       alignItems="center"
       justifyContent="center"
-      p={4}
+      p={{ base: 2, sm: 4 }}
     >
       <Box
         bg="white"
@@ -117,8 +117,8 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
         overflow="hidden"
       >
         {/* Header */}
-        <Box px={6} py={5} bg="#0f172a" color="white">
-          <Flex justify="space-between" align="flex-start">
+        <Box px={{ base: 4, sm: 6 }} py={{ base: 4, sm: 5 }} bg="#0f172a" color="white">
+          <Flex justify="space-between" align={{ base: 'flex-start', sm: 'center' }} direction={{ base: 'column', md: 'row' }} gap={3}>
             <Flex gap={4} align="center">
               <Box
                 w="60px"
@@ -225,7 +225,7 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
         </Box>
 
         {/* Tab Body */}
-        <Box p={6} overflowY="auto" flex="1" bg="#f8fafc">
+        <Box p={{ base: 3, sm: 6 }} overflowY="auto" flex="1" bg="#f8fafc">
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
             <Stack gap={6}>
@@ -370,45 +370,47 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                   No attendance records recorded for this employee yet.
                 </Box>
               ) : (
-                <Table.Root size="sm" variant="outline">
-                  <Table.Header bg="#f8fafc">
-                    <Table.Row>
-                      <Table.ColumnHeader>Date</Table.ColumnHeader>
-                      <Table.ColumnHeader>Check-In</Table.ColumnHeader>
-                      <Table.ColumnHeader>Check-Out</Table.ColumnHeader>
-                      <Table.ColumnHeader>Hours Worked</Table.ColumnHeader>
-                      <Table.ColumnHeader>Status</Table.ColumnHeader>
-                      <Table.ColumnHeader>Notes</Table.ColumnHeader>
-                    </Table.Row>
-                  </Table.Header>
-                  <Table.Body>
-                    {empAttendance.map(a => (
-                      <Table.Row key={a.id}>
-                        <Table.Cell fontWeight="semibold">{a.attendanceDate}</Table.Cell>
-                        <Table.Cell fontFamily="mono" color={a.status === 'late' ? '#dc2626' : '#059669'}>
-                          {a.checkIn || '—'}
-                        </Table.Cell>
-                        <Table.Cell fontFamily="mono">{a.checkOut || '—'}</Table.Cell>
-                        <Table.Cell fontWeight="bold">{a.hoursWorked ? `${a.hoursWorked} hrs` : '—'}</Table.Cell>
-                        <Table.Cell>
-                          <Badge
-                            size="sm"
-                            colorPalette={
-                              a.status === 'present' ? 'green' :
-                              a.status === 'late' ? 'yellow' :
-                              a.status === 'on_leave' ? 'blue' : 'red'
-                            }
-                          >
-                            {a.status}
-                          </Badge>
-                        </Table.Cell>
-                        <Table.Cell fontSize="11px" color="#64748b">
-                          {a.notes || (a.correctionRequested ? `Correction: ${a.correctionReason}` : 'Regular shift')}
-                        </Table.Cell>
+                <Box overflowX="auto" mx={{ base: -5, sm: 0 }} px={{ base: 5, sm: 0 }}>
+                  <Table.Root size="sm" variant="outline" minW="600px">
+                    <Table.Header bg="#f8fafc">
+                      <Table.Row>
+                        <Table.ColumnHeader>Date</Table.ColumnHeader>
+                        <Table.ColumnHeader>Check-In</Table.ColumnHeader>
+                        <Table.ColumnHeader>Check-Out</Table.ColumnHeader>
+                        <Table.ColumnHeader>Hours Worked</Table.ColumnHeader>
+                        <Table.ColumnHeader>Status</Table.ColumnHeader>
+                        <Table.ColumnHeader>Notes</Table.ColumnHeader>
                       </Table.Row>
-                    ))}
-                  </Table.Body>
-                </Table.Root>
+                    </Table.Header>
+                    <Table.Body>
+                      {empAttendance.map(a => (
+                        <Table.Row key={a.id}>
+                          <Table.Cell fontWeight="semibold">{a.attendanceDate}</Table.Cell>
+                          <Table.Cell fontFamily="mono" color={a.status === 'late' ? '#dc2626' : '#059669'}>
+                            {a.checkIn || '—'}
+                          </Table.Cell>
+                          <Table.Cell fontFamily="mono">{a.checkOut || '—'}</Table.Cell>
+                          <Table.Cell fontWeight="bold">{a.hoursWorked ? `${a.hoursWorked} hrs` : '—'}</Table.Cell>
+                          <Table.Cell>
+                            <Badge
+                              size="sm"
+                              colorPalette={
+                                a.status === 'present' ? 'green' :
+                                a.status === 'late' ? 'yellow' :
+                                a.status === 'on_leave' ? 'blue' : 'red'
+                              }
+                            >
+                              {a.status}
+                            </Badge>
+                          </Table.Cell>
+                          <Table.Cell fontSize="11px" color="#64748b">
+                            {a.notes || (a.correctionRequested ? `Correction: ${a.correctionReason}` : 'Regular shift')}
+                          </Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </Table.Body>
+                  </Table.Root>
+                </Box>
               )}
             </Card.Root>
           )}
@@ -474,45 +476,47 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                     No leave applications recorded for this staff member.
                   </Box>
                 ) : (
-                  <Table.Root size="sm" variant="outline">
-                    <Table.Header bg="#f8fafc">
-                      <Table.Row>
-                        <Table.ColumnHeader>Leave Type</Table.ColumnHeader>
-                        <Table.ColumnHeader>Start Date</Table.ColumnHeader>
-                        <Table.ColumnHeader>End Date</Table.ColumnHeader>
-                        <Table.ColumnHeader>Days</Table.ColumnHeader>
-                        <Table.ColumnHeader>Reason</Table.ColumnHeader>
-                        <Table.ColumnHeader>Status</Table.ColumnHeader>
-                        <Table.ColumnHeader>Approval Details</Table.ColumnHeader>
-                      </Table.Row>
-                    </Table.Header>
-                    <Table.Body>
-                      {empLeaves.map(l => (
-                        <Table.Row key={l.id}>
-                          <Table.Cell fontWeight="semibold">{l.leaveType}</Table.Cell>
-                          <Table.Cell>{l.startDate}</Table.Cell>
-                          <Table.Cell>{l.endDate}</Table.Cell>
-                          <Table.Cell fontWeight="bold">{l.daysCount} days</Table.Cell>
-                          <Table.Cell fontSize="xs" maxW="200px" truncate>{l.reason}</Table.Cell>
-                          <Table.Cell>
-                            <Badge
-                              size="sm"
-                              colorPalette={
-                                l.status === 'Approved' ? 'green' :
-                                l.status === 'Pending' ? 'yellow' :
-                                l.status === 'Cancelled' ? 'gray' : 'red'
-                              }
-                            >
-                              {l.status}
-                            </Badge>
-                          </Table.Cell>
-                          <Table.Cell fontSize="11px" color="#64748b">
-                            {l.approvedBy ? `${l.approvedBy} (${l.approvalDate || ''})` : l.rejectionReason || 'Pending Review'}
-                          </Table.Cell>
+                  <Box overflowX="auto">
+                    <Table.Root size="sm" variant="outline" minW="650px">
+                      <Table.Header bg="#f8fafc">
+                        <Table.Row>
+                          <Table.ColumnHeader>Leave Type</Table.ColumnHeader>
+                          <Table.ColumnHeader>Start Date</Table.ColumnHeader>
+                          <Table.ColumnHeader>End Date</Table.ColumnHeader>
+                          <Table.ColumnHeader>Days</Table.ColumnHeader>
+                          <Table.ColumnHeader>Reason</Table.ColumnHeader>
+                          <Table.ColumnHeader>Status</Table.ColumnHeader>
+                          <Table.ColumnHeader>Approval Details</Table.ColumnHeader>
                         </Table.Row>
-                      ))}
-                    </Table.Body>
-                  </Table.Root>
+                      </Table.Header>
+                      <Table.Body>
+                        {empLeaves.map(l => (
+                          <Table.Row key={l.id}>
+                            <Table.Cell fontWeight="semibold">{l.leaveType}</Table.Cell>
+                            <Table.Cell>{l.startDate}</Table.Cell>
+                            <Table.Cell>{l.endDate}</Table.Cell>
+                            <Table.Cell fontWeight="bold">{l.daysCount} days</Table.Cell>
+                            <Table.Cell fontSize="xs" maxW="200px" truncate>{l.reason}</Table.Cell>
+                            <Table.Cell>
+                              <Badge
+                                size="sm"
+                                colorPalette={
+                                  l.status === 'Approved' ? 'green' :
+                                  l.status === 'Pending' ? 'yellow' :
+                                  l.status === 'Cancelled' ? 'gray' : 'red'
+                                }
+                              >
+                                {l.status}
+                              </Badge>
+                            </Table.Cell>
+                            <Table.Cell fontSize="11px" color="#64748b">
+                              {l.approvedBy ? `${l.approvedBy} (${l.approvalDate || ''})` : l.rejectionReason || 'Pending Review'}
+                            </Table.Cell>
+                          </Table.Row>
+                        ))}
+                      </Table.Body>
+                    </Table.Root>
+                  </Box>
                 )}
               </Card.Root>
             </Stack>
@@ -529,48 +533,50 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                   No monthly payslips processed yet for this employee.
                 </Box>
               ) : (
-                <Table.Root size="sm" variant="outline">
-                  <Table.Header bg="#f8fafc">
-                    <Table.Row>
-                      <Table.ColumnHeader>Slip #</Table.ColumnHeader>
-                      <Table.ColumnHeader>Basic Wage</Table.ColumnHeader>
-                      <Table.ColumnHeader>Allowances</Table.ColumnHeader>
-                      <Table.ColumnHeader>Gross Pay</Table.ColumnHeader>
-                      <Table.ColumnHeader>Statutory Tax</Table.ColumnHeader>
-                      <Table.ColumnHeader>Pension</Table.ColumnHeader>
-                      <Table.ColumnHeader>Loan/Advance Ded.</Table.ColumnHeader>
-                      <Table.ColumnHeader>Net Take-Home</Table.ColumnHeader>
-                      <Table.ColumnHeader>Action</Table.ColumnHeader>
-                    </Table.Row>
-                  </Table.Header>
-                  <Table.Body>
-                    {empPayslips.map(slip => (
-                      <Table.Row key={slip.id}>
-                        <Table.Cell fontFamily="mono" fontWeight="bold">#{slip.id}</Table.Cell>
-                        <Table.Cell>{activeCompany.currency} {slip.basicSalary.toLocaleString()}</Table.Cell>
-                        <Table.Cell>{activeCompany.currency} {slip.allowances.toLocaleString()}</Table.Cell>
-                        <Table.Cell fontWeight="semibold">{activeCompany.currency} {slip.grossPay.toLocaleString()}</Table.Cell>
-                        <Table.Cell color="#dc2626">-{activeCompany.currency} {slip.tax.toLocaleString()}</Table.Cell>
-                        <Table.Cell color="#dc2626">-{activeCompany.currency} {slip.pension.toLocaleString()}</Table.Cell>
-                        <Table.Cell color="#dc2626">
-                          {slip.loanDeduction > 0 ? `-${activeCompany.currency} ${slip.loanDeduction.toLocaleString()}` : '—'}
-                        </Table.Cell>
-                        <Table.Cell fontWeight="bold" color="#059669">
-                          {activeCompany.currency} {slip.netPay.toLocaleString()}
-                        </Table.Cell>
-                        <Table.Cell>
-                          <Button
-                            size="xs"
-                            variant="outline"
-                            onClick={() => setViewingPayslip(slip)}
-                          >
-                            <FileText size={12} /> View Slip
-                          </Button>
-                        </Table.Cell>
+                <Box overflowX="auto">
+                  <Table.Root size="sm" variant="outline" minW="750px">
+                    <Table.Header bg="#f8fafc">
+                      <Table.Row>
+                        <Table.ColumnHeader>Slip #</Table.ColumnHeader>
+                        <Table.ColumnHeader>Basic Wage</Table.ColumnHeader>
+                        <Table.ColumnHeader>Allowances</Table.ColumnHeader>
+                        <Table.ColumnHeader>Gross Pay</Table.ColumnHeader>
+                        <Table.ColumnHeader>Statutory Tax</Table.ColumnHeader>
+                        <Table.ColumnHeader>Pension</Table.ColumnHeader>
+                        <Table.ColumnHeader>Loan/Advance Ded.</Table.ColumnHeader>
+                        <Table.ColumnHeader>Net Take-Home</Table.ColumnHeader>
+                        <Table.ColumnHeader>Action</Table.ColumnHeader>
                       </Table.Row>
-                    ))}
-                  </Table.Body>
-                </Table.Root>
+                    </Table.Header>
+                    <Table.Body>
+                      {empPayslips.map(slip => (
+                        <Table.Row key={slip.id}>
+                          <Table.Cell fontFamily="mono" fontWeight="bold">#{slip.id}</Table.Cell>
+                          <Table.Cell>{activeCompany.currency} {slip.basicSalary.toLocaleString()}</Table.Cell>
+                          <Table.Cell>{activeCompany.currency} {slip.allowances.toLocaleString()}</Table.Cell>
+                          <Table.Cell fontWeight="semibold">{activeCompany.currency} {slip.grossPay.toLocaleString()}</Table.Cell>
+                          <Table.Cell color="#dc2626">-{activeCompany.currency} {slip.tax.toLocaleString()}</Table.Cell>
+                          <Table.Cell color="#dc2626">-{activeCompany.currency} {slip.pension.toLocaleString()}</Table.Cell>
+                          <Table.Cell color="#dc2626">
+                            {slip.loanDeduction > 0 ? `-${activeCompany.currency} ${slip.loanDeduction.toLocaleString()}` : '—'}
+                          </Table.Cell>
+                          <Table.Cell fontWeight="bold" color="#059669">
+                            {activeCompany.currency} {slip.netPay.toLocaleString()}
+                          </Table.Cell>
+                          <Table.Cell>
+                            <Button
+                              size="xs"
+                              variant="outline"
+                              onClick={() => setViewingPayslip(slip)}
+                            >
+                              <FileText size={12} /> View Slip
+                            </Button>
+                          </Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </Table.Body>
+                  </Table.Root>
+                </Box>
               )}
             </Card.Root>
           )}
@@ -584,35 +590,37 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                 {empAdvances.length === 0 ? (
                   <Text fontSize="xs" color="#94a3b8">No salary advances requested.</Text>
                 ) : (
-                  <Table.Root size="sm" variant="outline">
-                    <Table.Header bg="#f8fafc">
-                      <Table.Row>
-                        <Table.ColumnHeader>Request Date</Table.ColumnHeader>
-                        <Table.ColumnHeader>Amount</Table.ColumnHeader>
-                        <Table.ColumnHeader>Deduction Month</Table.ColumnHeader>
-                        <Table.ColumnHeader>Reason</Table.ColumnHeader>
-                        <Table.ColumnHeader>Status</Table.ColumnHeader>
-                      </Table.Row>
-                    </Table.Header>
-                    <Table.Body>
-                      {empAdvances.map(a => (
-                        <Table.Row key={a.id}>
-                          <Table.Cell>{a.requestDate}</Table.Cell>
-                          <Table.Cell fontWeight="bold">{activeCompany.currency} {a.amount.toLocaleString()}</Table.Cell>
-                          <Table.Cell>{a.deductionMonth}</Table.Cell>
-                          <Table.Cell fontSize="xs">{a.reason}</Table.Cell>
-                          <Table.Cell>
-                            <Badge
-                              size="sm"
-                              colorPalette={a.status === 'Approved' ? 'green' : a.status === 'Pending' ? 'yellow' : 'red'}
-                            >
-                              {a.status}
-                            </Badge>
-                          </Table.Cell>
+                  <Box overflowX="auto">
+                    <Table.Root size="sm" variant="outline" minW="550px">
+                      <Table.Header bg="#f8fafc">
+                        <Table.Row>
+                          <Table.ColumnHeader>Request Date</Table.ColumnHeader>
+                          <Table.ColumnHeader>Amount</Table.ColumnHeader>
+                          <Table.ColumnHeader>Deduction Month</Table.ColumnHeader>
+                          <Table.ColumnHeader>Reason</Table.ColumnHeader>
+                          <Table.ColumnHeader>Status</Table.ColumnHeader>
                         </Table.Row>
-                      ))}
-                    </Table.Body>
-                  </Table.Root>
+                      </Table.Header>
+                      <Table.Body>
+                        {empAdvances.map(a => (
+                          <Table.Row key={a.id}>
+                            <Table.Cell>{a.requestDate}</Table.Cell>
+                            <Table.Cell fontWeight="bold">{activeCompany.currency} {a.amount.toLocaleString()}</Table.Cell>
+                            <Table.Cell>{a.deductionMonth}</Table.Cell>
+                            <Table.Cell fontSize="xs">{a.reason}</Table.Cell>
+                            <Table.Cell>
+                              <Badge
+                                size="sm"
+                                colorPalette={a.status === 'Approved' ? 'green' : a.status === 'Pending' ? 'yellow' : 'red'}
+                              >
+                                {a.status}
+                              </Badge>
+                            </Table.Cell>
+                          </Table.Row>
+                        ))}
+                      </Table.Body>
+                    </Table.Root>
+                  </Box>
                 )}
               </Card.Root>
 
@@ -622,36 +630,38 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                 {empLoans.length === 0 ? (
                   <Text fontSize="xs" color="#94a3b8">No employee loans recorded.</Text>
                 ) : (
-                  <Table.Root size="sm" variant="outline">
-                    <Table.Header bg="#f8fafc">
-                      <Table.Row>
-                        <Table.ColumnHeader>Total Principal</Table.ColumnHeader>
-                        <Table.ColumnHeader>Monthly Deduction</Table.ColumnHeader>
-                        <Table.ColumnHeader>Repaid</Table.ColumnHeader>
-                        <Table.ColumnHeader>Remaining</Table.ColumnHeader>
-                        <Table.ColumnHeader>Start Date</Table.ColumnHeader>
-                        <Table.ColumnHeader>Status</Table.ColumnHeader>
-                      </Table.Row>
-                    </Table.Header>
-                    <Table.Body>
-                      {empLoans.map(l => (
-                        <Table.Row key={l.id}>
-                          <Table.Cell fontWeight="bold">{activeCompany.currency} {l.totalAmount.toLocaleString()}</Table.Cell>
-                          <Table.Cell>{activeCompany.currency} {l.monthlyDeduction.toLocaleString()}/mo</Table.Cell>
-                          <Table.Cell color="#059669">{activeCompany.currency} {l.repaidAmount.toLocaleString()}</Table.Cell>
-                          <Table.Cell color="#dc2626" fontWeight="semibold">
-                            {activeCompany.currency} {(l.totalAmount - l.repaidAmount).toLocaleString()}
-                          </Table.Cell>
-                          <Table.Cell>{l.startDate}</Table.Cell>
-                          <Table.Cell>
-                            <Badge size="sm" colorPalette={l.status === 'Settled' ? 'green' : 'blue'}>
-                              {l.status}
-                            </Badge>
-                          </Table.Cell>
+                  <Box overflowX="auto">
+                    <Table.Root size="sm" variant="outline" minW="650px">
+                      <Table.Header bg="#f8fafc">
+                        <Table.Row>
+                          <Table.ColumnHeader>Total Principal</Table.ColumnHeader>
+                          <Table.ColumnHeader>Monthly Deduction</Table.ColumnHeader>
+                          <Table.ColumnHeader>Repaid</Table.ColumnHeader>
+                          <Table.ColumnHeader>Remaining</Table.ColumnHeader>
+                          <Table.ColumnHeader>Start Date</Table.ColumnHeader>
+                          <Table.ColumnHeader>Status</Table.ColumnHeader>
                         </Table.Row>
-                      ))}
-                    </Table.Body>
-                  </Table.Root>
+                      </Table.Header>
+                      <Table.Body>
+                        {empLoans.map(l => (
+                          <Table.Row key={l.id}>
+                            <Table.Cell fontWeight="bold">{activeCompany.currency} {l.totalAmount.toLocaleString()}</Table.Cell>
+                            <Table.Cell>{activeCompany.currency} {l.monthlyDeduction.toLocaleString()}/mo</Table.Cell>
+                            <Table.Cell color="#059669">{activeCompany.currency} {l.repaidAmount.toLocaleString()}</Table.Cell>
+                            <Table.Cell color="#dc2626" fontWeight="semibold">
+                              {activeCompany.currency} {(l.totalAmount - l.repaidAmount).toLocaleString()}
+                            </Table.Cell>
+                            <Table.Cell>{l.startDate}</Table.Cell>
+                            <Table.Cell>
+                              <Badge size="sm" colorPalette={l.status === 'Settled' ? 'green' : 'blue'}>
+                                {l.status}
+                              </Badge>
+                            </Table.Cell>
+                          </Table.Row>
+                        ))}
+                      </Table.Body>
+                    </Table.Root>
+                  </Box>
                 )}
               </Card.Root>
             </Stack>
@@ -709,24 +719,26 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                   No historical archiving records found for this employee. Current status is <Badge colorPalette={getStatusColor(employee.status)} size="sm">{employee.status}</Badge>.
                 </Text>
               ) : (
-                <Table.Root size="sm" variant="outline">
-                  <Table.Header bg="#f8fafc">
-                    <Table.Row>
-                      <Table.ColumnHeader>Archive Date</Table.ColumnHeader>
-                      <Table.ColumnHeader>Reason</Table.ColumnHeader>
-                      <Table.ColumnHeader>Archived By</Table.ColumnHeader>
-                    </Table.Row>
-                  </Table.Header>
-                  <Table.Body>
-                    {empArchiveHistory.map(a => (
-                      <Table.Row key={a.id}>
-                        <Table.Cell>{a.deletedAt}</Table.Cell>
-                        <Table.Cell fontSize="xs">{a.reason}</Table.Cell>
-                        <Table.Cell>{a.archivedBy}</Table.Cell>
+                <Box overflowX="auto">
+                  <Table.Root size="sm" variant="outline" minW="500px">
+                    <Table.Header bg="#f8fafc">
+                      <Table.Row>
+                        <Table.ColumnHeader>Archive Date</Table.ColumnHeader>
+                        <Table.ColumnHeader>Reason</Table.ColumnHeader>
+                        <Table.ColumnHeader>Archived By</Table.ColumnHeader>
                       </Table.Row>
-                    ))}
-                  </Table.Body>
-                </Table.Root>
+                    </Table.Header>
+                    <Table.Body>
+                      {empArchiveHistory.map(a => (
+                        <Table.Row key={a.id}>
+                          <Table.Cell>{a.deletedAt}</Table.Cell>
+                          <Table.Cell fontSize="xs">{a.reason}</Table.Cell>
+                          <Table.Cell>{a.archivedBy}</Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </Table.Body>
+                  </Table.Root>
+                </Box>
               )}
             </Card.Root>
           )}

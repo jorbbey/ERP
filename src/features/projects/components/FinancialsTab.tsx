@@ -179,69 +179,71 @@ export const FinancialsTab: React.FC<FinancialsTabProps> = ({ project }) => {
             No interim payment certificates or invoices recorded yet for this project.
           </Box>
         ) : (
-          <Table.Root size="sm" striped>
-            <Table.Header bg="#f8fafc">
-              <Table.Row>
-                <Table.ColumnHeader color="#475569">Certificate / Invoice #</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Issue Date</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Due Date</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Scope / Milestone Description</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569" textAlign="right">Certified Amount</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569" textAlign="right">Disbursed / Paid</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Status</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569" textAlign="right">Actions</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {currentInvoices.map((inv) => (
-                <Table.Row key={inv.id}>
-                  <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a">
-                    {inv.invoiceNumber}
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" color="#64748b">
-                    {inv.invoiceDate}
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" color="#64748b">
-                    {inv.dueDate}
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" color="#334155" maxW="280px">
-                    {inv.description || 'Milestone payment'}
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a" textAlign="right">
-                    {activeCompany.currency} {inv.totalAmount.toLocaleString()}
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" color="#16a34a" fontWeight="bold" textAlign="right">
-                    {activeCompany.currency} {inv.paidAmount.toLocaleString()}
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Badge
-                      size="xs"
-                      colorPalette={
-                        inv.status === 'paid' ? 'green' :
-                        inv.status === 'sent' ? 'blue' :
-                        inv.status === 'overdue' ? 'red' : 'gray'
-                      }
-                    >
-                      {inv.status}
-                    </Badge>
-                  </Table.Cell>
-                  <Table.Cell textAlign="right">
-                    {inv.status !== 'paid' && (
-                      <Button
-                        size="xs"
-                        colorPalette="green"
-                        variant="subtle"
-                        onClick={() => handleMarkPaid(inv)}
-                        title="Record full payment receipt"
-                      >
-                        <CheckCircle2 size={12} /> Mark Disbursed
-                      </Button>
-                    )}
-                  </Table.Cell>
+          <Box overflowX="auto" mx={{ base: -5, sm: 0 }} px={{ base: 5, sm: 0 }}>
+            <Table.Root size="sm" striped minW="800px">
+              <Table.Header bg="#f8fafc">
+                <Table.Row>
+                  <Table.ColumnHeader color="#475569">Certificate / Invoice #</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Issue Date</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Due Date</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Scope / Milestone Description</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569" textAlign="right">Certified Amount</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569" textAlign="right">Disbursed / Paid</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Status</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569" textAlign="right">Actions</Table.ColumnHeader>
                 </Table.Row>
-              ))}
-            </Table.Body>
-          </Table.Root>
+              </Table.Header>
+              <Table.Body>
+                {currentInvoices.map((inv) => (
+                  <Table.Row key={inv.id}>
+                    <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a">
+                      {inv.invoiceNumber}
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" color="#64748b">
+                      {inv.invoiceDate}
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" color="#64748b">
+                      {inv.dueDate}
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" color="#334155" maxW="280px">
+                      {inv.description || 'Milestone payment'}
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a" textAlign="right">
+                      {activeCompany.currency} {inv.totalAmount.toLocaleString()}
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" color="#16a34a" fontWeight="bold" textAlign="right">
+                      {activeCompany.currency} {inv.paidAmount.toLocaleString()}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Badge
+                        size="xs"
+                        colorPalette={
+                          inv.status === 'paid' ? 'green' :
+                          inv.status === 'sent' ? 'blue' :
+                          inv.status === 'overdue' ? 'red' : 'gray'
+                        }
+                      >
+                        {inv.status}
+                      </Badge>
+                    </Table.Cell>
+                    <Table.Cell textAlign="right">
+                      {inv.status !== 'paid' && (
+                        <Button
+                          size="xs"
+                          colorPalette="green"
+                          variant="subtle"
+                          onClick={() => handleMarkPaid(inv)}
+                          title="Record full payment receipt"
+                        >
+                          <CheckCircle2 size={12} /> Mark Disbursed
+                        </Button>
+                      )}
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Root>
+          </Box>
         )}
 
         {/* Footer Total */}
@@ -257,8 +259,8 @@ export const FinancialsTab: React.FC<FinancialsTabProps> = ({ project }) => {
 
       {/* Modal: Issue Payment Certificate */}
       {showAddModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="550px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="550px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Issue Interim Payment Certificate (IPC)</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Generate client billing certificate against certified progress of works.</Text>
 
@@ -270,7 +272,7 @@ export const FinancialsTab: React.FC<FinancialsTabProps> = ({ project }) => {
 
             <form onSubmit={handleSaveAdd}>
               <Stack gap={3}>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Certificate / Invoice No *</Text>
                     <Input
@@ -295,7 +297,7 @@ export const FinancialsTab: React.FC<FinancialsTabProps> = ({ project }) => {
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Issue Date *</Text>
                     <Input
@@ -318,7 +320,7 @@ export const FinancialsTab: React.FC<FinancialsTabProps> = ({ project }) => {
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Certified Billing Sum ({activeCompany.currency}) *</Text>
                     <Input

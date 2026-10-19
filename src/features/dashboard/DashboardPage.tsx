@@ -445,7 +445,7 @@ export const DashboardPage: React.FC = () => {
       </SimpleGrid>
 
       {/* 4. Bottom Operations Matrix: RMC Batches, Low Stock, Activity Feed */}
-      <SimpleGrid columns={{ base: 1, md: 3 }} gap={6}>
+      <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
         {/* Ready-Mix Concrete Dispatches */}
         <Card.Root bg="#ffffff" borderRadius="16px" p={5} border="1px solid #e2e8f0" boxShadow="xs">
           <Flex justify="space-between" align="center" pb={3} borderBottom="1px solid #e2e8f0">

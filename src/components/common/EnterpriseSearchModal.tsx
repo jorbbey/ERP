@@ -119,18 +119,21 @@ export const EnterpriseSearchModal: React.FC<Props> = ({ isOpen, onClose }) => {
       display="flex"
       alignItems="flex-start"
       justifyContent="center"
-      pt={{ base: '60px', md: '100px' }}
-      px={4}
+      pt={{ base: '20px', sm: '60px', md: '100px' }}
+      px={{ base: 2.5, sm: 4 }}
       onClick={onClose}
     >
       <Box 
         bg="#ffffff" 
         w="100%" 
         maxW="680px" 
-        borderRadius="16px" 
+        borderRadius={{ base: '12px', sm: '16px' }} 
         boxShadow="0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
         border="1px solid #cbd5e1"
         overflow="hidden"
+        maxH="90vh"
+        display="flex"
+        flexDirection="column"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Input Bar */}

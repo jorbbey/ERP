@@ -228,69 +228,71 @@ export const AdvancesLoansTab: React.FC = () => {
           </Flex>
 
           <Card.Root bg="white" borderRadius="14px" p={5} border="1px solid #e2e8f0" boxShadow="xs" overflow="hidden">
-            <Table.Root size="sm" variant="outline">
-              <Table.Header bg="#f8fafc">
-                <Table.Row>
-                  <Table.ColumnHeader>Staff Member</Table.ColumnHeader>
-                  <Table.ColumnHeader>Request Date</Table.ColumnHeader>
-                  <Table.ColumnHeader>Requested Amount</Table.ColumnHeader>
-                  <Table.ColumnHeader>Deduction Month</Table.ColumnHeader>
-                  <Table.ColumnHeader>Reason / Purpose</Table.ColumnHeader>
-                  <Table.ColumnHeader>Approval Status</Table.ColumnHeader>
-                  <Table.ColumnHeader textAlign="right">Actions</Table.ColumnHeader>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {salaryAdvances.length === 0 ? (
+            <Box overflowX="auto" mx={{ base: -5, sm: 0 }} px={{ base: 5, sm: 0 }}>
+              <Table.Root size="sm" variant="outline" minW="750px">
+                <Table.Header bg="#f8fafc">
                   <Table.Row>
-                    <Table.Cell colSpan={7} textAlign="center" py={8} color="#94a3b8">
-                      No salary advance applications on file.
-                    </Table.Cell>
+                    <Table.ColumnHeader>Staff Member</Table.ColumnHeader>
+                    <Table.ColumnHeader>Request Date</Table.ColumnHeader>
+                    <Table.ColumnHeader>Requested Amount</Table.ColumnHeader>
+                    <Table.ColumnHeader>Deduction Month</Table.ColumnHeader>
+                    <Table.ColumnHeader>Reason / Purpose</Table.ColumnHeader>
+                    <Table.ColumnHeader>Approval Status</Table.ColumnHeader>
+                    <Table.ColumnHeader textAlign="right">Actions</Table.ColumnHeader>
                   </Table.Row>
-                ) : (
-                  salaryAdvances.map(adv => (
-                    <Table.Row key={adv.id}>
-                      <Table.Cell fontWeight="bold">{adv.employeeName}</Table.Cell>
-                      <Table.Cell fontSize="xs">{adv.requestDate}</Table.Cell>
-                      <Table.Cell fontWeight="bold" color="#2563eb">
-                        {activeCompany.currency} {adv.amount.toLocaleString()}
-                      </Table.Cell>
-                      <Table.Cell fontSize="xs" fontWeight="semibold">{adv.deductionMonth}</Table.Cell>
-                      <Table.Cell fontSize="xs" maxW="250px" truncate>{adv.reason}</Table.Cell>
-                      <Table.Cell>
-                        <Badge
-                          size="sm"
-                          colorPalette={adv.status === 'Approved' ? 'green' : adv.status === 'Pending' ? 'yellow' : 'red'}
-                        >
-                          {adv.status}
-                        </Badge>
-                      </Table.Cell>
-                      <Table.Cell textAlign="right">
-                        {adv.status === 'Pending' && canApprove && (
-                          <Flex justify="flex-end" gap={1}>
-                            <Button
-                              size="xs"
-                              colorPalette="green"
-                              onClick={() => decideSalaryAdvance(adv.id, 'Approved')}
-                            >
-                              Approve
-                            </Button>
-                            <Button
-                              size="xs"
-                              colorPalette="red"
-                              variant="outline"
-                              onClick={() => decideSalaryAdvance(adv.id, 'Rejected')}
-                            >
-                              Reject
-                            </Button>
-                          </Flex>
-                        )}
+                </Table.Header>
+                <Table.Body>
+                  {salaryAdvances.length === 0 ? (
+                    <Table.Row>
+                      <Table.Cell colSpan={7} textAlign="center" py={8} color="#94a3b8">
+                        No salary advance applications on file.
                       </Table.Cell>
                     </Table.Row>
-                  ))
-                )}
-              </Table.Body>
-            </Table.Root>
+                  ) : (
+                    salaryAdvances.map(adv => (
+                      <Table.Row key={adv.id}>
+                        <Table.Cell fontWeight="bold">{adv.employeeName}</Table.Cell>
+                        <Table.Cell fontSize="xs">{adv.requestDate}</Table.Cell>
+                        <Table.Cell fontWeight="bold" color="#2563eb">
+                          {activeCompany.currency} {adv.amount.toLocaleString()}
+                        </Table.Cell>
+                        <Table.Cell fontSize="xs" fontWeight="semibold">{adv.deductionMonth}</Table.Cell>
+                        <Table.Cell fontSize="xs" maxW="250px" truncate>{adv.reason}</Table.Cell>
+                        <Table.Cell>
+                          <Badge
+                            size="sm"
+                            colorPalette={adv.status === 'Approved' ? 'green' : adv.status === 'Pending' ? 'yellow' : 'red'}
+                          >
+                            {adv.status}
+                          </Badge>
+                        </Table.Cell>
+                        <Table.Cell textAlign="right">
+                          {adv.status === 'Pending' && canApprove && (
+                            <Flex justify="flex-end" gap={1}>
+                              <Button
+                                size="xs"
+                                colorPalette="green"
+                                onClick={() => decideSalaryAdvance(adv.id, 'Approved')}
+                              >
+                                Approve
+                              </Button>
+                              <Button
+                                size="xs"
+                                colorPalette="red"
+                                variant="outline"
+                                onClick={() => decideSalaryAdvance(adv.id, 'Rejected')}
+                              >
+                                Reject
+                              </Button>
+                            </Flex>
+                          )}
+                        </Table.Cell>
+                      </Table.Row>
+                    ))
+                  )}
+                </Table.Body>
+              </Table.Root>
+            </Box>
           </Card.Root>
         </Stack>
       )}
@@ -310,7 +312,8 @@ export const AdvancesLoansTab: React.FC = () => {
           </Flex>
 
           <Card.Root bg="white" borderRadius="14px" p={5} border="1px solid #e2e8f0" boxShadow="xs" overflow="hidden">
-            <Table.Root size="sm" variant="outline">
+            <Box overflowX="auto" mx={{ base: -5, sm: 0 }} px={{ base: 5, sm: 0 }}>
+              <Table.Root size="sm" variant="outline" minW="850px">
               <Table.Header bg="#f8fafc">
                 <Table.Row>
                   <Table.ColumnHeader>Staff Member</Table.ColumnHeader>
@@ -388,7 +391,8 @@ export const AdvancesLoansTab: React.FC = () => {
                 )}
               </Table.Body>
             </Table.Root>
-          </Card.Root>
+          </Box>
+        </Card.Root>
         </Stack>
       )}
 
@@ -405,9 +409,9 @@ export const AdvancesLoansTab: React.FC = () => {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="480px" w="100%" p={6} border="1px solid #e2e8f0" boxShadow="2xl">
+          <Box bg="white" borderRadius="16px" maxW="480px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>
               Request Salary Advance
             </Heading>
@@ -433,7 +437,7 @@ export const AdvancesLoansTab: React.FC = () => {
                   </NativeSelect.Root>
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="semibold" color="#334155" mb={1}>Advance Amount ({activeCompany.currency}) *</Text>
                     <Input
@@ -495,9 +499,9 @@ export const AdvancesLoansTab: React.FC = () => {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="480px" w="100%" p={6} border="1px solid #e2e8f0" boxShadow="2xl">
+          <Box bg="white" borderRadius="16px" maxW="480px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>
               Grant Employee Loan Facility
             </Heading>
@@ -523,7 +527,7 @@ export const AdvancesLoansTab: React.FC = () => {
                   </NativeSelect.Root>
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="semibold" color="#334155" mb={1}>Total Principal ({activeCompany.currency}) *</Text>
                     <Input
@@ -588,9 +592,9 @@ export const AdvancesLoansTab: React.FC = () => {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="420px" w="100%" p={6} border="1px solid #e2e8f0" boxShadow="2xl">
+          <Box bg="white" borderRadius="16px" maxW="420px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>
               Record Loan Repayment
             </Heading>

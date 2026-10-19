@@ -28,16 +28,16 @@ export const RequisitionVoucherModal: React.FC<RequisitionVoucherModalProps> = (
   };
 
   return (
-    <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-      <Box bg="white" borderRadius="16px" maxW="700px" w="100%" p={8} boxShadow="2xl" maxH="90vh" overflowY="auto">
+    <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+      <Box bg="white" borderRadius="16px" maxW="700px" w="100%" p={{ base: 4, sm: 6, md: 8 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
         {/* Printable Header */}
-        <Flex justify="space-between" align="flex-start" borderBottom="2px solid #0f172a" pb={4} mb={4}>
+        <Flex justify="space-between" align="flex-start" borderBottom="2px solid #0f172a" pb={4} mb={4} flexWrap="wrap" gap={2}>
           <Box>
             <Heading size="md" color="#0f172a" textTransform="uppercase">{activeCompany.name}</Heading>
             <Text fontSize="xs" fontWeight="bold" color="#2563eb">INTERNAL MATERIAL REQUISITION VOUCHER</Text>
             <Text fontSize="10px" color="#64748b">Site Operations & Stores Issuance Authorization</Text>
           </Box>
-          <Box textAlign="right">
+          <Box textAlign={{ base: 'left', sm: 'right' }}>
             <Badge size="sm" colorPalette="blue" fontFamily="mono" fontSize="xs">{requisition.requisitionNo}</Badge>
             <Text fontSize="10px" color="#64748b" mt={1}>Date: {requisition.requisitionDate}</Text>
             <Badge size="xs" colorPalette={requisition.priority === 'Urgent' ? 'red' : 'gray'} mt={1}>
@@ -47,7 +47,7 @@ export const RequisitionVoucherModal: React.FC<RequisitionVoucherModalProps> = (
         </Flex>
 
         {/* Requisition Meta Info */}
-        <SimpleGrid columns={2} gap={4} fontSize="xs" mb={4} p={3} bg="#f8fafc" borderRadius="10px">
+        <SimpleGrid columns={{ base: 1, sm: 2 }} gap={4} fontSize="xs" mb={4} p={3} bg="#f8fafc" borderRadius="10px">
           <Box>
             <Text color="#64748b">Project Name:</Text>
             <Text fontWeight="bold" color="#0f172a">{requisition.projectName}</Text>
@@ -63,45 +63,47 @@ export const RequisitionVoucherModal: React.FC<RequisitionVoucherModalProps> = (
         </SimpleGrid>
 
         {/* Line Items */}
-        <Table.Root size="sm" variant="outline" mb={4}>
-          <Table.Header>
-            <Table.Row bg="#f1f5f9">
-              <Table.ColumnHeader fontSize="10px">#</Table.ColumnHeader>
-              <Table.ColumnHeader fontSize="10px">SKU Code</Table.ColumnHeader>
-              <Table.ColumnHeader fontSize="10px">Description of Materials</Table.ColumnHeader>
-              <Table.ColumnHeader fontSize="10px">Unit</Table.ColumnHeader>
-              <Table.ColumnHeader fontSize="10px">Qty Req.</Table.ColumnHeader>
-              <Table.ColumnHeader fontSize="10px">Qty To Buy</Table.ColumnHeader>
-              <Table.ColumnHeader fontSize="10px">Est. Rate</Table.ColumnHeader>
-              <Table.ColumnHeader fontSize="10px">Total</Table.ColumnHeader>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            {requisition.items.map((item, idx) => (
-              <Table.Row key={idx}>
-                <Table.Cell fontSize="xs">{idx + 1}</Table.Cell>
-                <Table.Cell fontSize="xs" fontFamily="mono">{item.itemCode || 'MAT-GEN'}</Table.Cell>
-                <Table.Cell fontSize="xs" fontWeight="semibold">{item.itemName}</Table.Cell>
-                <Table.Cell fontSize="xs">{item.unit}</Table.Cell>
-                <Table.Cell fontSize="xs" fontWeight="bold">{item.quantityRequired}</Table.Cell>
-                <Table.Cell fontSize="xs">{item.quantityToPurchase}</Table.Cell>
-                <Table.Cell fontSize="xs">
-                  {item.price !== undefined && item.price !== null && !isNaN(Number(item.price)) ? `${activeCompany.currency} ${(Number(item.price) || 0).toFixed(2)}` : '—'}
-                </Table.Cell>
-                <Table.Cell fontSize="xs" fontWeight="bold">
-                  {item.value !== undefined
-                    ? `${activeCompany.currency} ${item.value.toLocaleString()}`
-                    : item.price !== undefined
-                    ? `${activeCompany.currency} ${(item.quantityRequired * item.price).toLocaleString()}`
-                    : '—'}
-                </Table.Cell>
+        <Box overflowX="auto" mb={4}>
+          <Table.Root size="sm" variant="outline" minW="550px">
+            <Table.Header>
+              <Table.Row bg="#f1f5f9">
+                <Table.ColumnHeader fontSize="10px">#</Table.ColumnHeader>
+                <Table.ColumnHeader fontSize="10px">SKU Code</Table.ColumnHeader>
+                <Table.ColumnHeader fontSize="10px">Description of Materials</Table.ColumnHeader>
+                <Table.ColumnHeader fontSize="10px">Unit</Table.ColumnHeader>
+                <Table.ColumnHeader fontSize="10px">Qty Req.</Table.ColumnHeader>
+                <Table.ColumnHeader fontSize="10px">Qty To Buy</Table.ColumnHeader>
+                <Table.ColumnHeader fontSize="10px">Est. Rate</Table.ColumnHeader>
+                <Table.ColumnHeader fontSize="10px">Total</Table.ColumnHeader>
               </Table.Row>
-            ))}
-          </Table.Body>
-        </Table.Root>
+            </Table.Header>
+            <Table.Body>
+              {requisition.items.map((item, idx) => (
+                <Table.Row key={idx}>
+                  <Table.Cell fontSize="xs">{idx + 1}</Table.Cell>
+                  <Table.Cell fontSize="xs" fontFamily="mono">{item.itemCode || 'MAT-GEN'}</Table.Cell>
+                  <Table.Cell fontSize="xs" fontWeight="semibold">{item.itemName}</Table.Cell>
+                  <Table.Cell fontSize="xs">{item.unit}</Table.Cell>
+                  <Table.Cell fontSize="xs" fontWeight="bold">{item.quantityRequired}</Table.Cell>
+                  <Table.Cell fontSize="xs">{item.quantityToPurchase}</Table.Cell>
+                  <Table.Cell fontSize="xs">
+                    {item.price !== undefined && item.price !== null && !isNaN(Number(item.price)) ? `${activeCompany.currency} ${(Number(item.price) || 0).toFixed(2)}` : '—'}
+                  </Table.Cell>
+                  <Table.Cell fontSize="xs" fontWeight="bold">
+                    {item.value !== undefined
+                      ? `${activeCompany.currency} ${item.value.toLocaleString()}`
+                      : item.price !== undefined
+                      ? `${activeCompany.currency} ${(item.quantityRequired * item.price).toLocaleString()}`
+                      : '—'}
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table.Root>
+        </Box>
 
         {/* Grand Total */}
-        <Flex justify="space-between" align="center" p={3} bg="#f8fafc" borderRadius="8px" mb={6} fontSize="xs">
+        <Flex justify="space-between" align="center" p={3} bg="#f8fafc" borderRadius="8px" mb={6} fontSize="xs" flexWrap="wrap" gap={2}>
           <Text color="#64748b">Remarks: {requisition.remarks || 'Standard requisition for approved contract package.'}</Text>
           <Box textAlign="right">
             <Text fontSize="10px" textTransform="uppercase" color="#64748b" fontWeight="bold">Total Requisition Cost</Text>
@@ -112,7 +114,7 @@ export const RequisitionVoucherModal: React.FC<RequisitionVoucherModalProps> = (
         </Flex>
 
         {/* Official Signatures */}
-        <SimpleGrid columns={3} gap={4} pt={4} borderTop="1px dashed #cbd5e1" textAlign="center" fontSize="xs">
+        <SimpleGrid columns={{ base: 1, sm: 3 }} gap={3} pt={4} borderTop="1px dashed #cbd5e1" textAlign="center" fontSize="xs">
           <Box border="1px dashed #cbd5e1" p={2.5} borderRadius="8px">
             <Text color="#64748b" fontSize="10px">REQUESTED BY:</Text>
             <Text fontWeight="bold" color="#0f172a" mt={3}>{requisition.requestedBy}</Text>

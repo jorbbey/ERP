@@ -380,7 +380,8 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({ onOpenCrea
 
       {/* Purchase Orders Table */}
       <Card.Root bg="white" borderRadius="14px" border="1px solid #e2e8f0" boxShadow="xs" overflow="hidden">
-        <Table.Root size="sm" variant="outline">
+        <Box overflowX="auto" w="100%">
+          <Table.Root size="sm" variant="outline" minW="850px">
           <Table.Header bg="#f8fafc">
             <Table.Row>
               <Table.ColumnHeader fontSize="11px" color="#64748b">PO NUMBER</Table.ColumnHeader>
@@ -499,6 +500,7 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({ onOpenCrea
             )}
           </Table.Body>
         </Table.Root>
+        </Box>
       </Card.Root>
 
       {/* Modal: View Official PO Voucher */}
@@ -511,12 +513,12 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({ onOpenCrea
           display="flex"
           alignItems="center"
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
           backdropFilter="blur(2px)"
         >
-          <Box bg="white" borderRadius="16px" p={6} maxW="780px" w="100%" boxShadow="2xl" maxH="90vh" overflowY="auto">
+          <Box bg="white" borderRadius="16px" p={{ base: 3, sm: 6 }} maxW="780px" w="100%" boxShadow="2xl" maxH="90vh" overflowY="auto">
             {/* Action Bar */}
-            <Flex justify="space-between" align="center" pb={4} mb={4} borderBottom="1px solid #e2e8f0">
+            <Flex justify="space-between" align="center" pb={4} mb={4} borderBottom="1px solid #e2e8f0" wrap="wrap" gap={2}>
               <Flex align="center" gap={2}>
                 <Badge size="md" colorPalette="blue" fontFamily="mono" fontSize="sm">
                   {selectedPO.poNumber}
@@ -543,16 +545,16 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({ onOpenCrea
             </Flex>
 
             {/* Printable Document Body */}
-            <Box p={6} border="1px solid #cbd5e1" borderRadius="10px" bg="white">
+            <Box p={{ base: 3, sm: 6 }} border="1px solid #cbd5e1" borderRadius="10px" bg="white">
               {/* Header */}
-              <Flex justify="space-between" align="flex-start" mb={6}>
+              <Flex justify="space-between" align="flex-start" mb={6} borderBottom="2px solid #0f172a" pb={4} wrap="wrap" gap={4}>
                 <Box>
                   <Heading size="md" color="#0f172a">{activeCompany.name}</Heading>
                   <Text fontSize="xs" color="#64748b">Headquarters & Central Procurement Division</Text>
                   <Text fontSize="xs" color="#64748b">{activeCompany.address || '742 Industrial Boulevard, Sector 4'}</Text>
                   <Text fontSize="xs" color="#64748b">Email: {activeCompany.email || 'procurement@apexconstruction.ng'} • Tel: {activeCompany.phone || '+234 803 234 8900'}</Text>
                 </Box>
-                <Box textAlign="right">
+                <Box textAlign={{ base: 'left', sm: 'right' }}>
                   <Heading size="lg" color="#2563eb" letterSpacing="tight">PURCHASE ORDER</Heading>
                   <Text fontSize="xs" fontFamily="mono" fontWeight="bold" color="#0f172a">
                     NO: {selectedPO.poNumber}
@@ -563,7 +565,7 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({ onOpenCrea
               </Flex>
 
               {/* Vendor & Delivery Box */}
-              <SimpleGrid columns={2} gap={4} p={4} bg="#f8fafc" borderRadius="8px" mb={6} border="1px solid #e2e8f0">
+              <SimpleGrid columns={{ base: 1, sm: 2 }} gap={4} p={{ base: 3, sm: 4 }} bg="#f8fafc" borderRadius="8px" mb={6} border="1px solid #e2e8f0">
                 <Box>
                   <Text fontSize="xs" fontWeight="bold" color="#64748b" textTransform="uppercase">VENDOR / SUPPLIER</Text>
                   <Text fontSize="sm" fontWeight="bold" color="#0f172a" mt={1}>{selectedPO.supplierName}</Text>
@@ -582,41 +584,43 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({ onOpenCrea
               </SimpleGrid>
 
               {/* Items Table */}
-              <Table.Root size="sm" variant="outline" mb={4}>
-                <Table.Header bg="#f1f5f9">
-                  <Table.Row>
-                    <Table.ColumnHeader fontSize="10px">#</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px">ITEM DESCRIPTION</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px" textAlign="center">QTY</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px" textAlign="center">UNIT</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px" textAlign="right">UNIT PRICE</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px" textAlign="right">DISC %</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px" textAlign="right">TAX %</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px" textAlign="right">TOTAL ({activeCompany.currency})</Table.ColumnHeader>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                  {selectedPO.items.map((item, idx) => (
-                    <Table.Row key={idx}>
-                      <Table.Cell fontSize="xs">{idx + 1}</Table.Cell>
-                      <Table.Cell fontSize="xs" fontWeight="medium">
-                        {item.description}
-                        {item.itemCode && <Text as="span" fontSize="10px" color="#64748b" ml={1}>({item.itemCode})</Text>}
-                      </Table.Cell>
-                      <Table.Cell fontSize="xs" textAlign="center" fontWeight="bold">{item.quantity}</Table.Cell>
-                      <Table.Cell fontSize="xs" textAlign="center">{item.unit || 'Units'}</Table.Cell>
-                      <Table.Cell fontSize="xs" textAlign="right">{item.unitPrice.toLocaleString()}</Table.Cell>
-                      <Table.Cell fontSize="xs" textAlign="right">{item.discountPercent || 0}%</Table.Cell>
-                      <Table.Cell fontSize="xs" textAlign="right">{item.taxPercent || 0}%</Table.Cell>
-                      <Table.Cell fontSize="xs" textAlign="right" fontWeight="bold">{item.total.toLocaleString()}</Table.Cell>
+              <Box overflowX="auto" mb={4}>
+                <Table.Root size="sm" variant="outline" minW="650px">
+                  <Table.Header bg="#f1f5f9">
+                    <Table.Row>
+                      <Table.ColumnHeader fontSize="10px">#</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px">ITEM DESCRIPTION</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px" textAlign="center">QTY</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px" textAlign="center">UNIT</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px" textAlign="right">UNIT PRICE</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px" textAlign="right">DISC %</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px" textAlign="right">TAX %</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px" textAlign="right">TOTAL ({activeCompany.currency})</Table.ColumnHeader>
                     </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table.Root>
+                  </Table.Header>
+                  <Table.Body>
+                    {selectedPO.items.map((item, idx) => (
+                      <Table.Row key={idx}>
+                        <Table.Cell fontSize="xs">{idx + 1}</Table.Cell>
+                        <Table.Cell fontSize="xs" fontWeight="medium">
+                          {item.description}
+                          {item.itemCode && <Text as="span" fontSize="10px" color="#64748b" ml={1}>({item.itemCode})</Text>}
+                        </Table.Cell>
+                        <Table.Cell fontSize="xs" textAlign="center" fontWeight="bold">{item.quantity}</Table.Cell>
+                        <Table.Cell fontSize="xs" textAlign="center">{item.unit || 'Units'}</Table.Cell>
+                        <Table.Cell fontSize="xs" textAlign="right">{item.unitPrice.toLocaleString()}</Table.Cell>
+                        <Table.Cell fontSize="xs" textAlign="right">{item.discountPercent || 0}%</Table.Cell>
+                        <Table.Cell fontSize="xs" textAlign="right">{item.taxPercent || 0}%</Table.Cell>
+                        <Table.Cell fontSize="xs" textAlign="right" fontWeight="bold">{item.total.toLocaleString()}</Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table.Root>
+              </Box>
 
               {/* Totals Summary */}
               <Flex justify="flex-end" mb={6}>
-                <Box w="280px" fontSize="xs">
+                <Box w={{ base: '100%', sm: '280px' }} fontSize="xs">
                   <Flex justify="space-between" py={1} borderBottom="1px solid #f1f5f9">
                     <Text color="#64748b">Subtotal:</Text>
                     <Text fontWeight="semibold">{activeCompany.currency} {(selectedPO.subtotal || selectedPO.totalAmount).toLocaleString()}</Text>
@@ -649,7 +653,7 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({ onOpenCrea
               )}
 
               {/* Signatures */}
-              <SimpleGrid columns={3} gap={4} pt={8} borderTop="1px solid #cbd5e1" textAlign="center" fontSize="xs">
+              <SimpleGrid columns={{ base: 1, sm: 3 }} gap={4} pt={8} borderTop="1px solid #cbd5e1" textAlign="center" fontSize="xs">
                 <Box>
                   <Box h="36px" borderBottom="1px dashed #94a3b8" mb={2} />
                   <Text fontWeight="bold" color="#334155">Prepared By</Text>
@@ -681,10 +685,10 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({ onOpenCrea
           display="flex"
           alignItems="center"
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
           backdropFilter="blur(2px)"
         >
-          <Box bg="white" borderRadius="16px" p={6} maxW="840px" w="100%" boxShadow="2xl" maxH="90vh" overflowY="auto">
+          <Box bg="white" borderRadius="16px" p={{ base: 3, sm: 6 }} maxW="840px" w="100%" boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Flex justify="space-between" align="center" mb={4}>
               <Heading size="md" color="#0f172a">Create Supplier Purchase Order</Heading>
               <Button size="xs" variant="ghost" onClick={() => setShowCreateModal(false)}>Cancel</Button>
@@ -922,9 +926,9 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({ onOpenCrea
           display="flex"
           alignItems="center"
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="14px" p={5} maxW="460px" w="100%" boxShadow="2xl">
+          <Box bg="white" borderRadius="14px" p={{ base: 4, sm: 5 }} maxW="460px" w="100%" boxShadow="2xl">
             <Heading size="md" color="#0f172a" mb={2}>Approve Purchase Order</Heading>
             <Text fontSize="xs" color="#64748b" mb={3}>
               Authorize PO <strong>{showApproveModal.poNumber}</strong> for <strong>{showApproveModal.supplierName}</strong> ({activeCompany.currency} {showApproveModal.totalAmount.toLocaleString()}).
@@ -958,9 +962,9 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({ onOpenCrea
           display="flex"
           alignItems="center"
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="14px" p={5} maxW="460px" w="100%" boxShadow="2xl">
+          <Box bg="white" borderRadius="14px" p={{ base: 4, sm: 5 }} maxW="460px" w="100%" boxShadow="2xl">
             <Heading size="md" color="#b91c1c" mb={2}>Reject Purchase Order</Heading>
             <Text fontSize="xs" color="#64748b" mb={3}>
               Please provide the justification for rejecting PO <strong>{showRejectModal.poNumber}</strong>.

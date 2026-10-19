@@ -117,7 +117,7 @@ export const CategoriesTab: React.FC = () => {
                 {cat.description || 'General construction supplies and materials category.'}
               </Text>
 
-              <SimpleGrid columns={2} gap={2} mt={3} pt={3} borderTop="1px dashed #e2e8f0">
+              <SimpleGrid columns={{ base: 1, sm: 2 }} gap={2} mt={3} pt={3} borderTop="1px dashed #e2e8f0">
                 <Box bg="#f8fafc" p={2} borderRadius="8px">
                   <Text fontSize="9px" textTransform="uppercase" fontWeight="bold" color="#64748b">Catalog SKUs</Text>
                   <Text fontSize="sm" fontWeight="bold" color="#0f172a">{items.length} Items</Text>
@@ -136,8 +136,8 @@ export const CategoriesTab: React.FC = () => {
 
       {/* Add / Edit Category Modal */}
       {(showAddModal || editingCategory) && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="440px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="440px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>
               {editingCategory ? 'Edit Material Category' : 'Create Material Category'}
             </Heading>

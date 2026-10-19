@@ -150,36 +150,38 @@ export const ProcurementAnalyticsTab: React.FC = () => {
             </Button>
           </Flex>
 
-          <Table.Root size="sm" variant="outline">
-            <Table.Header bg="#f8fafc">
-              <Table.Row>
-                <Table.ColumnHeader fontSize="10px">VENDOR</Table.ColumnHeader>
-                <Table.ColumnHeader fontSize="10px">CATEGORY</Table.ColumnHeader>
-                <Table.ColumnHeader fontSize="10px" textAlign="center">RATING</Table.ColumnHeader>
-                <Table.ColumnHeader fontSize="10px" textAlign="center">TERMS</Table.ColumnHeader>
-                <Table.ColumnHeader fontSize="10px" textAlign="center">STATUS</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {suppliers.map(s => (
-                <Table.Row key={s.id}>
-                  <Table.Cell fontSize="xs" fontWeight="semibold" color="#0f172a">
-                    {s.companyName}
-                  </Table.Cell>
-                  <Table.Cell fontSize="11px" color="#64748b">{s.category}</Table.Cell>
-                  <Table.Cell textAlign="center">
-                    <Badge size="xs" colorPalette="green">★ 4.8 / 5.0</Badge>
-                  </Table.Cell>
-                  <Table.Cell textAlign="center" fontSize="11px" color="#475569">{s.paymentTerms}</Table.Cell>
-                  <Table.Cell textAlign="center">
-                    <Badge size="xs" colorPalette={s.status === 'active' ? 'green' : 'gray'}>
-                      {s.status.toUpperCase()}
-                    </Badge>
-                  </Table.Cell>
+          <Box overflowX="auto">
+            <Table.Root size="sm" variant="outline" minW="500px">
+              <Table.Header bg="#f8fafc">
+                <Table.Row>
+                  <Table.ColumnHeader fontSize="10px">VENDOR</Table.ColumnHeader>
+                  <Table.ColumnHeader fontSize="10px">CATEGORY</Table.ColumnHeader>
+                  <Table.ColumnHeader fontSize="10px" textAlign="center">RATING</Table.ColumnHeader>
+                  <Table.ColumnHeader fontSize="10px" textAlign="center">TERMS</Table.ColumnHeader>
+                  <Table.ColumnHeader fontSize="10px" textAlign="center">STATUS</Table.ColumnHeader>
                 </Table.Row>
-              ))}
-            </Table.Body>
-          </Table.Root>
+              </Table.Header>
+              <Table.Body>
+                {suppliers.map(s => (
+                  <Table.Row key={s.id}>
+                    <Table.Cell fontSize="xs" fontWeight="semibold" color="#0f172a">
+                      {s.companyName}
+                    </Table.Cell>
+                    <Table.Cell fontSize="11px" color="#64748b">{s.category}</Table.Cell>
+                    <Table.Cell textAlign="center">
+                      <Badge size="xs" colorPalette="green">★ 4.8 / 5.0</Badge>
+                    </Table.Cell>
+                    <Table.Cell textAlign="center" fontSize="11px" color="#475569">{s.paymentTerms}</Table.Cell>
+                    <Table.Cell textAlign="center">
+                      <Badge size="xs" colorPalette={s.status === 'active' ? 'green' : 'gray'}>
+                        {s.status.toUpperCase()}
+                      </Badge>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Root>
+          </Box>
         </Card.Root>
       </SimpleGrid>
     </Stack>

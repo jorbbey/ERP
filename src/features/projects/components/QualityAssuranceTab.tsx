@@ -199,73 +199,75 @@ export const QualityAssuranceTab: React.FC<QualityAssuranceTabProps> = ({ projec
             No QA inspections recorded for this project yet. Click "Log QA Inspection" to document quality verification.
           </Box>
         ) : (
-          <Table.Root size="sm" striped>
-            <Table.Header bg="#f8fafc">
-              <Table.Row>
-                <Table.ColumnHeader color="#475569">Inspection Date</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Inspector / Consulting Agency</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Inspection Scope / Element</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Result</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Findings / Action Taken</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569" textAlign="right">Actions</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {currentQA.map((item) => (
-                <Table.Row key={item.id}>
-                  <Table.Cell fontSize="xs" color="#64748b" fontWeight="semibold">
-                    {item.inspectionDate}
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" color="#0f172a" fontWeight="medium">
-                    {item.inspector}
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a">
-                    {item.inspectionScope}
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Badge
-                      size="xs"
-                      colorPalette={
-                        item.result === 'Passed' ? 'green' :
-                        item.result === 'Conditional Pass' ? 'yellow' : 'red'
-                      }
-                    >
-                      {item.result}
-                    </Badge>
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" color="#334155">
-                    {item.defectsFound ? (
-                      <Box>
-                        <Text color="#dc2626" fontSize="11px">Findings: {item.defectsFound}</Text>
-                        {item.correctiveAction && (
-                          <Text color="#16a34a" fontSize="11px">Action: {item.correctiveAction}</Text>
-                        )}
-                      </Box>
-                    ) : (
-                      <Text color="#16a34a">{item.remarks || 'Standard pass certificate signed.'}</Text>
-                    )}
-                  </Table.Cell>
-                  <Table.Cell textAlign="right">
-                    <Flex justify="flex-end" gap={1.5}>
-                      <Button size="xs" variant="subtle" onClick={() => handleOpenEdit(item)} title="Edit QA Item">
-                        <Edit size={12} />
-                      </Button>
-                      <Button size="xs" variant="subtle" colorPalette="red" onClick={() => deleteQualityAssurance(item.id)} title="Delete QA Item">
-                        <Trash2 size={12} />
-                      </Button>
-                    </Flex>
-                  </Table.Cell>
+          <Box overflowX="auto" mx={{ base: -5, sm: 0 }} px={{ base: 5, sm: 0 }}>
+            <Table.Root size="sm" striped minW="700px">
+              <Table.Header bg="#f8fafc">
+                <Table.Row>
+                  <Table.ColumnHeader color="#475569">Inspection Date</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Inspector / Consulting Agency</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Inspection Scope / Element</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Result</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Findings / Action Taken</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569" textAlign="right">Actions</Table.ColumnHeader>
                 </Table.Row>
-              ))}
-            </Table.Body>
-          </Table.Root>
+              </Table.Header>
+              <Table.Body>
+                {currentQA.map((item) => (
+                  <Table.Row key={item.id}>
+                    <Table.Cell fontSize="xs" color="#64748b" fontWeight="semibold">
+                      {item.inspectionDate}
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" color="#0f172a" fontWeight="medium">
+                      {item.inspector}
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a">
+                      {item.inspectionScope}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Badge 
+                        size="xs" 
+                        colorPalette={
+                          item.result === 'Passed' ? 'green' : 
+                          item.result === 'Conditional Pass' ? 'yellow' : 'red'
+                        }
+                      >
+                        {item.result}
+                      </Badge>
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" color="#334155">
+                      {item.defectsFound ? (
+                        <Box>
+                          <Text color="#dc2626" fontSize="11px">Findings: {item.defectsFound}</Text>
+                          {item.correctiveAction && (
+                            <Text color="#16a34a" fontSize="11px">Action: {item.correctiveAction}</Text>
+                          )}
+                        </Box>
+                      ) : (
+                        <Text color="#16a34a">{item.remarks || 'Standard pass certificate signed.'}</Text>
+                      )}
+                    </Table.Cell>
+                    <Table.Cell textAlign="right">
+                      <Flex justify="flex-end" gap={1.5}>
+                        <Button size="xs" variant="subtle" onClick={() => handleOpenEdit(item)} title="Edit QA Item">
+                          <Edit size={12} />
+                        </Button>
+                        <Button size="xs" variant="subtle" colorPalette="red" onClick={() => deleteQualityAssurance(item.id)} title="Delete QA Item">
+                          <Trash2 size={12} />
+                        </Button>
+                      </Flex>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Root>
+          </Box>
         )}
       </Card.Root>
 
       {/* Modal: Add QA Inspection */}
       {showAddModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="550px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="550px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Record Quality Assurance Inspection</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Document physical inspection parameters, testing results, and corrective actions.</Text>
 
@@ -277,7 +279,7 @@ export const QualityAssuranceTab: React.FC<QualityAssuranceTabProps> = ({ projec
 
             <form onSubmit={handleSaveAdd}>
               <Stack gap={3}>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Inspection Date *</Text>
                     <Input
@@ -371,8 +373,8 @@ export const QualityAssuranceTab: React.FC<QualityAssuranceTabProps> = ({ projec
 
       {/* Modal: Edit QA Inspection */}
       {editingItem && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="550px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="550px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>Edit QA Inspection</Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>Update inspection findings, result, or corrective actions.</Text>
 
@@ -384,7 +386,7 @@ export const QualityAssuranceTab: React.FC<QualityAssuranceTabProps> = ({ projec
 
             <form onSubmit={handleSaveEdit}>
               <Stack gap={3}>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Inspection Date *</Text>
                     <Input

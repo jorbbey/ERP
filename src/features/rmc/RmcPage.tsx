@@ -125,47 +125,49 @@ export const RmcPage: React.FC = () => {
       </Card.Root>
 
       {/* Tabs */}
-      <Flex borderBottom="2px solid #e2e8f0" gap={6}>
-        <Box
-          as="button"
-          pb={3}
-          fontSize="sm"
-          fontWeight="bold"
-          color={activeTab === 'dispatches' ? '#2563eb' : '#64748b'}
-          borderBottom={activeTab === 'dispatches' ? '2px solid #2563eb' : 'none'}
-          mb="-2px"
-          cursor="pointer"
-          onClick={() => setActiveTab('dispatches')}
-        >
-          Transit Mixer Fleet Dispatches ({batchRecords.length})
-        </Box>
-        <Box
-          as="button"
-          pb={3}
-          fontSize="sm"
-          fontWeight="bold"
-          color={activeTab === 'mixDesigns' ? '#2563eb' : '#64748b'}
-          borderBottom={activeTab === 'mixDesigns' ? '2px solid #2563eb' : 'none'}
-          mb="-2px"
-          cursor="pointer"
-          onClick={() => setActiveTab('mixDesigns')}
-        >
-          Mix Designs & Lab Formulations ({mixDesigns.length})
-        </Box>
-        <Box
-          as="button"
-          pb={3}
-          fontSize="sm"
-          fontWeight="bold"
-          color={activeTab === 'qa' ? '#2563eb' : '#64748b'}
-          borderBottom={activeTab === 'qa' ? '2px solid #2563eb' : 'none'}
-          mb="-2px"
-          cursor="pointer"
-          onClick={() => setActiveTab('qa')}
-        >
-          QA Testing & Slump Inspections ({qualityInspections.length})
-        </Box>
-      </Flex>
+      <Box overflowX="auto" borderBottom="2px solid #e2e8f0">
+        <Flex gap={6} minW="max-content">
+          <Box
+            as="button"
+            pb={3}
+            fontSize="sm"
+            fontWeight="bold"
+            color={activeTab === 'dispatches' ? '#2563eb' : '#64748b'}
+            borderBottom={activeTab === 'dispatches' ? '2px solid #2563eb' : 'none'}
+            mb="-2px"
+            cursor="pointer"
+            onClick={() => setActiveTab('dispatches')}
+          >
+            Transit Mixer Fleet Dispatches ({batchRecords.length})
+          </Box>
+          <Box
+            as="button"
+            pb={3}
+            fontSize="sm"
+            fontWeight="bold"
+            color={activeTab === 'mixDesigns' ? '#2563eb' : '#64748b'}
+            borderBottom={activeTab === 'mixDesigns' ? '2px solid #2563eb' : 'none'}
+            mb="-2px"
+            cursor="pointer"
+            onClick={() => setActiveTab('mixDesigns')}
+          >
+            Mix Designs & Lab Formulations ({mixDesigns.length})
+          </Box>
+          <Box
+            as="button"
+            pb={3}
+            fontSize="sm"
+            fontWeight="bold"
+            color={activeTab === 'qa' ? '#2563eb' : '#64748b'}
+            borderBottom={activeTab === 'qa' ? '2px solid #2563eb' : 'none'}
+            mb="-2px"
+            cursor="pointer"
+            onClick={() => setActiveTab('qa')}
+          >
+            QA Testing & Slump Inspections ({qualityInspections.length})
+          </Box>
+        </Flex>
+      </Box>
 
       {/* Tab: Dispatches */}
       {activeTab === 'dispatches' && (
@@ -239,34 +241,36 @@ export const RmcPage: React.FC = () => {
       {/* Tab: QA Testing */}
       {activeTab === 'qa' && (
         <Card.Root bg="white" borderRadius="16px" border="1px solid #e2e8f0" overflow="hidden">
-          <Table.Root size="sm" striped>
-            <Table.Header bg="#f8fafc">
-              <Table.Row>
-                <Table.ColumnHeader color="#64748b" fontWeight="bold">Batch Ticket #</Table.ColumnHeader>
-                <Table.ColumnHeader color="#64748b" fontWeight="bold">Inspection Date</Table.ColumnHeader>
-                <Table.ColumnHeader color="#64748b" fontWeight="bold" textAlign="center">Slump Test</Table.ColumnHeader>
-                <Table.ColumnHeader color="#64748b" fontWeight="bold">7-Day Compression</Table.ColumnHeader>
-                <Table.ColumnHeader color="#64748b" fontWeight="bold">28-Day Target</Table.ColumnHeader>
-                <Table.ColumnHeader color="#64748b" fontWeight="bold">QA Verdict</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {qualityInspections.map((q) => (
-                <Table.Row key={q.id}>
-                  <Table.Cell fontFamily="mono" fontWeight="bold" fontSize="xs">{q.batchTicketNo}</Table.Cell>
-                  <Table.Cell fontSize="xs">{q.inspectionDate}</Table.Cell>
-                  <Table.Cell textAlign="center" fontSize="xs" fontWeight="bold">{q.slumpMm} mm</Table.Cell>
-                  <Table.Cell fontSize="xs" fontFamily="mono">{q.cylinder7DayStrength}</Table.Cell>
-                  <Table.Cell fontSize="xs" fontFamily="mono">{q.cylinder28DayStrength}</Table.Cell>
-                  <Table.Cell>
-                    <Badge colorPalette={q.passed ? 'green' : 'red'} size="xs">
-                      {q.passed ? 'Passed Standard' : 'Defect Non-Conformance'}
-                    </Badge>
-                  </Table.Cell>
+          <Box overflowX="auto">
+            <Table.Root size="sm" striped minW="700px">
+              <Table.Header bg="#f8fafc">
+                <Table.Row>
+                  <Table.ColumnHeader color="#64748b" fontWeight="bold">Batch Ticket #</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#64748b" fontWeight="bold">Inspection Date</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#64748b" fontWeight="bold" textAlign="center">Slump Test</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#64748b" fontWeight="bold">7-Day Compression</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#64748b" fontWeight="bold">28-Day Target</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#64748b" fontWeight="bold">QA Verdict</Table.ColumnHeader>
                 </Table.Row>
-              ))}
-            </Table.Body>
-          </Table.Root>
+              </Table.Header>
+              <Table.Body>
+                {qualityInspections.map((q) => (
+                  <Table.Row key={q.id}>
+                    <Table.Cell fontFamily="mono" fontWeight="bold" fontSize="xs">{q.batchTicketNo}</Table.Cell>
+                    <Table.Cell fontSize="xs">{q.inspectionDate}</Table.Cell>
+                    <Table.Cell textAlign="center" fontSize="xs" fontWeight="bold">{q.slumpMm} mm</Table.Cell>
+                    <Table.Cell fontSize="xs" fontFamily="mono">{q.cylinder7DayStrength}</Table.Cell>
+                    <Table.Cell fontSize="xs" fontFamily="mono">{q.cylinder28DayStrength}</Table.Cell>
+                    <Table.Cell>
+                      <Badge colorPalette={q.passed ? 'green' : 'red'} size="xs">
+                        {q.passed ? 'Passed Standard' : 'Defect Non-Conformance'}
+                      </Badge>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Root>
+          </Box>
         </Card.Root>
       )}
 
@@ -280,13 +284,13 @@ export const RmcPage: React.FC = () => {
           display="flex" 
           alignItems="center" 
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" p={6} maxW="480px" w="100%" boxShadow="2xl">
+          <Box bg="white" borderRadius="16px" p={{ base: 4, sm: 6 }} maxW="480px" w="100%" boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={4}>New Concrete Mix Formulation</Heading>
             <form onSubmit={handleCreateMix}>
               <Stack gap={3} fontSize="xs">
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontWeight="semibold" color="#334155" mb={1}>Mix Code</Text>
                     <Input 
@@ -307,7 +311,7 @@ export const RmcPage: React.FC = () => {
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontWeight="semibold" color="#334155" mb={1}>Target Slump</Text>
                     <Input 
@@ -326,7 +330,7 @@ export const RmcPage: React.FC = () => {
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={3} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 3 }} gap={3}>
                   <Box>
                     <Text fontWeight="semibold" color="#334155" mb={1}>Cement (kg)</Text>
                     <Input 
@@ -377,9 +381,9 @@ export const RmcPage: React.FC = () => {
           display="flex" 
           alignItems="center" 
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" p={6} maxW="460px" w="100%" boxShadow="2xl">
+          <Box bg="white" borderRadius="16px" p={{ base: 4, sm: 6 }} maxW="460px" w="100%" boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={4}>Dispatch Transit Mixer Truck</Heading>
             <form onSubmit={handleCreateBatch}>
               <Stack gap={3} fontSize="xs">
@@ -398,7 +402,7 @@ export const RmcPage: React.FC = () => {
                   </NativeSelect.Root>
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontWeight="semibold" color="#334155" mb={1}>Truck Registration #</Text>
                     <Input 
@@ -461,9 +465,9 @@ export const RmcPage: React.FC = () => {
           display="flex" 
           alignItems="center" 
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" p={6} maxW="460px" w="100%" boxShadow="2xl">
+          <Box bg="white" borderRadius="16px" p={{ base: 4, sm: 6 }} maxW="460px" w="100%" boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={4}>Record QA Slump Inspection</Heading>
             <form onSubmit={handleCreateQA}>
               <Stack gap={3} fontSize="xs">
@@ -482,7 +486,7 @@ export const RmcPage: React.FC = () => {
                   </NativeSelect.Root>
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontWeight="semibold" color="#334155" mb={1}>Slump Cone Drop (mm)</Text>
                     <Input 

@@ -373,7 +373,8 @@ export const GoodsReceivedNotesTab: React.FC<GoodsReceivedNotesTabProps> = ({
 
       {/* GRN Table */}
       <Card.Root bg="white" borderRadius="14px" border="1px solid #e2e8f0" boxShadow="xs" overflow="hidden">
-        <Table.Root size="sm" variant="outline">
+        <Box overflowX="auto" w="100%">
+          <Table.Root size="sm" variant="outline" minW="850px">
           <Table.Header bg="#f8fafc">
             <Table.Row>
               <Table.ColumnHeader fontSize="11px" color="#64748b">GRN NUMBER</Table.ColumnHeader>
@@ -460,6 +461,7 @@ export const GoodsReceivedNotesTab: React.FC<GoodsReceivedNotesTabProps> = ({
             )}
           </Table.Body>
         </Table.Root>
+        </Box>
       </Card.Root>
 
       {/* Modal: View Official GRN Voucher */}
@@ -472,12 +474,12 @@ export const GoodsReceivedNotesTab: React.FC<GoodsReceivedNotesTabProps> = ({
           display="flex"
           alignItems="center"
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
           backdropFilter="blur(2px)"
         >
-          <Box bg="white" borderRadius="16px" p={6} maxW="780px" w="100%" boxShadow="2xl" maxH="90vh" overflowY="auto">
+          <Box bg="white" borderRadius="16px" p={{ base: 3, sm: 6 }} maxW="780px" w="100%" boxShadow="2xl" maxH="90vh" overflowY="auto">
             {/* Action Bar */}
-            <Flex justify="space-between" align="center" pb={4} mb={4} borderBottom="1px solid #e2e8f0">
+            <Flex justify="space-between" align="center" pb={4} mb={4} borderBottom="1px solid #e2e8f0" wrap="wrap" gap={2}>
               <Flex align="center" gap={2}>
                 <Badge size="md" colorPalette="purple" fontFamily="mono" fontSize="sm">
                   {viewingGRN.grnNumber}
@@ -500,15 +502,15 @@ export const GoodsReceivedNotesTab: React.FC<GoodsReceivedNotesTabProps> = ({
             </Flex>
 
             {/* Printable Document Body */}
-            <Box p={6} border="1px solid #cbd5e1" borderRadius="10px" bg="white">
+            <Box p={{ base: 3, sm: 6 }} border="1px solid #cbd5e1" borderRadius="10px" bg="white">
               {/* Header */}
-              <Flex justify="space-between" align="flex-start" mb={6}>
+              <Flex justify="space-between" align="flex-start" mb={6} borderBottom="2px solid #0f172a" pb={4} wrap="wrap" gap={4}>
                 <Box>
                   <Heading size="md" color="#0f172a">{activeCompany.name}</Heading>
                   <Text fontSize="xs" color="#64748b">Store Receiving & Materials Quality Assurance</Text>
                   <Text fontSize="xs" color="#64748b">Central Warehouse Yard • Gate 2 Weighbridge</Text>
                 </Box>
-                <Box textAlign="right">
+                <Box textAlign={{ base: 'left', sm: 'right' }}>
                   <Heading size="lg" color="#9333ea" letterSpacing="tight">GOODS RECEIVED NOTE</Heading>
                   <Text fontSize="xs" fontFamily="mono" fontWeight="bold" color="#0f172a">
                     GRN NO: {viewingGRN.grnNumber}
@@ -519,7 +521,7 @@ export const GoodsReceivedNotesTab: React.FC<GoodsReceivedNotesTabProps> = ({
               </Flex>
 
               {/* Delivery Meta Grid */}
-              <SimpleGrid columns={2} gap={4} p={4} bg="#f8fafc" borderRadius="8px" mb={6} border="1px solid #e2e8f0" fontSize="xs">
+              <SimpleGrid columns={{ base: 1, sm: 2 }} gap={4} p={{ base: 3, sm: 4 }} bg="#f8fafc" borderRadius="8px" mb={6} border="1px solid #e2e8f0" fontSize="xs">
                 <Box>
                   <Text fontWeight="bold" color="#64748b" textTransform="uppercase">VENDOR & DISPATCH DETAILS</Text>
                   <Text fontSize="sm" fontWeight="bold" color="#0f172a" mt={1}>{viewingGRN.supplierName}</Text>
@@ -542,47 +544,49 @@ export const GoodsReceivedNotesTab: React.FC<GoodsReceivedNotesTabProps> = ({
               </SimpleGrid>
 
               {/* Items Breakdown Table */}
-              <Table.Root size="sm" variant="outline" mb={4}>
-                <Table.Header bg="#f1f5f9">
-                  <Table.Row>
-                    <Table.ColumnHeader fontSize="10px">#</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px">MATERIAL DESCRIPTION</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px" textAlign="center">ORDERED</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px" textAlign="center">DELIVERED</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px" textAlign="center">ACCEPTED</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px" textAlign="center">REJECTED</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px" textAlign="right">VALUE ACCEPTED</Table.ColumnHeader>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                  {viewingGRN.items.map((item, idx) => (
-                    <Table.Row key={idx}>
-                      <Table.Cell fontSize="xs">{idx + 1}</Table.Cell>
-                      <Table.Cell fontSize="xs">
-                        <Text fontWeight="semibold" color="#0f172a">{item.description}</Text>
-                        {item.rejectionReason && (
-                          <Text fontSize="10px" color="#dc2626">Rejection note: {item.rejectionReason}</Text>
-                        )}
-                      </Table.Cell>
-                      <Table.Cell fontSize="xs" textAlign="center">{item.quantityOrdered} {item.unit}</Table.Cell>
-                      <Table.Cell fontSize="xs" textAlign="center" fontWeight="bold">{item.quantityReceived}</Table.Cell>
-                      <Table.Cell fontSize="xs" textAlign="center" color="#16a34a" fontWeight="bold">
-                        {item.quantityAccepted}
-                      </Table.Cell>
-                      <Table.Cell fontSize="xs" textAlign="center" color={item.quantityRejected > 0 ? '#dc2626' : '#64748b'} fontWeight="bold">
-                        {item.quantityRejected}
-                      </Table.Cell>
-                      <Table.Cell fontSize="xs" textAlign="right" fontWeight="bold">
-                        {activeCompany.currency} {item.lineTotal.toLocaleString()}
-                      </Table.Cell>
+              <Box overflowX="auto" mb={4}>
+                <Table.Root size="sm" variant="outline" minW="550px">
+                  <Table.Header bg="#f1f5f9">
+                    <Table.Row>
+                      <Table.ColumnHeader fontSize="10px">#</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px">MATERIAL DESCRIPTION</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px" textAlign="center">ORDERED</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px" textAlign="center">DELIVERED</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px" textAlign="center">ACCEPTED</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px" textAlign="center">REJECTED</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px" textAlign="right">VALUE ACCEPTED</Table.ColumnHeader>
                     </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table.Root>
+                  </Table.Header>
+                  <Table.Body>
+                    {viewingGRN.items.map((item, idx) => (
+                      <Table.Row key={idx}>
+                        <Table.Cell fontSize="xs">{idx + 1}</Table.Cell>
+                        <Table.Cell fontSize="xs">
+                          <Text fontWeight="semibold" color="#0f172a">{item.description}</Text>
+                          {item.rejectionReason && (
+                            <Text fontSize="10px" color="#dc2626">Rejection note: {item.rejectionReason}</Text>
+                          )}
+                        </Table.Cell>
+                        <Table.Cell fontSize="xs" textAlign="center">{item.quantityOrdered} {item.unit}</Table.Cell>
+                        <Table.Cell fontSize="xs" textAlign="center" fontWeight="bold">{item.quantityReceived}</Table.Cell>
+                        <Table.Cell fontSize="xs" textAlign="center" color="#16a34a" fontWeight="bold">
+                          {item.quantityAccepted}
+                        </Table.Cell>
+                        <Table.Cell fontSize="xs" textAlign="center" color={item.quantityRejected > 0 ? '#dc2626' : '#64748b'} fontWeight="bold">
+                          {item.quantityRejected}
+                        </Table.Cell>
+                        <Table.Cell fontSize="xs" textAlign="right" fontWeight="bold">
+                          {activeCompany.currency} {item.lineTotal.toLocaleString()}
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table.Root>
+              </Box>
 
               {/* Total Value */}
               <Flex justify="flex-end" mb={6}>
-                <Box w="260px" p={3} bg="#f8fafc" borderRadius="8px" border="1px solid #e2e8f0" fontSize="xs">
+                <Box w={{ base: '100%', sm: '260px' }} p={3} bg="#f8fafc" borderRadius="8px" border="1px solid #e2e8f0" fontSize="xs">
                   <Flex justify="space-between" fontWeight="bold" color="#0f172a">
                     <Text>Total Credited to Stores:</Text>
                     <Text>{activeCompany.currency} {(viewingGRN.totalReceivedValue || viewingGRN.totalValueReceived || 0).toLocaleString()}</Text>
@@ -599,7 +603,7 @@ export const GoodsReceivedNotesTab: React.FC<GoodsReceivedNotesTabProps> = ({
               )}
 
               {/* Signatures */}
-              <SimpleGrid columns={3} gap={4} pt={8} borderTop="1px solid #cbd5e1" textAlign="center" fontSize="xs">
+              <SimpleGrid columns={{ base: 1, sm: 3 }} gap={4} pt={8} borderTop="1px solid #cbd5e1" textAlign="center" fontSize="xs">
                 <Box>
                   <Box h="36px" borderBottom="1px dashed #94a3b8" mb={2} />
                   <Text fontWeight="bold" color="#334155">Delivered By Transporter</Text>
@@ -631,10 +635,10 @@ export const GoodsReceivedNotesTab: React.FC<GoodsReceivedNotesTabProps> = ({
           display="flex"
           alignItems="center"
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
           backdropFilter="blur(2px)"
         >
-          <Box bg="white" borderRadius="16px" p={6} maxW="880px" w="100%" boxShadow="2xl" maxH="90vh" overflowY="auto">
+          <Box bg="white" borderRadius="16px" p={{ base: 3, sm: 6 }} maxW="880px" w="100%" boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Flex justify="space-between" align="center" mb={4}>
               <Box>
                 <Heading size="md" color="#0f172a">Create Goods Received Note (GRN)</Heading>
@@ -770,73 +774,75 @@ export const GoodsReceivedNotesTab: React.FC<GoodsReceivedNotesTabProps> = ({
                 <Box p={3} bg="#f8fafc" borderRadius="10px" border="1px solid #e2e8f0">
                   <Heading size="xs" color="#0f172a" mb={2}>Verify Incoming Quantities by Item</Heading>
 
-                  <Table.Root size="sm" variant="outline" bg="white">
-                    <Table.Header bg="#f1f5f9">
-                      <Table.Row>
-                        <Table.ColumnHeader fontSize="10px">ITEM DESCRIPTION</Table.ColumnHeader>
-                        <Table.ColumnHeader fontSize="10px" textAlign="center">ORDERED</Table.ColumnHeader>
-                        <Table.ColumnHeader fontSize="10px" textAlign="center">PREV RECV</Table.ColumnHeader>
-                        <Table.ColumnHeader fontSize="10px" textAlign="center" w="90px">NOW RECV</Table.ColumnHeader>
-                        <Table.ColumnHeader fontSize="10px" textAlign="center" w="90px">ACCEPTED</Table.ColumnHeader>
-                        <Table.ColumnHeader fontSize="10px" textAlign="center" w="90px">REJECTED</Table.ColumnHeader>
-                        <Table.ColumnHeader fontSize="10px" w="180px">REJECTION REASON</Table.ColumnHeader>
-                      </Table.Row>
-                    </Table.Header>
-                    <Table.Body>
-                      {receiptItems.map((item, idx) => (
-                        <Table.Row key={idx}>
-                          <Table.Cell>
-                            <Text fontWeight="semibold" color="#0f172a">{item.description}</Text>
-                            {item.itemCode && <Text fontSize="9px" color="#64748b">Code: {item.itemCode}</Text>}
-                          </Table.Cell>
-                          <Table.Cell textAlign="center">{item.quantityOrdered} {item.unit}</Table.Cell>
-                          <Table.Cell textAlign="center" color="#64748b">{item.quantityPreviouslyReceived}</Table.Cell>
-                          <Table.Cell textAlign="center">
-                            <Input
-                              size="xs"
-                              type="number"
-                              min="0"
-                              value={item.quantityReceived}
-                              onChange={(e) => handleItemQtyReceivedChange(idx, Number(e.target.value))}
-                            />
-                          </Table.Cell>
-                          <Table.Cell textAlign="center">
-                            <Input
-                              size="xs"
-                              type="number"
-                              min="0"
-                              value={item.quantityAccepted}
-                              onChange={(e) => {
-                                const val = Number(e.target.value);
-                                const updated = [...receiptItems];
-                                updated[idx].quantityAccepted = val;
-                                updated[idx].quantityRejected = Math.max(0, updated[idx].quantityReceived - val);
-                                setReceiptItems(updated);
-                              }}
-                            />
-                          </Table.Cell>
-                          <Table.Cell textAlign="center">
-                            <Input
-                              size="xs"
-                              type="number"
-                              min="0"
-                              value={item.quantityRejected}
-                              onChange={(e) => handleItemQtyRejectedChange(idx, Number(e.target.value))}
-                            />
-                          </Table.Cell>
-                          <Table.Cell>
-                            <Input
-                              size="xs"
-                              placeholder="e.g. Broken edges, off-spec"
-                              disabled={item.quantityRejected === 0}
-                              value={item.rejectionReason}
-                              onChange={(e) => handleItemRejectionReasonChange(idx, e.target.value)}
-                            />
-                          </Table.Cell>
+                  <Box overflowX="auto">
+                    <Table.Root size="sm" variant="outline" bg="white" minW="650px">
+                      <Table.Header bg="#f1f5f9">
+                        <Table.Row>
+                          <Table.ColumnHeader fontSize="10px">ITEM DESCRIPTION</Table.ColumnHeader>
+                          <Table.ColumnHeader fontSize="10px" textAlign="center">ORDERED</Table.ColumnHeader>
+                          <Table.ColumnHeader fontSize="10px" textAlign="center">PREV RECV</Table.ColumnHeader>
+                          <Table.ColumnHeader fontSize="10px" textAlign="center" w="90px">NOW RECV</Table.ColumnHeader>
+                          <Table.ColumnHeader fontSize="10px" textAlign="center" w="90px">ACCEPTED</Table.ColumnHeader>
+                          <Table.ColumnHeader fontSize="10px" textAlign="center" w="90px">REJECTED</Table.ColumnHeader>
+                          <Table.ColumnHeader fontSize="10px" w="180px">REJECTION REASON</Table.ColumnHeader>
                         </Table.Row>
-                      ))}
-                    </Table.Body>
-                  </Table.Root>
+                      </Table.Header>
+                      <Table.Body>
+                        {receiptItems.map((item, idx) => (
+                          <Table.Row key={idx}>
+                            <Table.Cell>
+                              <Text fontWeight="semibold" color="#0f172a">{item.description}</Text>
+                              {item.itemCode && <Text fontSize="9px" color="#64748b">Code: {item.itemCode}</Text>}
+                            </Table.Cell>
+                            <Table.Cell textAlign="center">{item.quantityOrdered} {item.unit}</Table.Cell>
+                            <Table.Cell textAlign="center" color="#64748b">{item.quantityPreviouslyReceived}</Table.Cell>
+                            <Table.Cell textAlign="center">
+                              <Input
+                                size="xs"
+                                type="number"
+                                min="0"
+                                value={item.quantityReceived}
+                                onChange={(e) => handleItemQtyReceivedChange(idx, Number(e.target.value))}
+                              />
+                            </Table.Cell>
+                            <Table.Cell textAlign="center">
+                              <Input
+                                size="xs"
+                                type="number"
+                                min="0"
+                                value={item.quantityAccepted}
+                                onChange={(e) => {
+                                  const val = Number(e.target.value);
+                                  const updated = [...receiptItems];
+                                  updated[idx].quantityAccepted = val;
+                                  updated[idx].quantityRejected = Math.max(0, updated[idx].quantityReceived - val);
+                                  setReceiptItems(updated);
+                                }}
+                              />
+                            </Table.Cell>
+                            <Table.Cell textAlign="center">
+                              <Input
+                                size="xs"
+                                type="number"
+                                min="0"
+                                value={item.quantityRejected}
+                                onChange={(e) => handleItemQtyRejectedChange(idx, Number(e.target.value))}
+                              />
+                            </Table.Cell>
+                            <Table.Cell>
+                              <Input
+                                size="xs"
+                                placeholder="e.g. Broken edges, off-spec"
+                                disabled={item.quantityRejected === 0}
+                                value={item.rejectionReason}
+                                onChange={(e) => handleItemRejectionReasonChange(idx, e.target.value)}
+                              />
+                            </Table.Cell>
+                          </Table.Row>
+                        ))}
+                      </Table.Body>
+                    </Table.Root>
+                  </Box>
                 </Box>
 
                 <Box>

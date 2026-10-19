@@ -77,6 +77,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
   const [filterView, setFilterView] = useState<'all' | 'valid' | 'errors'>('all');
   const [importResult, setImportResult] = useState<{ successCount: number; failedCount: number; errors?: string[] } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -133,9 +134,9 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
         const firstSheetName = wb.SheetNames[0];
         const ws = wb.Sheets[firstSheetName];
         const rawJson: any[] = XLSX.utils.sheet_to_json(ws, { defval: '' });
-
+        setUploadError(null);
         if (rawJson.length === 0) {
-          alert('The uploaded spreadsheet contains no data rows.');
+          setUploadError('The uploaded spreadsheet contains no data rows.');
           setIsProcessing(false);
           return;
         }
@@ -238,7 +239,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
         setParsedRows(processed);
         setStep('preview');
       } catch (err: any) {
-        alert('Failed to parse spreadsheet: ' + (err?.message || 'Invalid file structure'));
+        setUploadError('Failed to parse spreadsheet: ' + (err?.message || 'Invalid file structure'));
       } finally {
         setIsProcessing(false);
       }
@@ -250,7 +251,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
   const handleCommit = () => {
     const validRows = parsedRows.filter(r => r.isValid).map(r => r.data);
     if (validRows.length === 0) {
-      alert('There are no valid rows to import. Please review row-level errors.');
+      setUploadError('There are no valid rows to import. Please review row-level errors.');
       return;
     }
 
@@ -326,6 +327,13 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
             3. Import Summary
           </Button>
         </Flex>
+
+        {uploadError && (
+          <Box p={3} mb={3} bg="#fef2f2" borderRadius="8px" border="1px solid #fecaca" color="#dc2626" fontSize="xs" display="flex" justifyContent="space-between" alignItems="center">
+            <Text>{uploadError}</Text>
+            <Button size="xs" variant="ghost" color="#dc2626" onClick={() => setUploadError(null)}>Dismiss</Button>
+          </Box>
+        )}
 
         {/* STEP 1: Upload & Template */}
         {step === 'upload' && (

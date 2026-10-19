@@ -47,6 +47,7 @@ export const DepartmentsTab: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingDept, setEditingDept] = useState<Department | null>(null);
   const [headModalDept, setHeadModalDept] = useState<Department | null>(null);
+  const [deletingDept, setDeletingDept] = useState<Department | null>(null);
 
   // Form states
   const [deptForm, setDeptForm] = useState({
@@ -196,12 +197,7 @@ export const DepartmentsTab: React.FC = () => {
                     size="xs"
                     variant="ghost"
                     color="#dc2626"
-                    onClick={() => {
-                      if (confirm(`Delete department "${dept.name}"?`)) {
-                        deleteDepartment(dept.id);
-                        if (selectedDeptId === dept.id) setSelectedDeptId(null);
-                      }
-                    }}
+                    onClick={() => setDeletingDept(dept)}
                     title="Delete Department"
                   >
                     <Trash2 size={13} />
@@ -315,36 +311,38 @@ export const DepartmentsTab: React.FC = () => {
               No staff members currently assigned to this department.
             </Box>
           ) : (
-            <Table.Root size="sm" variant="outline">
-              <Table.Header bg="#f8fafc">
-                <Table.Row>
-                  <Table.ColumnHeader>Code</Table.ColumnHeader>
-                  <Table.ColumnHeader>Staff Member</Table.ColumnHeader>
-                  <Table.ColumnHeader>Position</Table.ColumnHeader>
-                  <Table.ColumnHeader>System Role</Table.ColumnHeader>
-                  <Table.ColumnHeader>Contact</Table.ColumnHeader>
-                  <Table.ColumnHeader>Date Joined</Table.ColumnHeader>
-                  <Table.ColumnHeader>Status</Table.ColumnHeader>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {deptEmployees.map(e => (
-                  <Table.Row key={e.id}>
-                    <Table.Cell fontFamily="mono" fontWeight="bold" color="#2563eb">{e.code}</Table.Cell>
-                    <Table.Cell fontWeight="bold">{e.name}</Table.Cell>
-                    <Table.Cell>{e.position}</Table.Cell>
-                    <Table.Cell><Badge size="xs" colorPalette="blue">{e.role}</Badge></Table.Cell>
-                    <Table.Cell fontSize="xs">{e.phone} • {e.email}</Table.Cell>
-                    <Table.Cell fontSize="xs">{e.hireDate}</Table.Cell>
-                    <Table.Cell>
-                      <Badge size="xs" colorPalette={e.status === 'Active' ? 'green' : 'yellow'}>
-                        {e.status}
-                      </Badge>
-                    </Table.Cell>
+            <Box overflowX="auto" mx={{ base: -5, sm: 0 }} px={{ base: 5, sm: 0 }}>
+              <Table.Root size="sm" variant="outline" minW="750px">
+                <Table.Header bg="#f8fafc">
+                  <Table.Row>
+                    <Table.ColumnHeader>Code</Table.ColumnHeader>
+                    <Table.ColumnHeader>Staff Member</Table.ColumnHeader>
+                    <Table.ColumnHeader>Position</Table.ColumnHeader>
+                    <Table.ColumnHeader>System Role</Table.ColumnHeader>
+                    <Table.ColumnHeader>Contact</Table.ColumnHeader>
+                    <Table.ColumnHeader>Date Joined</Table.ColumnHeader>
+                    <Table.ColumnHeader>Status</Table.ColumnHeader>
                   </Table.Row>
-                ))}
-              </Table.Body>
-            </Table.Root>
+                </Table.Header>
+                <Table.Body>
+                  {deptEmployees.map(e => (
+                    <Table.Row key={e.id}>
+                      <Table.Cell fontFamily="mono" fontWeight="bold" color="#2563eb">{e.code}</Table.Cell>
+                      <Table.Cell fontWeight="bold">{e.name}</Table.Cell>
+                      <Table.Cell>{e.position}</Table.Cell>
+                      <Table.Cell><Badge size="xs" colorPalette="blue">{e.role}</Badge></Table.Cell>
+                      <Table.Cell fontSize="xs">{e.phone} • {e.email}</Table.Cell>
+                      <Table.Cell fontSize="xs">{e.hireDate}</Table.Cell>
+                      <Table.Cell>
+                        <Badge size="xs" colorPalette={e.status === 'Active' ? 'green' : 'yellow'}>
+                          {e.status}
+                        </Badge>
+                      </Table.Cell>
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table.Root>
+            </Box>
           )}
         </Card.Root>
       )}
@@ -362,9 +360,9 @@ export const DepartmentsTab: React.FC = () => {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} border="1px solid #e2e8f0" boxShadow="2xl">
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>
               {editingDept ? 'Edit Department' : 'Create Department'}
             </Heading>
@@ -431,9 +429,9 @@ export const DepartmentsTab: React.FC = () => {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          p={4}
+          p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="450px" w="100%" p={6} border="1px solid #e2e8f0" boxShadow="2xl">
+          <Box bg="white" borderRadius="16px" maxW="450px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Heading size="md" color="#0f172a" mb={1}>
               Assign Department Head
             </Heading>
@@ -480,6 +478,43 @@ export const DepartmentsTab: React.FC = () => {
                 </Flex>
               </Stack>
             </form>
+          </Box>
+        </Box>
+      )}
+
+      {/* Delete Department Confirmation Modal */}
+      {deletingDept && (
+        <Box
+          position="fixed"
+          inset="0"
+          zIndex="1450"
+          bg="rgba(15, 23, 42, 0.65)"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          p={{ base: 2, sm: 4 }}
+        >
+          <Box bg="white" borderRadius="16px" maxW="440px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
+            <Heading size="md" color="#0f172a" mb={2}>Delete Department</Heading>
+            <Text fontSize="sm" color="#475569" mb={4}>
+              Are you sure you want to permanently delete the department <strong>"{deletingDept.name}"</strong>?
+            </Text>
+            <Flex justify="flex-end" gap={2}>
+              <Button size="sm" variant="outline" onClick={() => setDeletingDept(null)}>
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                colorPalette="red"
+                onClick={() => {
+                  deleteDepartment(deletingDept.id);
+                  if (selectedDeptId === deletingDept.id) setSelectedDeptId(null);
+                  setDeletingDept(null);
+                }}
+              >
+                Delete
+              </Button>
+            </Flex>
           </Box>
         </Box>
       )}
