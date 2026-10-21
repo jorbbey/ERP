@@ -1,4 +1,4 @@
-import { PayrollRun, Payslip } from '../types';
+import { PayrollRun, Payslip, PayrollCalculationStructure, PayrollCalculationItem, PayslipItemBreakdown } from '../types';
 import { erpStorage } from './erpStorage';
 
 export const payrollService = {
@@ -14,10 +14,25 @@ export const payrollService = {
     return list;
   },
 
-  processPayrollMonth: (monthYear: string): PayrollRun => {
+  getPayrollStructure: (): PayrollCalculationStructure => {
+    return erpStorage.getPayrollStructure();
+  },
+
+  savePayrollStructure: (structure: PayrollCalculationStructure): void => {
+    erpStorage.savePayrollStructure(structure);
+  },
+
+  processPayrollMonth: (monthYear: string, customItems?: PayrollCalculationItem[]): PayrollRun => {
     const employees = erpStorage.getEmployees().filter(e => e.status === 'Active');
     const loans = erpStorage.getEmployeeLoans();
     const advances = erpStorage.getSalaryAdvances();
+
+    // Use passed customItems or loaded persistent structure
+    const currentStructure = erpStorage.getPayrollStructure();
+    const itemsToUse = customItems && customItems.length > 0 ? customItems : currentStructure.items;
+
+    const activeEarnings = itemsToUse.filter(i => i.category === 'earning' && i.isActive);
+    const activeDeductions = itemsToUse.filter(i => i.category === 'deduction' && i.isActive);
 
     const runs = erpStorage.getPayrollRuns();
     const newRunId = runs.length > 0 ? Math.max(...runs.map(r => r.id)) + 1 : 1;
@@ -33,13 +48,59 @@ export const payrollService = {
 
     employees.forEach(emp => {
       const basic = emp.salary || 4000;
-      const allowance = Math.round(basic * 0.12);
-      const gross = basic + allowance;
+      const itemBreakdown: PayslipItemBreakdown[] = [];
 
-      // Tax (approx. 18% PAYE)
-      const tax = Math.round(gross * 0.18);
-      // Pension (8% statutory employee pension)
-      const pension = Math.round(basic * 0.08);
+      // Calculate configured earnings
+      let totalAllowances = 0;
+      activeEarnings.forEach(item => {
+        const amt = Math.round(basic * (item.percentage / 100));
+        totalAllowances += amt;
+        itemBreakdown.push({
+          itemId: item.id,
+          name: item.name,
+          category: 'earning',
+          percentage: item.percentage,
+          basedOn: item.basedOn,
+          amount: amt
+        });
+      });
+
+      const gross = basic + totalAllowances;
+
+      // Calculate configured deductions
+      let statutoryDeductionsTotal = 0;
+      let taxAmount = 0;
+      let pensionAmount = 0;
+
+      activeDeductions.forEach(item => {
+        const baseVal = item.basedOn === 'gross' ? gross : basic;
+        const amt = Math.round(baseVal * (item.percentage / 100));
+        statutoryDeductionsTotal += amt;
+
+        const lowerName = item.name.toLowerCase();
+        if (lowerName.includes('tax') || lowerName.includes('paye')) {
+          taxAmount += amt;
+        } else if (lowerName.includes('pension')) {
+          pensionAmount += amt;
+        }
+
+        itemBreakdown.push({
+          itemId: item.id,
+          name: item.name,
+          category: 'deduction',
+          percentage: item.percentage,
+          basedOn: item.basedOn,
+          amount: amt
+        });
+      });
+
+      // If no specific tax or pension item was tagged, allocate appropriately
+      if (taxAmount === 0 && statutoryDeductionsTotal > 0) {
+        taxAmount = Math.round(statutoryDeductionsTotal * 0.65);
+      }
+      if (pensionAmount === 0 && statutoryDeductionsTotal > 0) {
+        pensionAmount = statutoryDeductionsTotal - taxAmount;
+      }
 
       // Check active loan deduction
       let loanDeduction = 0;
@@ -55,7 +116,8 @@ export const payrollService = {
       );
       const advanceDeduction = activeAdvance ? activeAdvance.amount : 0;
 
-      const deductions = tax + pension + loanDeduction + advanceDeduction;
+      const otherDeductions = loanDeduction + advanceDeduction;
+      const deductions = statutoryDeductionsTotal + otherDeductions;
       const net = gross - deductions;
 
       totalGross += gross;
@@ -70,14 +132,15 @@ export const payrollService = {
         employeeCode: emp.code,
         department: emp.department,
         basicSalary: basic,
-        allowances: allowance,
+        allowances: totalAllowances,
         grossPay: gross,
-        tax,
-        pension,
-        loanDeduction: loanDeduction + advanceDeduction,
+        tax: taxAmount,
+        pension: pensionAmount,
+        loanDeduction: otherDeductions,
         totalDeductions: deductions,
         netPay: net,
-        sentToPortal: false
+        sentToPortal: false,
+        itemBreakdown
       });
     });
 
@@ -215,6 +278,7 @@ export const payrollService = {
     monthYear: string;
     customBasic?: number;
     customAllowances?: number;
+    customItems?: PayrollCalculationItem[];
   }) => {
     const employees = erpStorage.getEmployees();
     const emp = employees.find(e => e.id === params.employeeId);
@@ -223,12 +287,67 @@ export const payrollService = {
     const loans = erpStorage.getEmployeeLoans();
     const advances = erpStorage.getSalaryAdvances();
 
-    const basic = params.customBasic !== undefined ? params.customBasic : (emp.salary || 4000);
-    const allowances = params.customAllowances !== undefined ? params.customAllowances : Math.round(basic * 0.12);
-    const gross = basic + allowances;
+    const structure = erpStorage.getPayrollStructure();
+    const itemsToUse = params.customItems && params.customItems.length > 0 ? params.customItems : structure.items;
 
-    const tax = Math.round(gross * 0.18);
-    const pension = Math.round(basic * 0.08);
+    const activeEarnings = itemsToUse.filter(i => i.category === 'earning' && i.isActive);
+    const activeDeductions = itemsToUse.filter(i => i.category === 'deduction' && i.isActive);
+
+    const basic = params.customBasic !== undefined ? params.customBasic : (emp.salary || 4000);
+    const itemBreakdown: PayslipItemBreakdown[] = [];
+
+    let totalAllowances = 0;
+    if (params.customAllowances !== undefined) {
+      totalAllowances = params.customAllowances;
+    } else {
+      activeEarnings.forEach(item => {
+        const amt = Math.round(basic * (item.percentage / 100));
+        totalAllowances += amt;
+        itemBreakdown.push({
+          itemId: item.id,
+          name: item.name,
+          category: 'earning',
+          percentage: item.percentage,
+          basedOn: item.basedOn,
+          amount: amt
+        });
+      });
+    }
+
+    const gross = basic + totalAllowances;
+
+    let statutoryDeductions = 0;
+    let tax = 0;
+    let pension = 0;
+
+    activeDeductions.forEach(item => {
+      const baseVal = item.basedOn === 'gross' ? gross : basic;
+      const amt = Math.round(baseVal * (item.percentage / 100));
+      statutoryDeductions += amt;
+
+      const lowerName = item.name.toLowerCase();
+      if (lowerName.includes('tax') || lowerName.includes('paye')) {
+        tax += amt;
+      } else if (lowerName.includes('pension')) {
+        pension += amt;
+      }
+
+      itemBreakdown.push({
+        itemId: item.id,
+        name: item.name,
+        category: 'deduction',
+        percentage: item.percentage,
+        basedOn: item.basedOn,
+        amount: amt
+      });
+    });
+
+    if (tax === 0 && statutoryDeductions > 0) {
+      tax = Math.round(statutoryDeductions * 0.65);
+    }
+    if (pension === 0 && statutoryDeductions > 0) {
+      pension = statutoryDeductions - tax;
+    }
 
     let loanDeduction = 0;
     const activeLoan = loans.find(l => l.employeeId === emp.id && l.status === 'Active');
@@ -242,7 +361,6 @@ export const payrollService = {
     );
     const advanceDeduction = activeAdvance ? activeAdvance.amount : 0;
 
-    const statutoryDeductions = tax + pension;
     const otherDeductions = loanDeduction + advanceDeduction;
     const totalDeductions = statutoryDeductions + otherDeductions;
     const netPay = gross - totalDeductions;
@@ -250,14 +368,15 @@ export const payrollService = {
     return {
       employee: emp,
       basicSalary: basic,
-      allowances,
+      allowances: totalAllowances,
       grossPay: gross,
       tax,
       pension,
       loanDeduction: otherDeductions,
       statutoryDeductions,
       totalDeductions,
-      netPay
+      netPay,
+      itemBreakdown
     };
   },
 

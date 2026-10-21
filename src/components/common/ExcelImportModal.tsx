@@ -270,8 +270,8 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
   });
 
   return (
-    <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.65)" zIndex="1100" display="flex" alignItems="center" justifyContent="center" p={4} backdropFilter="blur(2px)">
-      <Box bg="white" borderRadius="18px" maxW="960px" w="100%" p={6} boxShadow="2xl" maxH="90vh" display="flex" flexDirection="column">
+    <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.65)" zIndex="1100" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }} backdropFilter="blur(2px)">
+      <Box bg="white" borderRadius="18px" maxW="960px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" display="flex" flexDirection="column">
         {/* Header */}
         <Flex justify="space-between" align="center" pb={3} mb={4} borderBottom="1px solid #e2e8f0">
           <Flex align="center" gap={3}>
@@ -469,7 +469,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
 
             {/* Preview Table */}
             <Box flex="1" overflowX="auto" overflowY="auto" border="1px solid #e2e8f0" borderRadius="10px">
-              <Table.Root size="sm" striped>
+              <Table.Root size="sm" striped minW="650px">
                 <Table.Header bg="#f1f5f9" position="sticky" top="0" zIndex="2">
                   <Table.Row>
                     <Table.ColumnHeader w="50px">Row</Table.ColumnHeader>

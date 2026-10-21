@@ -269,7 +269,7 @@ export const EquipmentPage: React.FC = () => {
   const totalFuelLiters = fuelConsumptions.reduce((sum, f) => sum + f.liters, 0);
 
   return (
-    <Box p={6}>
+    <Box p={{ base: 3, sm: 4, md: 6 }}>
       {/* Top Banner */}
       <Flex justify="space-between" align={{ base: 'flex-start', md: 'center' }} direction={{ base: 'column', md: 'row' }} gap={4} mb={6}>
         <Flex align="center" gap={3}>
@@ -286,7 +286,7 @@ export const EquipmentPage: React.FC = () => {
           </Box>
         </Flex>
 
-        <Flex align="center" gap={3}>
+        <Flex align="center" gap={3} wrap="wrap">
           <Button size="sm" variant="outline" borderColor="#cbd5e1" onClick={handleExportCSV}>
             <FileSpreadsheet size={16} /> Export Register (CSV)
           </Button>
@@ -347,209 +347,219 @@ export const EquipmentPage: React.FC = () => {
       </SimpleGrid>
 
       {/* Tabs */}
-      <Flex borderBottom="1px solid #e2e8f0" gap={4} mb={6}>
-        <Button
-          variant="plain"
-          pb={3}
-          borderBottom="2px solid"
-          borderColor={activeTab === 'machinery' ? '#059669' : 'transparent'}
-          color={activeTab === 'machinery' ? '#059669' : '#64748b'}
-          fontWeight={activeTab === 'machinery' ? 'bold' : 'medium'}
-          fontSize="sm"
-          onClick={() => setActiveTab('machinery')}
-        >
-          <HardHat size={16} /> Heavy Plant & Machinery ({equipment.length})
-        </Button>
-        <Button
-          variant="plain"
-          pb={3}
-          borderBottom="2px solid"
-          borderColor={activeTab === 'fleet' ? '#059669' : 'transparent'}
-          color={activeTab === 'fleet' ? '#059669' : '#64748b'}
-          fontWeight={activeTab === 'fleet' ? 'bold' : 'medium'}
-          fontSize="sm"
-          onClick={() => setActiveTab('fleet')}
-        >
-          <Truck size={16} /> Commercial Transport Fleet ({vehicles.length})
-        </Button>
-        <Button
-          variant="plain"
-          pb={3}
-          borderBottom="2px solid"
-          borderColor={activeTab === 'maintenance' ? '#059669' : 'transparent'}
-          color={activeTab === 'maintenance' ? '#059669' : '#64748b'}
-          fontWeight={activeTab === 'maintenance' ? 'bold' : 'medium'}
-          fontSize="sm"
-          onClick={() => setActiveTab('maintenance')}
-        >
-          <Wrench size={16} /> Maintenance & Workshop ({maintenanceRecords.length})
-        </Button>
-        <Button
-          variant="plain"
-          pb={3}
-          borderBottom="2px solid"
-          borderColor={activeTab === 'fuel' ? '#059669' : 'transparent'}
-          color={activeTab === 'fuel' ? '#059669' : '#64748b'}
-          fontWeight={activeTab === 'fuel' ? 'bold' : 'medium'}
-          fontSize="sm"
-          onClick={() => setActiveTab('fuel')}
-        >
-          <Fuel size={16} /> Bulk Fuel Consumption Logs ({fuelConsumptions.length})
-        </Button>
-      </Flex>
+      <Box overflowX="auto" borderBottom="1px solid #e2e8f0" mb={6}>
+        <Flex gap={4} minW="max-content">
+          <Button
+            variant="plain"
+            pb={3}
+            borderBottom="2px solid"
+            borderColor={activeTab === 'machinery' ? '#059669' : 'transparent'}
+            color={activeTab === 'machinery' ? '#059669' : '#64748b'}
+            fontWeight={activeTab === 'machinery' ? 'bold' : 'medium'}
+            fontSize="sm"
+            onClick={() => setActiveTab('machinery')}
+          >
+            <HardHat size={16} /> Heavy Plant & Machinery ({equipment.length})
+          </Button>
+          <Button
+            variant="plain"
+            pb={3}
+            borderBottom="2px solid"
+            borderColor={activeTab === 'fleet' ? '#059669' : 'transparent'}
+            color={activeTab === 'fleet' ? '#059669' : '#64748b'}
+            fontWeight={activeTab === 'fleet' ? 'bold' : 'medium'}
+            fontSize="sm"
+            onClick={() => setActiveTab('fleet')}
+          >
+            <Truck size={16} /> Commercial Transport Fleet ({vehicles.length})
+          </Button>
+          <Button
+            variant="plain"
+            pb={3}
+            borderBottom="2px solid"
+            borderColor={activeTab === 'maintenance' ? '#059669' : 'transparent'}
+            color={activeTab === 'maintenance' ? '#059669' : '#64748b'}
+            fontWeight={activeTab === 'maintenance' ? 'bold' : 'medium'}
+            fontSize="sm"
+            onClick={() => setActiveTab('maintenance')}
+          >
+            <Wrench size={16} /> Maintenance & Workshop ({maintenanceRecords.length})
+          </Button>
+          <Button
+            variant="plain"
+            pb={3}
+            borderBottom="2px solid"
+            borderColor={activeTab === 'fuel' ? '#059669' : 'transparent'}
+            color={activeTab === 'fuel' ? '#059669' : '#64748b'}
+            fontWeight={activeTab === 'fuel' ? 'bold' : 'medium'}
+            fontSize="sm"
+            onClick={() => setActiveTab('fuel')}
+          >
+            <Fuel size={16} /> Bulk Fuel Consumption Logs ({fuelConsumptions.length})
+          </Button>
+        </Flex>
+      </Box>
 
       {/* TAB 1: MACHINERY */}
       {activeTab === 'machinery' && (
         <Card.Root bg="white" borderRadius="14px" border="1px solid #e2e8f0" overflow="hidden" boxShadow="xs">
-          <Table.Root size="sm" striped>
-            <Table.Header bg="#f8fafc">
-              <Table.Row>
-                <Table.ColumnHeader color="#475569">Plant Code & Equipment Name</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Equipment Type</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Status</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Assigned Project</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Designated Operator</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Rate / Hr</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Serial Number</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {equipment.map(eq => (
-                <Table.Row key={eq.id}>
-                  <Table.Cell>
-                    <Text fontSize="xs" fontWeight="bold" color="#0f172a">{eq.name}</Text>
-                    <Text fontSize="11px" fontFamily="mono" color="#64748b">{eq.equipmentCode}</Text>
-                  </Table.Cell>
-                  <Table.Cell><Badge size="xs" colorPalette="blue">{eq.type}</Badge></Table.Cell>
-                  <Table.Cell>
-                    <Badge size="xs" colorPalette={eq.status === 'in_use' ? 'green' : eq.status === 'available' ? 'cyan' : 'orange'}>
-                      {eq.status.replace('_', ' ').toUpperCase()}
-                    </Badge>
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" color="#334155">{eq.projectName || 'Central Depot / Available'}</Table.Cell>
-                  <Table.Cell fontSize="xs" color="#334155">{eq.operatorName}</Table.Cell>
-                  <Table.Cell fontSize="xs" fontFamily="mono" fontWeight="bold">₦{(eq.hourlyRate ?? 0).toLocaleString()}/hr</Table.Cell>
-                  <Table.Cell fontSize="xs" fontFamily="mono" color="#64748b">{eq.serialNumber}</Table.Cell>
+          <Box overflowX="auto">
+            <Table.Root size="sm" striped minW="850px">
+              <Table.Header bg="#f8fafc">
+                <Table.Row>
+                  <Table.ColumnHeader color="#475569">Plant Code & Equipment Name</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Equipment Type</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Status</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Assigned Project</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Designated Operator</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Rate / Hr</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Serial Number</Table.ColumnHeader>
                 </Table.Row>
-              ))}
-            </Table.Body>
-          </Table.Root>
+              </Table.Header>
+              <Table.Body>
+                {equipment.map(eq => (
+                  <Table.Row key={eq.id}>
+                    <Table.Cell>
+                      <Text fontSize="xs" fontWeight="bold" color="#0f172a">{eq.name}</Text>
+                      <Text fontSize="11px" fontFamily="mono" color="#64748b">{eq.equipmentCode}</Text>
+                    </Table.Cell>
+                    <Table.Cell><Badge size="xs" colorPalette="blue">{eq.type}</Badge></Table.Cell>
+                    <Table.Cell>
+                      <Badge size="xs" colorPalette={eq.status === 'in_use' ? 'green' : eq.status === 'available' ? 'cyan' : 'orange'}>
+                        {eq.status.replace('_', ' ').toUpperCase()}
+                      </Badge>
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" color="#334155">{eq.projectName || 'Central Depot / Available'}</Table.Cell>
+                    <Table.Cell fontSize="xs" color="#334155">{eq.operatorName}</Table.Cell>
+                    <Table.Cell fontSize="xs" fontFamily="mono" fontWeight="bold">₦{(eq.hourlyRate ?? 0).toLocaleString()}/hr</Table.Cell>
+                    <Table.Cell fontSize="xs" fontFamily="mono" color="#64748b">{eq.serialNumber}</Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Root>
+          </Box>
         </Card.Root>
       )}
 
       {/* TAB 2: FLEET */}
       {activeTab === 'fleet' && (
         <Card.Root bg="white" borderRadius="14px" border="1px solid #e2e8f0" overflow="hidden" boxShadow="xs">
-          <Table.Root size="sm" striped>
-            <Table.Header bg="#f8fafc">
-              <Table.Row>
-                <Table.ColumnHeader color="#475569">Vehicle & Plate No</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Model Specification</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Category</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Status</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Assigned Driver</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Odometer</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Tank Capacity</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {vehicles.map(v => (
-                <Table.Row key={v.id}>
-                  <Table.Cell>
-                    <Text fontSize="xs" fontWeight="bold" color="#0f172a">{v.plateNumber}</Text>
-                    <Text fontSize="11px" fontFamily="mono" color="#64748b">{v.vehicleCode}</Text>
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" color="#334155" maxW="300px">{v.model}</Table.Cell>
-                  <Table.Cell><Badge size="xs" colorPalette="purple">{v.type}</Badge></Table.Cell>
-                  <Table.Cell>
-                    <Badge size="xs" colorPalette={v.status === 'active' ? 'green' : v.status === 'in_service' ? 'blue' : 'red'}>
-                      {v.status.replace('_', ' ').toUpperCase()}
-                    </Badge>
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" color="#334155">{v.driverName}</Table.Cell>
-                  <Table.Cell fontSize="xs" fontFamily="mono">{(v.currentOdometer || 0).toLocaleString()} km</Table.Cell>
-                  <Table.Cell fontSize="xs" fontFamily="mono">{v.fuelCapacityLiters} L</Table.Cell>
+          <Box overflowX="auto">
+            <Table.Root size="sm" striped minW="850px">
+              <Table.Header bg="#f8fafc">
+                <Table.Row>
+                  <Table.ColumnHeader color="#475569">Vehicle & Plate No</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Model Specification</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Category</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Status</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Assigned Driver</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Odometer</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Tank Capacity</Table.ColumnHeader>
                 </Table.Row>
-              ))}
-            </Table.Body>
-          </Table.Root>
+              </Table.Header>
+              <Table.Body>
+                {vehicles.map(v => (
+                  <Table.Row key={v.id}>
+                    <Table.Cell>
+                      <Text fontSize="xs" fontWeight="bold" color="#0f172a">{v.plateNumber}</Text>
+                      <Text fontSize="11px" fontFamily="mono" color="#64748b">{v.vehicleCode}</Text>
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" color="#334155" maxW="300px">{v.model}</Table.Cell>
+                    <Table.Cell><Badge size="xs" colorPalette="purple">{v.type}</Badge></Table.Cell>
+                    <Table.Cell>
+                      <Badge size="xs" colorPalette={v.status === 'active' ? 'green' : v.status === 'in_service' ? 'blue' : 'red'}>
+                        {v.status.replace('_', ' ').toUpperCase()}
+                      </Badge>
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" color="#334155">{v.driverName}</Table.Cell>
+                    <Table.Cell fontSize="xs" fontFamily="mono">{(v.currentOdometer || 0).toLocaleString()} km</Table.Cell>
+                    <Table.Cell fontSize="xs" fontFamily="mono">{v.fuelCapacityLiters} L</Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Root>
+          </Box>
         </Card.Root>
       )}
 
       {/* TAB 3: MAINTENANCE */}
       {activeTab === 'maintenance' && (
         <Card.Root bg="white" borderRadius="14px" border="1px solid #e2e8f0" overflow="hidden" boxShadow="xs">
-          <Table.Root size="sm" striped>
-            <Table.Header bg="#f8fafc">
-              <Table.Row>
-                <Table.ColumnHeader color="#475569">Asset Details</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Service Date</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Work Scope & Diagnosis</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Parts Replaced</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Cost</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Service Technician / Vendor</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Next Due</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {maintenanceRecords.map(m => (
-                <Table.Row key={m.id}>
-                  <Table.Cell>
-                    <Text fontSize="xs" fontWeight="bold" color="#0f172a">{m.assetName}</Text>
-                    <Badge size="xs" colorPalette="cyan" mt={0.5}>{m.assetCode} ({m.assetType})</Badge>
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" color="#64748b">{m.maintenanceDate}</Table.Cell>
-                  <Table.Cell fontSize="xs" color="#334155" maxW="280px">{m.description}</Table.Cell>
-                  <Table.Cell fontSize="xs" color="#64748b" maxW="200px">{m.partsReplaced || 'N/A'}</Table.Cell>
-                  <Table.Cell fontSize="xs" fontWeight="bold" fontFamily="mono">₦{m.cost.toLocaleString()}</Table.Cell>
-                  <Table.Cell fontSize="xs" color="#334155">{m.performedBy}</Table.Cell>
-                  <Table.Cell fontSize="xs" color="#16a34a">{m.nextServiceDate}</Table.Cell>
+          <Box overflowX="auto">
+            <Table.Root size="sm" striped minW="750px">
+              <Table.Header bg="#f8fafc">
+                <Table.Row>
+                  <Table.ColumnHeader color="#475569">Asset Details</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Service Date</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Work Scope & Diagnosis</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Parts Replaced</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Cost</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Service Technician / Vendor</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Next Due</Table.ColumnHeader>
                 </Table.Row>
-              ))}
-            </Table.Body>
-          </Table.Root>
+              </Table.Header>
+              <Table.Body>
+                {maintenanceRecords.map(m => (
+                  <Table.Row key={m.id}>
+                    <Table.Cell>
+                      <Text fontSize="xs" fontWeight="bold" color="#0f172a">{m.assetName}</Text>
+                      <Badge size="xs" colorPalette="cyan" mt={0.5}>{m.assetCode} ({m.assetType})</Badge>
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" color="#64748b">{m.maintenanceDate}</Table.Cell>
+                    <Table.Cell fontSize="xs" color="#334155" maxW="280px">{m.description}</Table.Cell>
+                    <Table.Cell fontSize="xs" color="#64748b" maxW="200px">{m.partsReplaced || 'N/A'}</Table.Cell>
+                    <Table.Cell fontSize="xs" fontWeight="bold" fontFamily="mono">₦{m.cost.toLocaleString()}</Table.Cell>
+                    <Table.Cell fontSize="xs" color="#334155">{m.performedBy}</Table.Cell>
+                    <Table.Cell fontSize="xs" color="#16a34a">{m.nextServiceDate}</Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Root>
+          </Box>
         </Card.Root>
       )}
 
       {/* TAB 4: BULK FUEL */}
       {activeTab === 'fuel' && (
         <Card.Root bg="white" borderRadius="14px" border="1px solid #e2e8f0" overflow="hidden" boxShadow="xs">
-          <Table.Root size="sm" striped>
-            <Table.Header bg="#f8fafc">
-              <Table.Row>
-                <Table.ColumnHeader color="#475569">Vehicle & Plate</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Dispense Date</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Volume (Liters)</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Total Cost</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Odometer Reading</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Driver / Receiver</Table.ColumnHeader>
-                <Table.ColumnHeader color="#475569">Dispense Station</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {fuelConsumptions.map(f => (
-                <Table.Row key={f.id}>
-                  <Table.Cell>
-                    <Text fontSize="xs" fontWeight="bold" color="#0f172a">{f.plateNumber}</Text>
-                    <Text fontSize="11px" fontFamily="mono" color="#64748b">{f.vehicleCode}</Text>
-                  </Table.Cell>
-                  <Table.Cell fontSize="xs" color="#64748b">{f.fuelDate}</Table.Cell>
-                  <Table.Cell fontSize="xs" fontWeight="bold" fontFamily="mono" color="#2563eb">{f.liters} L</Table.Cell>
-                  <Table.Cell fontSize="xs" fontWeight="bold" fontFamily="mono">₦{f.cost.toLocaleString()}</Table.Cell>
-                  <Table.Cell fontSize="xs" fontFamily="mono">{(f.odometerKm || 0).toLocaleString()} km</Table.Cell>
-                  <Table.Cell fontSize="xs" color="#334155">{f.driverName}</Table.Cell>
-                  <Table.Cell fontSize="xs" color="#64748b">{f.fuelStation}</Table.Cell>
+          <Box overflowX="auto">
+            <Table.Root size="sm" striped minW="750px">
+              <Table.Header bg="#f8fafc">
+                <Table.Row>
+                  <Table.ColumnHeader color="#475569">Vehicle & Plate</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Dispense Date</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Volume (Liters)</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Total Cost</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Odometer Reading</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Driver / Receiver</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569">Dispense Station</Table.ColumnHeader>
                 </Table.Row>
-              ))}
-            </Table.Body>
-          </Table.Root>
+              </Table.Header>
+              <Table.Body>
+                {fuelConsumptions.map(f => (
+                  <Table.Row key={f.id}>
+                    <Table.Cell>
+                      <Text fontSize="xs" fontWeight="bold" color="#0f172a">{f.plateNumber}</Text>
+                      <Text fontSize="11px" fontFamily="mono" color="#64748b">{f.vehicleCode}</Text>
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" color="#64748b">{f.fuelDate}</Table.Cell>
+                    <Table.Cell fontSize="xs" fontWeight="bold" fontFamily="mono" color="#2563eb">{f.liters} L</Table.Cell>
+                    <Table.Cell fontSize="xs" fontWeight="bold" fontFamily="mono">₦{f.cost.toLocaleString()}</Table.Cell>
+                    <Table.Cell fontSize="xs" fontFamily="mono">{(f.odometerKm || 0).toLocaleString()} km</Table.Cell>
+                    <Table.Cell fontSize="xs" color="#334155">{f.driverName}</Table.Cell>
+                    <Table.Cell fontSize="xs" color="#64748b">{f.fuelStation}</Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Root>
+          </Box>
         </Card.Root>
       )}
 
       {/* MODAL 1: ADD EQUIPMENT */}
       {showAddEquipmentModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="540px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="540px" w="100%" p={{ base: 4, sm: 6 }} maxH="90vh" overflowY="auto" boxShadow="2xl">
             <Flex justify="space-between" align="center" mb={1}>
               <Heading size="md" color="#0f172a">Register Heavy Plant / Machinery</Heading>
               <Box as="button" onClick={() => setShowAddEquipmentModal(false)} color="#94a3b8" cursor="pointer">
@@ -560,7 +570,7 @@ export const EquipmentPage: React.FC = () => {
 
             <form onSubmit={handleCreateEquipment}>
               <Stack gap={3}>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Equipment Code</Text>
                     <Input size="sm" value={equipmentForm.equipmentCode} onChange={(e) => setEquipmentForm({ ...equipmentForm, equipmentCode: e.target.value })} required />
@@ -586,7 +596,7 @@ export const EquipmentPage: React.FC = () => {
                   <Input size="sm" placeholder="e.g. Caterpillar 336D Hydraulic Crawler Excavator" value={equipmentForm.name} onChange={(e) => setEquipmentForm({ ...equipmentForm, name: e.target.value })} required />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Assigned Project</Text>
                     <NativeSelect.Root size="sm">
@@ -604,7 +614,7 @@ export const EquipmentPage: React.FC = () => {
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Hourly Operating Rate (₦)</Text>
                     <Input size="sm" type="number" value={equipmentForm.hourlyRate} onChange={(e) => setEquipmentForm({ ...equipmentForm, hourlyRate: Number(e.target.value) })} />
@@ -627,8 +637,8 @@ export const EquipmentPage: React.FC = () => {
 
       {/* MODAL 2: ADD VEHICLE */}
       {showAddVehicleModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="540px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="540px" w="100%" p={{ base: 4, sm: 6 }} maxH="90vh" overflowY="auto" boxShadow="2xl">
             <Flex justify="space-between" align="center" mb={1}>
               <Heading size="md" color="#0f172a">Register Fleet Vehicle</Heading>
               <Box as="button" onClick={() => setShowAddVehicleModal(false)} color="#94a3b8" cursor="pointer">
@@ -639,7 +649,7 @@ export const EquipmentPage: React.FC = () => {
 
             <form onSubmit={handleCreateVehicle}>
               <Stack gap={3}>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Plate Number *</Text>
                     <Input size="sm" placeholder="ABJ-772-XA" value={vehicleForm.plateNumber} onChange={(e) => setVehicleForm({ ...vehicleForm, plateNumber: e.target.value })} required />
@@ -663,7 +673,7 @@ export const EquipmentPage: React.FC = () => {
                   <Input size="sm" placeholder="Mercedes-Benz Actros 3340 8x4 Concrete Transit Mixer (9m³)" value={vehicleForm.model} onChange={(e) => setVehicleForm({ ...vehicleForm, model: e.target.value })} required />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Assigned Driver</Text>
                     <Input size="sm" placeholder="Suleiman Bello" value={vehicleForm.driverName} onChange={(e) => setVehicleForm({ ...vehicleForm, driverName: e.target.value })} />
@@ -686,8 +696,8 @@ export const EquipmentPage: React.FC = () => {
 
       {/* MODAL 3: ADD MAINTENANCE */}
       {showAddMaintenanceModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="540px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="540px" w="100%" p={{ base: 4, sm: 6 }} maxH="90vh" overflowY="auto" boxShadow="2xl">
             <Flex justify="space-between" align="center" mb={1}>
               <Heading size="md" color="#0f172a">Log Workshop Maintenance / Service</Heading>
               <Box as="button" onClick={() => setShowAddMaintenanceModal(false)} color="#94a3b8" cursor="pointer">
@@ -698,7 +708,7 @@ export const EquipmentPage: React.FC = () => {
 
             <form onSubmit={handleCreateMaintenance}>
               <Stack gap={3}>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Asset Category</Text>
                     <NativeSelect.Root size="sm">
@@ -727,7 +737,7 @@ export const EquipmentPage: React.FC = () => {
                   <Input size="sm" placeholder="500-hour service: hydraulic filter, oil change & brake inspection" value={maintenanceForm.description} onChange={(e) => setMaintenanceForm({ ...maintenanceForm, description: e.target.value })} required />
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Service Cost (₦)</Text>
                     <Input size="sm" type="number" value={maintenanceForm.cost} onChange={(e) => setMaintenanceForm({ ...maintenanceForm, cost: Number(e.target.value) })} />
@@ -750,8 +760,8 @@ export const EquipmentPage: React.FC = () => {
 
       {/* MODAL 4: ADD FUEL */}
       {showAddFuelModal && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="500px" w="100%" p={{ base: 4, sm: 6 }} maxH="90vh" overflowY="auto" boxShadow="2xl">
             <Flex justify="space-between" align="center" mb={1}>
               <Heading size="md" color="#0f172a">Log Bulk Diesel Fuel Dispense</Heading>
               <Box as="button" onClick={() => setShowAddFuelModal(false)} color="#94a3b8" cursor="pointer">
@@ -773,7 +783,7 @@ export const EquipmentPage: React.FC = () => {
                   </NativeSelect.Root>
                 </Box>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Fuel Liters (L)</Text>
                     <Input size="sm" type="number" value={fuelForm.liters} onChange={(e) => setFuelForm({ ...fuelForm, liters: Number(e.target.value), cost: Number(e.target.value) * 1200 })} required />
@@ -784,7 +794,7 @@ export const EquipmentPage: React.FC = () => {
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Odometer (km)</Text>
                     <Input size="sm" type="number" value={fuelForm.odometerKm} onChange={(e) => setFuelForm({ ...fuelForm, odometerKm: Number(e.target.value) })} />

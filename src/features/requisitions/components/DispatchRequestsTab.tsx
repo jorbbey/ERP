@@ -140,7 +140,7 @@ export const DispatchRequestsTab: React.FC = () => {
 
       <Card.Root bg="white" borderRadius="16px" border="1px solid #e2e8f0" overflow="hidden" boxShadow="xs">
         <Box overflowX="auto">
-          <Table.Root size="sm" variant="outline">
+          <Table.Root size="sm" variant="outline" minW="750px">
             <Table.Header>
               <Table.Row bg="#f8fafc">
                 <Table.ColumnHeader fontSize="10px">Requisition #</Table.ColumnHeader>
@@ -226,8 +226,8 @@ export const DispatchRequestsTab: React.FC = () => {
 
       {/* Dispatch Modal */}
       {selectedRequest && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="540px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="540px" w="100%" p={{ base: 4, sm: 6 }} maxH="90vh" overflowY="auto" boxShadow="2xl">
             <Heading size="md" color="#0f172a" mb={1}>
               Issue Material Gate Pass & Waybill
             </Heading>
@@ -243,7 +243,7 @@ export const DispatchRequestsTab: React.FC = () => {
 
             <form onSubmit={handleConfirmDispatch}>
               <Stack gap={3}>
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Source Warehouse Yard *</Text>
                     <NativeSelect.Root size="sm">
@@ -271,7 +271,7 @@ export const DispatchRequestsTab: React.FC = () => {
                   </Box>
                 </SimpleGrid>
 
-                <SimpleGrid columns={2} gap={3}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
                     <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Haulage Carrier / Transporter *</Text>
                     <Input

@@ -38,6 +38,8 @@ import {
   EmployeeLoan,
   PayrollRun,
   Payslip,
+  PayrollCalculationStructure,
+  PayrollCalculationItem,
   RmcMixDesign,
   RmcBatchRecord,
   RmcQualityInspection,
@@ -2774,6 +2776,75 @@ export const initialEmployeeLoans: EmployeeLoan[] = [
     startDate: '2026-04-01'
   }
 ];
+
+export const initialPayrollStructure: PayrollCalculationStructure = {
+  id: 'standard-corporate-formula',
+  name: 'Standard Corporate Payroll Structure',
+  updatedAt: '2026-10-01',
+  updatedBy: 'Finance & HR Directorate',
+  items: [
+    {
+      id: 'item-housing',
+      name: 'Housing Allowance',
+      category: 'earning',
+      percentage: 15,
+      basedOn: 'basic',
+      description: 'Monthly accommodation allowance computed on basic salary',
+      isActive: true,
+      isSystem: true
+    },
+    {
+      id: 'item-transport',
+      name: 'Transport & Site Mobility',
+      category: 'earning',
+      percentage: 10,
+      basedOn: 'basic',
+      description: 'Worksite transit and transport mobility subsidy',
+      isActive: true,
+      isSystem: true
+    },
+    {
+      id: 'item-utility',
+      name: 'Utility & Hazard Allowance',
+      category: 'earning',
+      percentage: 5,
+      basedOn: 'basic',
+      description: 'Site hazard, power, and communication subsidy',
+      isActive: true,
+      isSystem: false
+    },
+    {
+      id: 'item-paye',
+      name: 'PAYE Income Tax',
+      category: 'deduction',
+      percentage: 18,
+      basedOn: 'gross',
+      description: 'Statutory Pay-As-You-Earn personal income withholding tax',
+      isActive: true,
+      isSystem: true
+    },
+    {
+      id: 'item-pension',
+      name: 'Employee Pension Contribution',
+      category: 'deduction',
+      percentage: 8,
+      basedOn: 'basic',
+      description: 'Statutory 8% employee contributory pension scheme',
+      isActive: true,
+      isSystem: true
+    },
+    {
+      id: 'item-nhf',
+      name: 'National Housing Fund (NHF)',
+      category: 'deduction',
+      percentage: 2.5,
+      basedOn: 'basic',
+      description: 'Statutory 2.5% NHF employee deduction scheme',
+      isActive: true,
+      isSystem: false
+    }
+  ]
+};
 
 export const initialPayrollRuns: PayrollRun[] = [
   {

@@ -537,7 +537,7 @@ export const FloatingAIAssistant: React.FC = () => {
 
           {/* Quick Actions Scroll Bar */}
           <Box px={3} py={2} bg="#ffffff" borderTop="1px solid #e2e8f0">
-            <Flex gap={1.5} overflowX="auto" pb={1} css={{ '&::-webkit-scrollbar': { display: 'none' } }}>
+            <Flex gap={1.5} overflowX="auto" pb={1} className="scrollbar-none">
               {QUICK_ACTIONS.map((action, idx) => {
                 const Icon = action.icon;
                 return (

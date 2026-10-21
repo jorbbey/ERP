@@ -19,6 +19,7 @@ import {
   EmployeeLoan,
   PayrollRun,
   Payslip,
+  PayrollCalculationStructure,
   RmcMixDesign,
   RmcBatchRecord,
   RmcQualityInspection,
@@ -106,6 +107,7 @@ import {
   initialEmployeeLoans,
   initialPayrollRuns,
   initialPayslips,
+  initialPayrollStructure,
   initialMixDesigns,
   initialBatchRecords,
   initialQualityInspections,
@@ -268,6 +270,9 @@ export const erpStorage = {
   getRequisitions: () => getStored<Requisition[]>('requisitions', initialRequisitions),
   saveRequisitions: (r: Requisition[]) => setStored('requisitions', r),
 
+  getMandatoryRequisitionOffices: () => getStored<string[]>('mandatory_requisition_offices', ['Finance Manager', 'Project Manager']),
+  saveMandatoryRequisitionOffices: (offices: string[]) => setStored('mandatory_requisition_offices', offices),
+
   getPurchaseOrders: () => getStored<PurchaseOrder[]>('purchase_orders', initialPurchaseOrders),
   savePurchaseOrders: (p: PurchaseOrder[]) => setStored('purchase_orders', p),
 
@@ -279,6 +284,9 @@ export const erpStorage = {
 
   getPayrollRuns: () => getStored<PayrollRun[]>('payroll_runs', initialPayrollRuns),
   savePayrollRuns: (r: PayrollRun[]) => setStored('payroll_runs', r),
+
+  getPayrollStructure: () => getStored<PayrollCalculationStructure>('payroll_structure', initialPayrollStructure),
+  savePayrollStructure: (s: PayrollCalculationStructure) => setStored('payroll_structure', s),
 
   getPayslips: () => getStored<Payslip[]>('payslips', initialPayslips),
   savePayslips: (p: Payslip[]) => setStored('payslips', p),

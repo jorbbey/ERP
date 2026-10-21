@@ -62,7 +62,9 @@ import {
   SystemLog,
   SupplierInvoice,
   AuthSessionLog,
-  CompanyLeavePolicy
+  CompanyLeavePolicy,
+  PayrollCalculationStructure,
+  PayrollCalculationItem
 } from '../types';
 import { erpStorage } from '../services/erpStorage';
 import { inventoryService } from '../services/inventoryService';
@@ -260,6 +262,8 @@ interface ERPContextType {
   flagRequisitionForClarification: (id: number, reason: string) => void;
   provideRequisitionClarification: (id: number, response: string) => void;
   addRequisitionMessage: (requisitionId: number, message: string) => void;
+  mandatoryRequisitionOffices: string[];
+  updateMandatoryRequisitionOffices: (offices: string[]) => void;
   dispatchRequests: RequisitionDispatchRequest[];
   createDispatchRequest: (data: Omit<RequisitionDispatchRequest, 'id' | 'requestedAt' | 'status'>) => void;
   executeDispatch: (params: {
@@ -345,7 +349,9 @@ interface ERPContextType {
   // Payroll
   payrollRuns: PayrollRun[];
   payslips: Payslip[];
-  processPayrollMonth: (monthYear: string) => void;
+  payrollStructure: PayrollCalculationStructure;
+  updatePayrollStructure: (structure: PayrollCalculationStructure) => void;
+  processPayrollMonth: (monthYear: string, customItems?: PayrollCalculationItem[]) => void;
   finalizePayrollRun: (runId: number) => void;
   markPayrollPaid: (runId: number) => void;
   importPayrollCSV: (csvContent: string) => { success: boolean; run?: PayrollRun; error?: string };
@@ -474,12 +480,14 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [waybills, setWaybills] = useState<Waybill[]>(() => erpStorage.getWaybills());
   const [goodsReceivedNotes, setGoodsReceivedNotes] = useState<GoodsReceivedNote[]>(() => erpStorage.getGoodsReceivedNotes());
   const [requisitions, setRequisitions] = useState<Requisition[]>(() => erpStorage.getRequisitions());
+  const [mandatoryRequisitionOffices, setMandatoryRequisitionOfficesState] = useState<string[]>(() => erpStorage.getMandatoryRequisitionOffices());
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(() => erpStorage.getPurchaseOrders());
 
   const [salaryAdvances, setSalaryAdvances] = useState<SalaryAdvance[]>(() => erpStorage.getSalaryAdvances());
   const [employeeLoans, setEmployeeLoans] = useState<EmployeeLoan[]>(() => erpStorage.getEmployeeLoans());
   const [payrollRuns, setPayrollRuns] = useState<PayrollRun[]>(() => erpStorage.getPayrollRuns());
   const [payslips, setPayslips] = useState<Payslip[]>(() => erpStorage.getPayslips());
+  const [payrollStructure, setPayrollStructureState] = useState<PayrollCalculationStructure>(() => erpStorage.getPayrollStructure());
 
   const [attendance, setAttendance] = useState<AttendanceRecord[]>(() => erpStorage.getAttendance());
   const [leaves, setLeaves] = useState<LeaveRequest[]>(() => erpStorage.getLeaves());
@@ -515,7 +523,21 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [supplierInvoices, setSupplierInvoices] = useState<SupplierInvoice[]>(() => supplierInvoiceService.getInvoices());
   const [companyLeavePolicy, setCompanyLeavePolicyState] = useState<CompanyLeavePolicy>(() => leaveService.getCompanyLeavePolicy(activeCompanyId));
 
-  const activeCompany = companies.find(c => c.id === activeCompanyId) || companies[0];
+  const fallbackCompany: Company = {
+    id: 1,
+    name: 'Apex Construction & Civil Works Ltd',
+    code: 'APEX-CIVIL',
+    currency: '₦',
+    themeColor: '#0284c7',
+    address: 'Plot 14 Victoria Island Commercial Corridor, Lagos, Nigeria',
+    taxNumber: 'TIN-8849201-NG',
+    phone: '+234 803 234 8900',
+    email: 'info@apexconstruction.ng',
+    website: 'https://apexconstruction.ng',
+    isActive: true,
+    createdAt: '2024-01-15'
+  };
+  const activeCompany = (companies && companies.length > 0 ? (companies.find(c => c.id === activeCompanyId) || companies[0]) : fallbackCompany) || fallbackCompany;
 
   const setActiveCompanyId = (id: number) => {
     setActiveCompanyIdState(id);
@@ -2223,9 +2245,20 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     erpStorage.saveEmployeeLoans(updated);
   };
 
-  // Payroll
-  const processPayrollMonth = (monthYear: string) => {
-    payrollService.processPayrollMonth(monthYear);
+  // Requisition Mandatory Offices Policy
+  const updateMandatoryRequisitionOffices = (offices: string[]) => {
+    setMandatoryRequisitionOfficesState(offices);
+    erpStorage.saveMandatoryRequisitionOffices(offices);
+  };
+
+  // Payroll Structure & Calculation
+  const updatePayrollStructure = (structure: PayrollCalculationStructure) => {
+    setPayrollStructureState(structure);
+    erpStorage.savePayrollStructure(structure);
+  };
+
+  const processPayrollMonth = (monthYear: string, customItems?: PayrollCalculationItem[]) => {
+    payrollService.processPayrollMonth(monthYear, customItems);
     setPayrollRuns(erpStorage.getPayrollRuns());
     setPayslips(erpStorage.getPayslips());
   };
@@ -2631,7 +2664,11 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         bulkImportInventory,
         bulkImportEmployees,
         bulkImportSuppliers,
-        bulkImportProjects
+        bulkImportProjects,
+        payrollStructure,
+        updatePayrollStructure,
+        mandatoryRequisitionOffices,
+        updateMandatoryRequisitionOffices
       }}
     >
       {children}

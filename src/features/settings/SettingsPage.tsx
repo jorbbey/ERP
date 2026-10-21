@@ -44,7 +44,10 @@ export const SettingsPage: React.FC = () => {
     updateCompany,
     employees,
     auditLogs,
-    systemLogs
+    systemLogs,
+    activeRole,
+    mandatoryRequisitionOffices,
+    updateMandatoryRequisitionOffices
   } = useERP();
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -75,6 +78,25 @@ export const SettingsPage: React.FC = () => {
   });
 
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [selectedOffices, setSelectedOffices] = useState<string[]>(
+    () => mandatoryRequisitionOffices || ['Finance Manager', 'Project Manager']
+  );
+  const [newOfficeInput, setNewOfficeInput] = useState('');
+  const [policySavedToast, setPolicySavedToast] = useState(false);
+
+  React.useEffect(() => {
+    if (mandatoryRequisitionOffices) {
+      setSelectedOffices(mandatoryRequisitionOffices);
+    }
+  }, [mandatoryRequisitionOffices]);
+
+  const canManagePolicy = ['Super Admin', 'Managing Director'].includes(activeRole);
+
+  const handleSaveOfficesPolicy = () => {
+    updateMandatoryRequisitionOffices(selectedOffices);
+    setPolicySavedToast(true);
+    setTimeout(() => setPolicySavedToast(false), 4000);
+  };
 
   // Synchronize when active company changes
   React.useEffect(() => {
@@ -144,78 +166,80 @@ export const SettingsPage: React.FC = () => {
       </Flex>
 
       {/* Tabs */}
-      <Flex borderBottom="1px solid #e2e8f0" gap={4} mb={6}>
-        <Button
-          variant="plain"
-          pb={3}
-          pt={1}
-          px={2}
-          borderBottom="2px solid"
-          borderColor={activeTab === 'company' ? '#2563eb' : 'transparent'}
-          color={activeTab === 'company' ? '#2563eb' : '#64748b'}
-          fontWeight={activeTab === 'company' ? 'bold' : 'medium'}
-          fontSize="sm"
-          onClick={() => setActiveTab('company')}
-        >
-          Company Profile & Entities
-        </Button>
-        <Button
-          variant="plain"
-          pb={3}
-          pt={1}
-          px={2}
-          borderBottom="2px solid"
-          borderColor={activeTab === 'modules' ? '#2563eb' : 'transparent'}
-          color={activeTab === 'modules' ? '#2563eb' : '#64748b'}
-          fontWeight={activeTab === 'modules' ? 'bold' : 'medium'}
-          fontSize="sm"
-          onClick={() => setActiveTab('modules')}
-        >
-          Employee Module Permissions Matrix
-        </Button>
-        <Button
-          variant="plain"
-          pb={3}
-          pt={1}
-          px={2}
-          borderBottom="2px solid"
-          borderColor={activeTab === 'audit' ? '#2563eb' : 'transparent'}
-          color={activeTab === 'audit' ? '#2563eb' : '#64748b'}
-          fontWeight={activeTab === 'audit' ? 'bold' : 'medium'}
-          fontSize="sm"
-          onClick={() => setActiveTab('audit')}
-        >
-          Enterprise Audit Trail ({auditLogs.length})
-        </Button>
-        <Button
-          variant="plain"
-          pb={3}
-          pt={1}
-          px={2}
-          borderBottom="2px solid"
-          borderColor={activeTab === 'system' ? '#2563eb' : 'transparent'}
-          color={activeTab === 'system' ? '#2563eb' : '#64748b'}
-          fontWeight={activeTab === 'system' ? 'bold' : 'medium'}
-          fontSize="sm"
-          onClick={() => setActiveTab('system')}
-        >
-          System Integrity Logs ({systemLogs.length})
-        </Button>
-        <Button
-          variant="plain"
-          pb={3}
-          pt={1}
-          px={2}
-          borderBottom="2px solid"
-          borderColor={activeTab === 'database' ? '#2563eb' : 'transparent'}
-          color={activeTab === 'database' ? '#2563eb' : '#64748b'}
-          fontWeight={activeTab === 'database' ? 'bold' : 'medium'}
-          fontSize="sm"
-          onClick={() => setActiveTab('database')}
-        >
-          <Database size={15} style={{ display: 'inline', marginRight: '6px' }} /> Supabase Database & SQL
-        </Button>
-      </Flex>
+      <Box overflowX="auto" borderBottom="1px solid #e2e8f0" mb={6}>
+        <Flex gap={4} minW="max-content">
+          <Button
+            variant="plain"
+            pb={3}
+            pt={1}
+            px={2}
+            borderBottom="2px solid"
+            borderColor={activeTab === 'company' ? '#2563eb' : 'transparent'}
+            color={activeTab === 'company' ? '#2563eb' : '#64748b'}
+            fontWeight={activeTab === 'company' ? 'bold' : 'medium'}
+            fontSize="sm"
+            onClick={() => setActiveTab('company')}
+          >
+            Company Profile & Entities
+          </Button>
+          <Button
+            variant="plain"
+            pb={3}
+            pt={1}
+            px={2}
+            borderBottom="2px solid"
+            borderColor={activeTab === 'modules' ? '#2563eb' : 'transparent'}
+            color={activeTab === 'modules' ? '#2563eb' : '#64748b'}
+            fontWeight={activeTab === 'modules' ? 'bold' : 'medium'}
+            fontSize="sm"
+            onClick={() => setActiveTab('modules')}
+          >
+            Employee Module Permissions Matrix
+          </Button>
+          <Button
+            variant="plain"
+            pb={3}
+            pt={1}
+            px={2}
+            borderBottom="2px solid"
+            borderColor={activeTab === 'audit' ? '#2563eb' : 'transparent'}
+            color={activeTab === 'audit' ? '#2563eb' : '#64748b'}
+            fontWeight={activeTab === 'audit' ? 'bold' : 'medium'}
+            fontSize="sm"
+            onClick={() => setActiveTab('audit')}
+          >
+            Enterprise Audit Trail ({auditLogs.length})
+          </Button>
+          <Button
+            variant="plain"
+            pb={3}
+            pt={1}
+            px={2}
+            borderBottom="2px solid"
+            borderColor={activeTab === 'system' ? '#2563eb' : 'transparent'}
+            color={activeTab === 'system' ? '#2563eb' : '#64748b'}
+            fontWeight={activeTab === 'system' ? 'bold' : 'medium'}
+            fontSize="sm"
+            onClick={() => setActiveTab('system')}
+          >
+            System Integrity Logs ({systemLogs.length})
+          </Button>
+          <Button
+            variant="plain"
+            pb={3}
+            pt={1}
+            px={2}
+            borderBottom="2px solid"
+            borderColor={activeTab === 'database' ? '#2563eb' : 'transparent'}
+            color={activeTab === 'database' ? '#2563eb' : '#64748b'}
+            fontWeight={activeTab === 'database' ? 'bold' : 'medium'}
+            fontSize="sm"
+            onClick={() => setActiveTab('database')}
+          >
+            <Database size={15} style={{ display: 'inline', marginRight: '6px' }} /> Supabase Database & SQL
+          </Button>
+        </Flex>
+      </Box>
 
       {/* Company Tab */}
       {activeTab === 'company' && (
@@ -434,7 +458,8 @@ export const SettingsPage: React.FC = () => {
 
       {/* Modules Permission Matrix */}
       {activeTab === 'modules' && (
-        <Card.Root bg="white" border="1px solid #e2e8f0" borderRadius="14px" p={6}>
+        <Stack gap={6}>
+          <Card.Root bg="white" border="1px solid #e2e8f0" borderRadius="14px" p={6}>
           <Heading size="sm" color="#0f172a" mb={1}>
             Role-Based Module Authorization Matrix
           </Heading>
@@ -442,7 +467,8 @@ export const SettingsPage: React.FC = () => {
             Controls navigation visibility and operational authorization across ERP departments.
           </Text>
 
-          <Table.Root size="sm" striped>
+          <Box overflowX="auto">
+            <Table.Root size="sm" striped minW="750px">
             <Table.Header bg="#f8fafc">
               <Table.Row>
                 <Table.ColumnHeader color="#475569">Functional Module</Table.ColumnHeader>
@@ -499,7 +525,128 @@ export const SettingsPage: React.FC = () => {
               ))}
             </Table.Body>
           </Table.Root>
+          </Box>
         </Card.Root>
+
+        {/* Mandatory Requisition Approver Offices Policy */}
+        <Card.Root bg="white" border="1px solid #e2e8f0" borderRadius="14px" p={6} mt={6}>
+          <Flex justify="space-between" align={{ sm: 'center' }} direction={{ base: 'column', sm: 'row' }} gap={2} mb={2}>
+            <Flex align="center" gap={2}>
+              <Box p={2} bg="#eff6ff" color="#2563eb" borderRadius="8px">
+                <ShieldCheck size={20} />
+              </Box>
+              <Box>
+                <Heading size="sm" color="#0f172a">
+                  Mandatory Requisition Approver Offices Policy
+                </Heading>
+                <Text fontSize="xs" color="#64748b">
+                  Designate compulsory corporate offices that must review and approve any requisition raised across the enterprise.
+                </Text>
+              </Box>
+            </Flex>
+            <Badge colorPalette="blue" size="sm">
+              Top-Level Governance Gate
+            </Badge>
+          </Flex>
+
+          {policySavedToast && (
+            <Box p={3} mb={4} borderRadius="8px" bg="#f0fdf4" border="1px solid #bbf7d0" color="#166534" fontSize="xs" display="flex" alignItems="center" gap={2}>
+              <CheckCircle2 size={16} />
+              <Text fontWeight="medium">Mandatory requisition approval offices updated and enforced across all project sites.</Text>
+            </Box>
+          )}
+
+          <Text fontSize="xs" color="#475569" mb={4}>
+            When any staff member raises a requisition, the workflow mandates that the staff occupying these selected offices are tagged before submission. Requisitions cannot bypass these designated checkpoints.
+          </Text>
+
+          <SimpleGrid columns={{ base: 1, sm: 2, lg: 3 }} gap={3} mb={4}>
+            {[
+              'Finance Manager',
+              'Project Manager',
+              'Managing Director',
+              'Department Head',
+              'Site Quantity Surveyor',
+              'Procurement Officer',
+              ...selectedOffices.filter(o => ![
+                'Finance Manager',
+                'Project Manager',
+                'Managing Director',
+                'Department Head',
+                'Site Quantity Surveyor',
+                'Procurement Officer'
+              ].includes(o))
+            ].map(office => {
+              const isMandatory = selectedOffices.includes(office);
+              return (
+                <Box
+                  key={office}
+                  p={3}
+                  borderRadius="10px"
+                  border={`1.5px solid ${isMandatory ? '#2563eb' : '#e2e8f0'}`}
+                  bg={isMandatory ? '#eff6ff' : '#f8fafc'}
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  cursor={canManagePolicy ? 'pointer' : 'default'}
+                  onClick={() => {
+                    if (!canManagePolicy) return;
+                    if (isMandatory) {
+                      setSelectedOffices(prev => prev.filter(o => o !== office));
+                    } else {
+                      setSelectedOffices(prev => [...prev, office]);
+                    }
+                  }}
+                  transition="all 0.15s"
+                >
+                  <Box>
+                    <Text fontSize="xs" fontWeight="bold" color="#0f172a">{office}</Text>
+                    <Text fontSize="10px" color="#64748b">
+                      {isMandatory ? 'Compulsory Review Gate' : 'Optional Approver'}
+                    </Text>
+                  </Box>
+                  <Badge colorPalette={isMandatory ? 'blue' : 'gray'} size="xs">
+                    {isMandatory ? 'Mandatory' : 'Optional'}
+                  </Badge>
+                </Box>
+              );
+            })}
+          </SimpleGrid>
+
+          {canManagePolicy && (
+            <Flex gap={2} align="center" wrap="wrap" pt={2} borderTop="1px solid #f1f5f9">
+              <Input
+                size="sm"
+                maxW="300px"
+                placeholder="Add custom office title (e.g. Internal Auditor, HSE Officer)"
+                value={newOfficeInput}
+                onChange={e => setNewOfficeInput(e.target.value)}
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  if (newOfficeInput.trim() && !selectedOffices.includes(newOfficeInput.trim())) {
+                    setSelectedOffices(prev => [...prev, newOfficeInput.trim()]);
+                    setNewOfficeInput('');
+                  }
+                }}
+              >
+                <Plus size={14} /> Add Office
+              </Button>
+              <Button
+                size="sm"
+                colorPalette="blue"
+                onClick={handleSaveOfficesPolicy}
+                fontWeight="bold"
+                ml="auto"
+              >
+                <Save size={14} /> Save Approver Policy
+              </Button>
+            </Flex>
+          )}
+        </Card.Root>
+        </Stack>
       )}
 
       {/* Audit Trail Tab */}
@@ -537,7 +684,8 @@ export const SettingsPage: React.FC = () => {
           </Card.Root>
 
           <Card.Root bg="white" border="1px solid #e2e8f0" borderRadius="14px" overflow="hidden" boxShadow="xs">
-            <Table.Root size="sm" striped>
+            <Box overflowX="auto">
+              <Table.Root size="sm" striped minW="750px">
               <Table.Header bg="#f8fafc">
                 <Table.Row>
                   <Table.ColumnHeader color="#475569">Timestamp</Table.ColumnHeader>
@@ -574,6 +722,7 @@ export const SettingsPage: React.FC = () => {
                   ))}
               </Table.Body>
             </Table.Root>
+            </Box>
           </Card.Root>
         </Stack>
       )}
@@ -613,7 +762,8 @@ export const SettingsPage: React.FC = () => {
                 <Terminal size={15} color="#2563eb" /> System Event & Integrity Stream
               </Heading>
             </Box>
-            <Table.Root size="sm" striped>
+            <Box overflowX="auto">
+              <Table.Root size="sm" striped minW="650px">
               <Table.Header bg="#f8fafc">
                 <Table.Row>
                   <Table.ColumnHeader color="#475569">Timestamp</Table.ColumnHeader>
@@ -637,6 +787,7 @@ export const SettingsPage: React.FC = () => {
                 ))}
               </Table.Body>
             </Table.Root>
+            </Box>
           </Card.Root>
         </Stack>
       )}

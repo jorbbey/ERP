@@ -101,7 +101,7 @@ export const WaybillsTab: React.FC = () => {
 
       <Card.Root bg="white" borderRadius="16px" border="1px solid #e2e8f0" overflow="hidden" boxShadow="xs">
         <Box overflowX="auto">
-          <Table.Root size="sm" variant="outline">
+          <Table.Root size="sm" variant="outline" minW="800px">
             <Table.Header>
               <Table.Row bg="#f8fafc">
                 <Table.ColumnHeader fontSize="10px">Waybill # & Date</Table.ColumnHeader>
@@ -180,8 +180,8 @@ export const WaybillsTab: React.FC = () => {
 
       {/* Confirm Receipt Modal */}
       {receivingWaybill && (
-        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={4}>
-          <Box bg="white" borderRadius="16px" maxW="480px" w="100%" p={6} boxShadow="2xl">
+        <Box position="fixed" inset="0" bg="rgba(15, 23, 42, 0.6)" zIndex="1000" display="flex" alignItems="center" justifyContent="center" p={{ base: 2, sm: 4 }}>
+          <Box bg="white" borderRadius="16px" maxW="480px" w="100%" p={{ base: 4, sm: 6 }} maxH="90vh" overflowY="auto" boxShadow="2xl">
             <Heading size="md" color="#0f172a" mb={1}>
               Confirm Site Material Delivery
             </Heading>

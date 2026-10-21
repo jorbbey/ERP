@@ -29,7 +29,11 @@ import {
   Package,
   Layers,
   Wrench,
-  HelpCircle
+  HelpCircle,
+  ShieldCheck,
+  Sliders,
+  CheckCircle2,
+  UserCheck
 } from 'lucide-react';
 
 interface RequisitionCreateModalProps {
@@ -62,7 +66,9 @@ export const RequisitionCreateModal: React.FC<RequisitionCreateModalProps> = ({ 
     employees,
     activeCompany,
     currentUserName,
-    activeRole
+    activeRole,
+    mandatoryRequisitionOffices,
+    updateMandatoryRequisitionOffices
   } = useERP();
 
   const [projectId, setProjectId] = useState<number>(projects[0]?.id || 1);
@@ -73,16 +79,62 @@ export const RequisitionCreateModal: React.FC<RequisitionCreateModalProps> = ({ 
   const [customSupplierText, setCustomSupplierText] = useState('');
   const [remarks, setRemarks] = useState('');
 
-  // Eligible Approvers (Managing Director, Finance Manager, Dept Head, QS, Project Manager)
-  const eligibleApprovers = employees.filter(e =>
-    ['Managing Director', 'Finance Manager', 'Department Head', 'Project Manager', 'Site Quantity Surveyor', 'HR Manager', 'Super Admin'].includes(e.role) ||
-    ['Managing Director', 'Finance Manager', 'Project Director', 'Head of Engineering'].includes(e.position)
-  );
+  // Helper: check if an employee belongs to/occupies a given office/role
+  const employeeMatchesOffice = (emp: typeof employees[0], office: string) => {
+    if (!emp) return false;
+    const off = office.toLowerCase().trim();
+    const r = (emp.role || '').toLowerCase();
+    const p = (emp.position || '').toLowerCase();
+    const d = (emp.department || '').toLowerCase();
+    return r === off || p === off || r.includes(off) || p.includes(off) || d.includes(off);
+  };
 
-  const initialApprover = eligibleApprovers[0] || employees[0];
-  const [selectedApproverIds, setSelectedApproverIds] = useState<number[]>(
-    initialApprover ? [initialApprover.id] : []
+  // Pre-tag staff for mandated offices on modal mount
+  const [selectedApproverIds, setSelectedApproverIds] = useState<number[]>(() => {
+    const ids: number[] = [];
+    (mandatoryRequisitionOffices || ['Finance Manager', 'Project Manager']).forEach(office => {
+      const match = employees.find(e => employeeMatchesOffice(e, office));
+      if (match && !ids.includes(match.id)) {
+        ids.push(match.id);
+      }
+    });
+    if (ids.length === 0 && employees.length > 0) {
+      ids.push(employees[0].id);
+    }
+    return ids;
+  });
+
+  const [approverSearch, setApproverSearch] = useState('');
+  const [approverError, setApproverError] = useState('');
+  const [showManageOfficesModal, setShowManageOfficesModal] = useState(false);
+  const [editingMandatoryOffices, setEditingMandatoryOffices] = useState<string[]>(
+    () => mandatoryRequisitionOffices || ['Finance Manager', 'Project Manager']
   );
+  const [newCustomOffice, setNewCustomOffice] = useState('');
+
+  const canManageMandatory = ['Super Admin', 'Managing Director'].includes(activeRole);
+
+  // Missing mandatory offices verification
+  const missingMandatoryOffices = (mandatoryRequisitionOffices || []).filter(office => {
+    return !selectedApproverIds.some(id => {
+      const emp = employees.find(e => e.id === id);
+      return emp ? employeeMatchesOffice(emp, office) : false;
+    });
+  });
+
+  // Dynamic search results across all staff
+  const searchResults = approverSearch.trim() === ''
+    ? []
+    : employees.filter(emp => {
+        const q = approverSearch.toLowerCase();
+        return (
+          emp.name.toLowerCase().includes(q) ||
+          (emp.role && emp.role.toLowerCase().includes(q)) ||
+          (emp.position && emp.position.toLowerCase().includes(q)) ||
+          (emp.department && emp.department.toLowerCase().includes(q)) ||
+          (emp.code && emp.code.toLowerCase().includes(q))
+        );
+      });
 
   // Line items state
   const [itemRows, setItemRows] = useState<EditableItemRow[]>([
@@ -198,11 +250,13 @@ export const RequisitionCreateModal: React.FC<RequisitionCreateModalProps> = ({ 
   };
 
   const handleToggleApprover = (empId: number) => {
+    setApproverError('');
     if (selectedApproverIds.includes(empId)) {
       if (selectedApproverIds.length === 1) return; // Keep at least one
-      setSelectedApproverIds(selectedApproverIds.filter(id => id !== empId));
+      setSelectedApproverIds(prev => prev.filter(id => id !== empId));
     } else {
-      setSelectedApproverIds([...selectedApproverIds, empId]);
+      setSelectedApproverIds(prev => [...prev, empId]);
+      setApproverSearch('');
     }
   };
 
@@ -211,6 +265,13 @@ export const RequisitionCreateModal: React.FC<RequisitionCreateModalProps> = ({ 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setApproverError('');
+
+    if (missingMandatoryOffices.length > 0) {
+      setApproverError(`Mandatory Approval Offices Required: This requisition cannot be raised until staff occupying the compulsory office(s) [${missingMandatoryOffices.join(', ')}] are tagged.`);
+      return;
+    }
+
     const proj = projects.find(p => p.id === projectId);
 
     const formattedItems: RequisitionItem[] = itemRows.map((row, idx) => ({
@@ -355,55 +416,243 @@ export const RequisitionCreateModal: React.FC<RequisitionCreateModalProps> = ({ 
               </Box>
             </SimpleGrid>
 
-            {/* Approver Tagging & Group Chat Initialization */}
-            <Card.Root bg="#f8fafc" borderRadius="12px" p={3.5} border="1px solid #e2e8f0">
-              <Flex justify="space-between" align="center" mb={2}>
+            {/* Dynamic Approver Tagging with Mandatory Offices Gate */}
+            <Card.Root bg="#f8fafc" borderRadius="12px" p={4} border="1px solid #e2e8f0">
+              <Flex justify="space-between" align="center" mb={1} wrap="wrap" gap={2}>
                 <Flex align="center" gap={2}>
                   <Users size={16} color="#2563eb" />
                   <Heading size="xs" color="#0f172a" textTransform="uppercase">
-                    Designated Approvers & Group Chat Participants *
+                    Designated Approvers & Workflow Routing *
                   </Heading>
                 </Flex>
-                <Badge size="xs" colorPalette="blue">
-                  {selectedApproverIds.length} Approver{selectedApproverIds.length > 1 ? 's' : ''} Tagged
-                </Badge>
+                <Flex align="center" gap={2}>
+                  {canManageMandatory && (
+                    <Button
+                      size="xs"
+                      variant="ghost"
+                      colorPalette="blue"
+                      onClick={() => setShowManageOfficesModal(true)}
+                    >
+                      <Sliders size={12} /> Mandated Offices Policy
+                    </Button>
+                  )}
+                  <Badge size="xs" colorPalette="blue">
+                    {selectedApproverIds.length} Staff Tagged
+                  </Badge>
+                </Flex>
               </Flex>
+
               <Text fontSize="11px" color="#64748b" mb={3}>
-                Tag the authorized managers who must review and decide on this requisition. A dedicated group discussion channel will be automatically provisioned for collaborative review.
+                Search any staff by name or office in the database. Mandatory approval offices set by management must be included before submission.
               </Text>
 
-              <Flex gap={2} flexWrap="wrap">
-                {eligibleApprovers.map((emp) => {
-                  const isSelected = selectedApproverIds.includes(emp.id);
-                  return (
-                    <Box
-                      key={emp.id}
-                      role="button"
-                      onClick={() => handleToggleApprover(emp.id)}
-                      px={2.5}
-                      py={1.5}
-                      borderRadius="8px"
-                      fontSize="xs"
-                      display="flex"
-                      alignItems="center"
-                      gap={1.5}
-                      bg={isSelected ? '#eff6ff' : 'white'}
-                      border={`1.5px solid ${isSelected ? '#2563eb' : '#cbd5e1'}`}
-                      color={isSelected ? '#1d4ed8' : '#475569'}
-                      fontWeight={isSelected ? 'bold' : 'normal'}
-                      cursor="pointer"
-                      transition="all 0.15s"
-                      _hover={{ borderColor: '#2563eb' }}
-                    >
-                      {isSelected ? <Check size={13} color="#2563eb" /> : <Plus size={13} color="#94a3b8" />}
-                      <Text>{emp.name}</Text>
-                      <Badge size="xs" colorPalette={isSelected ? 'blue' : 'gray'}>
-                        {emp.role || emp.position}
-                      </Badge>
+              {/* Mandatory Offices Gate Status */}
+              <Box mb={3} p={2.5} bg="white" borderRadius="8px" border="1px solid #e2e8f0">
+                <Flex align="center" justify="space-between" mb={1.5} wrap="wrap" gap={2}>
+                  <Flex align="center" gap={1.5}>
+                    <ShieldCheck size={14} color="#2563eb" />
+                    <Text fontSize="xs" fontWeight="bold" color="#0f172a">
+                      Compulsory Management Approval Offices:
+                    </Text>
+                  </Flex>
+                  {missingMandatoryOffices.length === 0 ? (
+                    <Badge colorPalette="green" size="xs">
+                      All Mandatory Offices Tagged
+                    </Badge>
+                  ) : (
+                    <Badge colorPalette="red" size="xs">
+                      {missingMandatoryOffices.length} Office Required
+                    </Badge>
+                  )}
+                </Flex>
+
+                <Flex wrap="wrap" gap={1.5}>
+                  {(mandatoryRequisitionOffices || []).map(office => {
+                    const coveringEmp = employees.find(e => selectedApproverIds.includes(e.id) && employeeMatchesOffice(e, office));
+                    if (coveringEmp) {
+                      return (
+                        <Badge key={office} colorPalette="green" size="xs" px={2} py={0.5}>
+                          <CheckCircle2 size={12} style={{ display: 'inline', marginRight: '4px' }} />
+                          {office} ({coveringEmp.name.split(' ')[0]})
+                        </Badge>
+                      );
+                    }
+                    const availableEmp = employees.find(e => employeeMatchesOffice(e, office));
+                    return (
+                      <Box key={office} display="flex" alignItems="center" gap={1}>
+                        <Badge colorPalette="red" size="xs" px={2} py={0.5}>
+                          <AlertCircle size={12} style={{ display: 'inline', marginRight: '4px' }} />
+                          {office} (Required)
+                        </Badge>
+                        {availableEmp && (
+                          <Button
+                            size="xs"
+                            variant="subtle"
+                            colorPalette="blue"
+                            onClick={() => handleToggleApprover(availableEmp.id)}
+                            fontSize="10px"
+                            h="20px"
+                            px={1.5}
+                          >
+                            + Tag {availableEmp.name.split(' ')[0]}
+                          </Button>
+                        )}
+                      </Box>
+                    );
+                  })}
+                </Flex>
+              </Box>
+
+              {approverError && (
+                <Box p={2.5} mb={3} bg="#fef2f2" border="1px solid #fecaca" borderRadius="8px" color="#991b1b" fontSize="xs" display="flex" alignItems="center" gap={2}>
+                  <AlertCircle size={14} />
+                  <Text fontWeight="medium">{approverError}</Text>
+                </Box>
+              )}
+
+              {/* Dynamic Staff Search Input */}
+              <Box position="relative" mb={3}>
+                <Flex align="center" bg="white" borderRadius="8px" border="1px solid #cbd5e1" px={2.5} py={1}>
+                  <Search size={14} color="#94a3b8" style={{ marginRight: '8px' }} />
+                  <input
+                    type="text"
+                    placeholder="Search any staff by name or office (e.g. Babatunde, Finance, Site Engineer, Adebayo)..."
+                    value={approverSearch}
+                    onChange={e => {
+                      setApproverSearch(e.target.value);
+                      setApproverError('');
+                    }}
+                    style={{
+                      width: '100%',
+                      outline: 'none',
+                      fontSize: '12px',
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      color: '#0f172a'
+                    }}
+                  />
+                  {approverSearch && (
+                    <Box as="button" onClick={() => setApproverSearch('')} color="#94a3b8" cursor="pointer">
+                      <X size={14} />
                     </Box>
-                  );
-                })}
-              </Flex>
+                  )}
+                </Flex>
+
+                {/* Search Results Dropdown */}
+                {approverSearch.trim() && (
+                  <Box
+                    position="absolute"
+                    top="100%"
+                    left="0"
+                    right="0"
+                    zIndex="50"
+                    mt={1}
+                    bg="white"
+                    borderRadius="10px"
+                    border="1px solid #cbd5e1"
+                    boxShadow="lg"
+                    maxH="220px"
+                    overflowY="auto"
+                    p={1.5}
+                  >
+                    {searchResults.length === 0 ? (
+                      <Box p={3} textAlign="center" fontSize="xs" color="#64748b">
+                        No staff member found matching "{approverSearch}". Try searching by another name or role.
+                      </Box>
+                    ) : (
+                      searchResults.map(emp => {
+                        const isAlreadySelected = selectedApproverIds.includes(emp.id);
+                        const satisfiesMandatory = (mandatoryRequisitionOffices || []).find(off => employeeMatchesOffice(emp, off));
+                        return (
+                          <Flex
+                            key={emp.id}
+                            justify="space-between"
+                            align="center"
+                            p={2}
+                            borderRadius="6px"
+                            cursor="pointer"
+                            bg={isAlreadySelected ? '#eff6ff' : 'transparent'}
+                            _hover={{ bg: isAlreadySelected ? '#dbeafe' : '#f8fafc' }}
+                            onClick={() => handleToggleApprover(emp.id)}
+                          >
+                            <Box>
+                              <Flex align="center" gap={1.5}>
+                                <Text fontSize="xs" fontWeight="bold" color="#0f172a">{emp.name}</Text>
+                                <Badge size="xs" colorPalette="blue">{emp.role || emp.position}</Badge>
+                                {satisfiesMandatory && (
+                                  <Badge size="xs" colorPalette="purple">Mandated: {satisfiesMandatory}</Badge>
+                                )}
+                              </Flex>
+                              <Text fontSize="10px" color="#64748b">
+                                {emp.department} • Code: {emp.code}
+                              </Text>
+                            </Box>
+                            <Button
+                              size="xs"
+                              variant={isAlreadySelected ? 'solid' : 'outline'}
+                              colorPalette={isAlreadySelected ? 'green' : 'blue'}
+                            >
+                              {isAlreadySelected ? <Check size={12} /> : <Plus size={12} />}
+                              {isAlreadySelected ? 'Tagged' : 'Tag'}
+                            </Button>
+                          </Flex>
+                        );
+                      })
+                    )}
+                  </Box>
+                )}
+              </Box>
+
+              {/* Tagged Approvers List */}
+              <Box>
+                <Text fontSize="10px" fontWeight="bold" color="#64748b" textTransform="uppercase" mb={1.5}>
+                  Currently Tagged Approvers ({selectedApproverIds.length})
+                </Text>
+                <Flex gap={2} flexWrap="wrap">
+                  {selectedApproverIds.map((id) => {
+                    const emp = employees.find(e => e.id === id);
+                    if (!emp) return null;
+                    const satisfiesMandatory = (mandatoryRequisitionOffices || []).find(off => employeeMatchesOffice(emp, off));
+                    return (
+                      <Box
+                        key={emp.id}
+                        px={2.5}
+                        py={1.5}
+                        borderRadius="8px"
+                        fontSize="xs"
+                        display="flex"
+                        alignItems="center"
+                        gap={1.5}
+                        bg="#eff6ff"
+                        border="1.5px solid #2563eb"
+                        color="#1d4ed8"
+                      >
+                        <UserCheck size={13} color="#2563eb" />
+                        <Text fontWeight="bold">{emp.name}</Text>
+                        <Badge size="xs" colorPalette="blue">
+                          {emp.role || emp.position}
+                        </Badge>
+                        {satisfiesMandatory && (
+                          <Badge size="xs" colorPalette="purple">
+                            Mandatory: {satisfiesMandatory}
+                          </Badge>
+                        )}
+                        <Box
+                          as="button"
+                          onClick={() => handleToggleApprover(emp.id)}
+                          ml={1}
+                          color="#64748b"
+                          _hover={{ color: '#dc2626' }}
+                          cursor="pointer"
+                          title="Remove Approver"
+                        >
+                          <X size={13} />
+                        </Box>
+                      </Box>
+                    );
+                  })}
+                </Flex>
+              </Box>
             </Card.Root>
 
             {/* Line Items Table */}
@@ -739,6 +988,123 @@ export const RequisitionCreateModal: React.FC<RequisitionCreateModalProps> = ({ 
           </Stack>
         </form>
       </Box>
+
+      {/* Mandatory Offices Configuration Dialog */}
+      {showManageOfficesModal && (
+        <Box
+          position="fixed"
+          inset="0"
+          zIndex="1500"
+          bg="rgba(15, 23, 42, 0.7)"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          p={{ base: 2, sm: 4 }}
+        >
+          <Box bg="white" borderRadius="16px" maxW="480px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl">
+            <Flex justify="space-between" align="center" mb={1}>
+              <Flex align="center" gap={2}>
+                <ShieldCheck size={18} color="#2563eb" />
+                <Heading size="md" color="#0f172a">Mandatory Approver Offices Policy</Heading>
+              </Flex>
+              <Button size="xs" variant="ghost" onClick={() => setShowManageOfficesModal(false)}>
+                <X size={16} />
+              </Button>
+            </Flex>
+            <Text fontSize="xs" color="#64748b" mb={4}>
+              Select the compulsory offices that must be tagged and review any requisition raised across the company.
+            </Text>
+
+            <Stack gap={2.5} mb={4}>
+              {[
+                'Finance Manager',
+                'Project Manager',
+                'Managing Director',
+                'Department Head',
+                'Site Quantity Surveyor',
+                'Procurement Officer',
+                ...editingMandatoryOffices.filter(o => ![
+                  'Finance Manager',
+                  'Project Manager',
+                  'Managing Director',
+                  'Department Head',
+                  'Site Quantity Surveyor',
+                  'Procurement Officer'
+                ].includes(o))
+              ].map(office => {
+                const isMandatory = editingMandatoryOffices.includes(office);
+                return (
+                  <Flex
+                    key={office}
+                    justify="space-between"
+                    align="center"
+                    p={2.5}
+                    borderRadius="8px"
+                    border={`1.5px solid ${isMandatory ? '#2563eb' : '#e2e8f0'}`}
+                    bg={isMandatory ? '#eff6ff' : 'white'}
+                    cursor="pointer"
+                    onClick={() => {
+                      if (isMandatory) {
+                        setEditingMandatoryOffices(prev => prev.filter(o => o !== office));
+                      } else {
+                        setEditingMandatoryOffices(prev => [...prev, office]);
+                      }
+                    }}
+                  >
+                    <Box>
+                      <Text fontSize="xs" fontWeight="bold" color="#0f172a">{office}</Text>
+                      <Text fontSize="10px" color="#64748b">
+                        {isMandatory ? 'Compulsory Review Gate' : 'Optional Approver'}
+                      </Text>
+                    </Box>
+                    <Badge colorPalette={isMandatory ? 'blue' : 'gray'} size="xs">
+                      {isMandatory ? 'Mandatory' : 'Optional'}
+                    </Badge>
+                  </Flex>
+                );
+              })}
+            </Stack>
+
+            {/* Custom Office Input */}
+            <Flex gap={2} mb={4}>
+              <Input
+                size="xs"
+                placeholder="Add custom office (e.g. Internal Auditor, QA/QC Lead)"
+                value={newCustomOffice}
+                onChange={e => setNewCustomOffice(e.target.value)}
+              />
+              <Button
+                size="xs"
+                colorPalette="blue"
+                onClick={() => {
+                  if (newCustomOffice.trim() && !editingMandatoryOffices.includes(newCustomOffice.trim())) {
+                    setEditingMandatoryOffices(prev => [...prev, newCustomOffice.trim()]);
+                    setNewCustomOffice('');
+                  }
+                }}
+              >
+                + Add
+              </Button>
+            </Flex>
+
+            <Flex justify="flex-end" gap={2}>
+              <Button size="sm" variant="outline" onClick={() => setShowManageOfficesModal(false)}>
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                colorPalette="blue"
+                onClick={() => {
+                  updateMandatoryRequisitionOffices(editingMandatoryOffices);
+                  setShowManageOfficesModal(false);
+                }}
+              >
+                Save Approver Policy
+              </Button>
+            </Flex>
+          </Box>
+        </Box>
+      )}
     </Box>
   );
 };

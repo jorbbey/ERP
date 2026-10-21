@@ -15,7 +15,8 @@ import {
   Textarea
 } from '@chakra-ui/react';
 import { useERP } from '../../context/ERPContext';
-import { Payslip } from '../../types';
+import { Payslip, PayrollCalculationItem } from '../../types';
+import { PayrollStructureTab } from './components/PayrollStructureTab';
 import {
   Wallet,
   Play,
@@ -30,13 +31,23 @@ import {
   Filter,
   Check,
   Send,
-  X
+  X,
+  Sliders,
+  Plus,
+  Trash2,
+  RotateCcw,
+  AlertCircle,
+  Save,
+  Info,
+  Edit2
 } from 'lucide-react';
 
 export const PayrollPage: React.FC = () => {
   const {
     payrollRuns,
     payslips,
+    payrollStructure,
+    updatePayrollStructure,
     processPayrollMonth,
     finalizePayrollRun,
     markPayrollPaid,
@@ -47,11 +58,70 @@ export const PayrollPage: React.FC = () => {
     activeRole
   } = useERP();
 
-  const [activeTab, setActiveTab] = useState<'payroll' | 'ledger'>('payroll');
+  const [activeTab, setActiveTab] = useState<'payroll' | 'ledger' | 'structure'>('payroll');
   const [selectedPayslip, setSelectedPayslip] = useState<Payslip | null>(null);
   const [selectedMonth, setSelectedMonth] = useState('October 2026');
   const [searchTerm, setSearchTerm] = useState('');
   const [deptFilter, setDeptFilter] = useState('All');
+
+  // Formula & Calculation Configuration Modal State
+  const [showFormulaModal, setShowFormulaModal] = useState(false);
+  const [formulaItems, setFormulaItems] = useState<PayrollCalculationItem[]>(() => payrollStructure?.items || []);
+  const [isEditingInRunModal, setIsEditingInRunModal] = useState(false);
+  const [saveFormulaForFuture, setSaveFormulaForFuture] = useState(true);
+
+  // New item form state
+  const [newItemName, setNewItemName] = useState('');
+  const [newItemType, setNewItemType] = useState<'earning' | 'deduction'>('earning');
+  const [newItemPct, setNewItemPct] = useState<number>(5);
+  const [newItemBase, setNewItemBase] = useState<'basic' | 'gross'>('basic');
+
+  React.useEffect(() => {
+    if (payrollStructure?.items && payrollStructure.items.length > 0) {
+      setFormulaItems(payrollStructure.items);
+    }
+  }, [payrollStructure]);
+
+  const handleUpdateItemPct = (id: string, pct: number) => {
+    setFormulaItems(prev => prev.map(item => item.id === id ? { ...item, percentage: Math.max(0, pct) } : item));
+  };
+
+  const handleToggleItemStatus = (id: string) => {
+    setFormulaItems(prev => prev.map(item => item.id === id ? { ...item, isActive: !item.isActive } : item));
+  };
+
+  const handleRemoveFormulaItem = (id: string) => {
+    setFormulaItems(prev => prev.filter(item => item.id !== id));
+  };
+
+  const handleAddFormulaItem = () => {
+    if (!newItemName.trim() || isNaN(newItemPct) || newItemPct <= 0) return;
+    const created: PayrollCalculationItem = {
+      id: `item-${Date.now()}`,
+      name: newItemName.trim(),
+      category: newItemType,
+      percentage: Number(newItemPct),
+      basedOn: newItemBase,
+      isActive: true,
+      isSystem: false
+    };
+    const updated = [...formulaItems, created];
+    setFormulaItems(updated);
+    setNewItemName('');
+    setNewItemPct(5);
+  };
+
+  const handleSaveFormula = () => {
+    if (payrollStructure) {
+      updatePayrollStructure({
+        ...payrollStructure,
+        items: formulaItems,
+        updatedAt: new Date().toISOString().split('T')[0]
+      });
+    }
+    setShowFormulaModal(false);
+    setPayrollToast({ message: 'Payroll calculation formula and percentages saved for current & future runs.', type: 'success' });
+  };
 
   // CSV Import Modal
   const [showImportModal, setShowImportModal] = useState(false);
@@ -73,9 +143,17 @@ EMP-004,2026-10,3800,450,850`
   };
 
   const handleConfirmRunPayroll = () => {
-    processPayrollMonth(selectedMonth);
+    if (saveFormulaForFuture && payrollStructure) {
+      updatePayrollStructure({
+        ...payrollStructure,
+        items: formulaItems,
+        updatedAt: new Date().toISOString().split('T')[0]
+      });
+    }
+    processPayrollMonth(selectedMonth, formulaItems);
     setShowConfirmRunModal(false);
-    setPayrollToast({ message: `Automated payroll calculations completed for ${selectedMonth}!`, type: 'success' });
+    setIsEditingInRunModal(false);
+    setPayrollToast({ message: `Automated payroll calculations completed for ${selectedMonth} using configured formula!`, type: 'success' });
   };
 
   const handleImportCSVSubmit = (e: React.FormEvent) => {
@@ -121,6 +199,311 @@ EMP-004,2026-10,3800,450,850`
     link.download = `bank_payment_schedule_run_${runId}.csv`;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const getPayslipMonth = (slip: Payslip) => {
+    return payrollRuns.find(r => r.id === slip.payrollRunId)?.monthYear || selectedMonth || 'October 2026';
+  };
+
+  const generatePayslipPrintHtml = (slip: Payslip) => {
+    const companyName = activeCompany?.name || 'Apex Construction & Civil Works Ltd';
+    const currency = activeCompany?.currency || '₦';
+    const month = getPayslipMonth(slip);
+
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Payslip - ${slip.employeeName} (${month})</title>
+  <style>
+    @page { size: A4 portrait; margin: 12mm 15mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #0f172a;
+      background: #ffffff;
+      padding: 24px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .header {
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .company-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.01em;
+    }
+    .sub-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .voucher-pill {
+      font-size: 11px;
+      font-weight: 700;
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+      padding: 4px 10px;
+      border-radius: 9999px;
+    }
+    .meta-table {
+      width: 100%;
+      margin-bottom: 16px;
+      border-collapse: collapse;
+    }
+    .meta-table td {
+      padding: 4px 0;
+      font-size: 12px;
+    }
+    .meta-label {
+      color: #64748b;
+      width: 25%;
+    }
+    .meta-val {
+      font-weight: 600;
+      color: #0f172a;
+      width: 25%;
+    }
+    .section-card {
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+    .earnings-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+    }
+    .deductions-card {
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+    }
+    .net-card {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 8px;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 3px 0;
+      font-size: 12px;
+    }
+    .row.total {
+      margin-top: 6px;
+      padding-top: 6px;
+      font-weight: 700;
+      font-size: 12.5px;
+    }
+    .signatures-block {
+      margin-top: 36px;
+      padding-top: 18px;
+      border-top: 1px dashed #94a3b8;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 36px;
+    }
+    .sig-line {
+      border-bottom: 1.5px solid #0f172a;
+      height: 38px;
+      margin-bottom: 8px;
+    }
+    .sig-role {
+      font-size: 12px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .sig-meta {
+      font-size: 10px;
+      color: #64748b;
+      margin-top: 4px;
+    }
+    .footer-note {
+      text-align: center;
+      font-size: 10px;
+      color: #94a3b8;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="company-title">${companyName}</div>
+      <div class="sub-title">Official Monthly Salary Payslip • ${month}</div>
+    </div>
+    <div class="voucher-pill">VOUCHER #${slip.id}</div>
+  </div>
+
+  <table class="meta-table">
+    <tr>
+      <td class="meta-label">Staff Name:</td>
+      <td class="meta-val">${slip.employeeName}</td>
+      <td class="meta-label">Department:</td>
+      <td class="meta-val">${slip.department}</td>
+    </tr>
+    <tr>
+      <td class="meta-label">Staff Code:</td>
+      <td class="meta-val" style="font-family: monospace;">${slip.employeeCode}</td>
+      <td class="meta-label">Pay Period:</td>
+      <td class="meta-val">${month}</td>
+    </tr>
+  </table>
+
+  <div class="section-card earnings-card">
+    <div class="card-title" style="color: #2563eb;">Earnings & Allowances</div>
+    <div class="row">
+      <span style="color: #64748b;">Basic Wage:</span>
+      <span style="font-weight: 600;">${currency} ${slip.basicSalary.toLocaleString()}</span>
+    </div>
+    <div class="row">
+      <span style="color: #64748b;">Housing & Transport Allowances:</span>
+      <span style="font-weight: 600;">${currency} ${slip.allowances.toLocaleString()}</span>
+    </div>
+    <div class="row total" style="border-top: 1px solid #e2e8f0;">
+      <span>Total Gross Pay:</span>
+      <span>${currency} ${slip.grossPay.toLocaleString()}</span>
+    </div>
+  </div>
+
+  <div class="section-card deductions-card">
+    <div class="card-title" style="color: #e11d48;">Statutory & Payroll Deductions</div>
+    <div class="row">
+      <span style="color: #64748b;">PAYE Income Tax:</span>
+      <span style="font-weight: 600; color: #e11d48;">-${currency} ${slip.tax.toLocaleString()}</span>
+    </div>
+    <div class="row">
+      <span style="color: #64748b;">Pension Contribution (8%):</span>
+      <span style="font-weight: 600; color: #e11d48;">-${currency} ${slip.pension.toLocaleString()}</span>
+    </div>
+    ${slip.loanDeduction > 0 ? `
+    <div class="row">
+      <span style="color: #64748b;">Advance / Loan Recovery:</span>
+      <span style="font-weight: 600; color: #e11d48;">-${currency} ${slip.loanDeduction.toLocaleString()}</span>
+    </div>` : ''}
+    <div class="row total" style="border-top: 1px solid #fecdd3; color: #9f1239;">
+      <span>Total Deductions:</span>
+      <span>-${currency} ${slip.totalDeductions.toLocaleString()}</span>
+    </div>
+  </div>
+
+  <div class="net-card">
+    <span style="font-size: 13px; font-weight: 700; color: #065f46; text-transform: uppercase;">Net Take-Home Pay:</span>
+    <span style="font-size: 17px; font-weight: 800; font-family: monospace; color: #047857;">${currency} ${slip.netPay.toLocaleString()}</span>
+  </div>
+
+  <!-- Space for Payroll Officer and Head of Finance Signing (Printed Slip Only) -->
+  <div class="signatures-block">
+    <div>
+      <div class="sig-line"></div>
+      <div class="sig-role">Payroll Officer Signature</div>
+      <div class="sig-meta">Name: _______________________________</div>
+      <div class="sig-meta">Date: _______________________________</div>
+    </div>
+    <div>
+      <div class="sig-line"></div>
+      <div class="sig-role">Head of Finance Signing</div>
+      <div class="sig-meta">Name: _______________________________</div>
+      <div class="sig-meta">Date: _______________________________</div>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    Corporate Electronic Payroll Voucher • Authorized by Corporate Finance & Accounts
+  </div>
+</body>
+</html>`;
+  };
+
+  const handlePrintPayslip = () => {
+    if (!selectedPayslip) return;
+
+    setPayrollToast({
+      message: `Preparing print voucher for ${selectedPayslip.employeeName}...`,
+      type: 'success'
+    });
+
+    const printHtml = generatePayslipPrintHtml(selectedPayslip);
+
+    // Try isolated hidden iframe print
+    try {
+      let printFrame = document.getElementById('payslip-isolated-frame') as HTMLIFrameElement | null;
+      if (!printFrame) {
+        printFrame = document.createElement('iframe');
+        printFrame.id = 'payslip-isolated-frame';
+        printFrame.style.position = 'fixed';
+        printFrame.style.right = '0';
+        printFrame.style.bottom = '0';
+        printFrame.style.width = '0';
+        printFrame.style.height = '0';
+        printFrame.style.border = '0';
+        document.body.appendChild(printFrame);
+      }
+      const frameDoc = printFrame.contentWindow?.document;
+      if (frameDoc) {
+        frameDoc.open();
+        frameDoc.write(printHtml);
+        frameDoc.close();
+        setTimeout(() => {
+          try {
+            printFrame?.contentWindow?.focus();
+            printFrame?.contentWindow?.print();
+          } catch (iframeErr) {
+            console.warn('Iframe print intercepted, falling back to window.print():', iframeErr);
+            window.print();
+          }
+        }, 150);
+        return;
+      }
+    } catch (e) {
+      console.warn('Error setting up print iframe:', e);
+    }
+
+    // Direct fallback
+    try {
+      window.print();
+    } catch (err) {
+      console.warn('Direct window.print() failed:', err);
+    }
+  };
+
+  const handleDownloadPayslipDocument = () => {
+    if (!selectedPayslip) return;
+    const printHtml = generatePayslipPrintHtml(selectedPayslip);
+    const blob = new Blob([printHtml], { type: 'text/html;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const month = getPayslipMonth(selectedPayslip);
+    link.href = url;
+    link.download = `Payslip_${selectedPayslip.employeeCode}_${month.replace(/\s+/g, '_')}.html`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setPayrollToast({
+      message: `Payslip document downloaded for ${selectedPayslip.employeeName}. Open in any browser to print or save as PDF.`,
+      type: 'success'
+    });
   };
 
   const filteredPayslips = payslips.filter(s => {
@@ -184,6 +567,9 @@ EMP-004,2026-10,3800,450,850`
                       <option value="December 2026">December 2026</option>
                     </NativeSelect.Field>
                   </NativeSelect.Root>
+                  <Button size="sm" variant="outline" onClick={() => setShowFormulaModal(true)}>
+                    <Sliders size={14} /> Formula & Rates
+                  </Button>
                   <Button size="sm" colorPalette="green" onClick={handleRunPayroll} fontWeight="bold">
                     <Play size={14} fill="currentColor" /> Run Payroll
                   </Button>
@@ -222,6 +608,19 @@ EMP-004,2026-10,3800,450,850`
             onClick={() => setActiveTab('ledger')}
           >
             Chart of Accounts & General Ledger ({accountsLedger.length})
+          </Box>
+          <Box
+            as="button"
+            pb={3}
+            fontSize="sm"
+            fontWeight="bold"
+            color={activeTab === 'structure' ? '#2563eb' : '#64748b'}
+            borderBottom={activeTab === 'structure' ? '2px solid #2563eb' : 'none'}
+            mb="-2px"
+            cursor="pointer"
+            onClick={() => setActiveTab('structure')}
+          >
+            Statutory Structure & Allowances
           </Box>
         </Flex>
       </Box>
@@ -412,9 +811,14 @@ EMP-004,2026-10,3800,450,850`
         </Card.Root>
       )}
 
+      {/* Tab: Statutory Structure & Allowances */}
+      {activeTab === 'structure' && <PayrollStructureTab />}
+
       {/* Modal: View Official Payslip */}
       {selectedPayslip && (
         <Box 
+          id="printable-payslip-portal"
+          className="payslip-modal-backdrop"
           position="fixed" 
           inset="0" 
           zIndex="1400" 
@@ -424,7 +828,7 @@ EMP-004,2026-10,3800,450,850`
           justifyContent="center" 
           p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="550px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
+          <Box className="payslip-print-card" bg="white" borderRadius="16px" maxW="550px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
             <Flex justify="space-between" align="center" borderBottom="2px solid #0f172a" pb={3} mb={4}>
               <Box>
                 <Heading size="md" color="#0f172a">{activeCompany.name}</Heading>
@@ -448,7 +852,7 @@ EMP-004,2026-10,3800,450,850`
               </Flex>
 
               <Box my={2} p={3} bg="#f8fafc" borderRadius="8px" border="1px solid #e2e8f0">
-                <Text fontSize="11px" fontWeight="bold" textTransform="uppercase" color="#2563eb" mb={2}>Earnings</Text>
+                <Text fontSize="11px" fontWeight="bold" textTransform="uppercase" color="#2563eb" mb={2}>Earnings & Allowances</Text>
                 <Flex justify="space-between" py={0.5}>
                   <Text color="#64748b">Basic Wage:</Text>
                   <Text fontWeight="semibold">{activeCompany.currency} {selectedPayslip.basicSalary.toLocaleString()}</Text>
@@ -493,13 +897,39 @@ EMP-004,2026-10,3800,450,850`
               </Flex>
             </Stack>
 
-            <Flex justify="flex-end" gap={2} mt={5}>
-              <Button size="sm" variant="outline" onClick={() => setSelectedPayslip(null)}>
-                Close
+            {/* Space for Payroll Officer & Head of Finance signing - designated to show on printed slip */}
+            <Box className="print-only" mt={8} pt={4} borderTop="1px dashed #94a3b8">
+              <SimpleGrid columns={2} gap={8} pt={2}>
+                <Box>
+                  <Box borderBottom="1.5px solid #0f172a" h="38px" mb={2} />
+                  <Text fontSize="xs" fontWeight="bold" color="#0f172a">Payroll Officer Signature</Text>
+                  <Text fontSize="10px" color="#64748b" mt={1}>Name: _______________________________</Text>
+                  <Text fontSize="10px" color="#64748b" mt={0.5}>Date: _______________________________</Text>
+                </Box>
+                <Box>
+                  <Box borderBottom="1.5px solid #0f172a" h="38px" mb={2} />
+                  <Text fontSize="xs" fontWeight="bold" color="#0f172a">Head of Finance Signing</Text>
+                  <Text fontSize="10px" color="#64748b" mt={1}>Name: _______________________________</Text>
+                  <Text fontSize="10px" color="#64748b" mt={0.5}>Date: _______________________________</Text>
+                </Box>
+              </SimpleGrid>
+              <Text fontSize="9px" color="#94a3b8" textAlign="center" mt={4}>
+                Corporate Electronic Payroll Voucher • Authorized by Corporate Finance & Accounts
+              </Text>
+            </Box>
+
+            <Flex justify="space-between" align="center" gap={2} mt={5} className="no-print">
+              <Button size="sm" variant="ghost" onClick={handleDownloadPayslipDocument}>
+                <Download size={14} /> Download Slip
               </Button>
-              <Button size="sm" colorPalette="blue" onClick={() => window.print()}>
-                <Printer size={14} /> Print Payslip
-              </Button>
+              <Flex gap={2}>
+                <Button size="sm" variant="outline" onClick={() => setSelectedPayslip(null)}>
+                  Close
+                </Button>
+                <Button size="sm" colorPalette="blue" onClick={handlePrintPayslip}>
+                  <Printer size={14} /> Print Payslip
+                </Button>
+              </Flex>
             </Flex>
           </Box>
         </Box>
@@ -576,20 +1006,298 @@ EMP-004,2026-10,3800,450,850`
           justifyContent="center"
           p={{ base: 2, sm: 4 }}
         >
-          <Box bg="white" borderRadius="16px" maxW="460px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
-            <Heading size="md" color="#0f172a" mb={2}>Confirm Automated Payroll Run</Heading>
-            <Text fontSize="sm" color="#475569" mb={4}>
-              Are you sure you want to run automated payroll calculations for all active personnel for <strong>{selectedMonth}</strong>?
+          <Box bg="white" borderRadius="16px" maxW={isEditingInRunModal ? "680px" : "480px"} w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
+            <Flex justify="space-between" align="center" mb={2}>
+              <Heading size="md" color="#0f172a">Run Monthly Payroll</Heading>
+              <Badge colorPalette="green" size="sm">{selectedMonth}</Badge>
+            </Flex>
+            <Text fontSize="xs" color="#64748b" mb={3}>
+              Calculates wages, allowances, statutory PAYE tax, pension, and creates payslips for all active personnel.
             </Text>
-            <Box p={3} mb={4} bg="#f8fafc" borderRadius="8px" border="1px solid #e2e8f0" fontSize="xs" color="#64748b">
-              This will compute gross salary, statutory PAYE tax withholdings, pension deductions, and create downloadable payslips.
+
+            {/* Active Formula Summary */}
+            <Box p={3} mb={3} bg="#f8fafc" borderRadius="10px" border="1px solid #e2e8f0">
+              <Flex justify="space-between" align="center" mb={1.5}>
+                <Text fontSize="xs" fontWeight="bold" color="#0f172a">
+                  Active Calculation Formula ({formulaItems.filter(i => i.isActive).length} Components)
+                </Text>
+                <Button
+                  size="xs"
+                  variant="outline"
+                  onClick={() => setIsEditingInRunModal(!isEditingInRunModal)}
+                >
+                  <Sliders size={12} /> {isEditingInRunModal ? 'Collapse Rates' : 'Edit Rates & Items'}
+                </Button>
+              </Flex>
+
+              {!isEditingInRunModal ? (
+                <Stack gap={1.5} fontSize="xs">
+                  <Flex wrap="wrap" gap={1.5} pt={1}>
+                    {formulaItems.filter(i => i.isActive).map(item => (
+                      <Badge
+                        key={item.id}
+                        colorPalette={item.category === 'earning' ? 'green' : 'red'}
+                        size="xs"
+                        px={1.5}
+                        py={0.5}
+                      >
+                        {item.name}: {item.percentage}% ({item.basedOn === 'gross' ? 'Gross' : 'Basic'})
+                      </Badge>
+                    ))}
+                  </Flex>
+                  <Text fontSize="10px" color="#94a3b8" mt={1}>
+                    Calculation uses saved persistent formula. Click "Edit Rates & Items" if adjustments are needed.
+                  </Text>
+                </Stack>
+              ) : (
+                <Stack gap={2.5} pt={2}>
+                  <Box overflowX="auto">
+                    <Table.Root size="sm" striped>
+                      <Table.Header>
+                        <Table.Row>
+                          <Table.ColumnHeader fontSize="10px">Item Name</Table.ColumnHeader>
+                          <Table.ColumnHeader fontSize="10px">Type</Table.ColumnHeader>
+                          <Table.ColumnHeader fontSize="10px">Rate (%)</Table.ColumnHeader>
+                          <Table.ColumnHeader fontSize="10px">Active</Table.ColumnHeader>
+                          <Table.ColumnHeader textAlign="right" fontSize="10px">Remove</Table.ColumnHeader>
+                        </Table.Row>
+                      </Table.Header>
+                      <Table.Body>
+                        {formulaItems.map(item => (
+                          <Table.Row key={item.id}>
+                            <Table.Cell fontSize="xs" fontWeight="medium">{item.name}</Table.Cell>
+                            <Table.Cell>
+                              <Badge size="xs" colorPalette={item.category === 'earning' ? 'green' : 'red'}>
+                                {item.category === 'earning' ? '+' : '-'} {item.category}
+                              </Badge>
+                            </Table.Cell>
+                            <Table.Cell>
+                              <Input
+                                size="xs"
+                                type="number"
+                                step="0.1"
+                                min={0}
+                                max={100}
+                                w="70px"
+                                value={item.percentage}
+                                onChange={(e) => handleUpdateItemPct(item.id, Number(e.target.value))}
+                              />
+                            </Table.Cell>
+                            <Table.Cell>
+                              <Button
+                                size="xs"
+                                variant={item.isActive ? 'solid' : 'outline'}
+                                colorPalette={item.isActive ? 'green' : 'gray'}
+                                onClick={() => handleToggleItemStatus(item.id)}
+                              >
+                                {item.isActive ? 'Active' : 'Off'}
+                              </Button>
+                            </Table.Cell>
+                            <Table.Cell textAlign="right">
+                              {!item.isSystem && (
+                                <Button size="xs" variant="ghost" colorPalette="red" onClick={() => handleRemoveFormulaItem(item.id)}>
+                                  <Trash2 size={12} />
+                                </Button>
+                              )}
+                            </Table.Cell>
+                          </Table.Row>
+                        ))}
+                      </Table.Body>
+                    </Table.Root>
+                  </Box>
+
+                  {/* Quick Add Row */}
+                  <Flex gap={2} align="center" wrap="wrap" p={2} bg="white" borderRadius="8px" border="1px solid #e2e8f0">
+                    <Input
+                      size="xs"
+                      placeholder="New allowance / deduction name"
+                      value={newItemName}
+                      onChange={e => setNewItemName(e.target.value)}
+                      flex="2"
+                      minW="140px"
+                    />
+                    <NativeSelect.Root size="xs" w="100px">
+                      <NativeSelect.Field value={newItemType} onChange={e => setNewItemType(e.target.value as any)}>
+                        <option value="earning">Allowance (+)</option>
+                        <option value="deduction">Deduction (-)</option>
+                      </NativeSelect.Field>
+                    </NativeSelect.Root>
+                    <Input
+                      size="xs"
+                      type="number"
+                      step="0.5"
+                      placeholder="Rate %"
+                      value={newItemPct}
+                      onChange={e => setNewItemPct(Number(e.target.value))}
+                      w="70px"
+                    />
+                    <Button size="xs" colorPalette="blue" onClick={handleAddFormulaItem}>
+                      <Plus size={12} /> Add
+                    </Button>
+                  </Flex>
+                </Stack>
+              )}
             </Box>
+
+            {isEditingInRunModal && (
+              <Flex align="center" gap={2} mb={4} p={2} bg="#eff6ff" borderRadius="8px" fontSize="xs" color="#1d4ed8">
+                <input
+                  type="checkbox"
+                  id="saveFutureCheck"
+                  checked={saveFormulaForFuture}
+                  onChange={e => setSaveFormulaForFuture(e.target.checked)}
+                />
+                <label htmlFor="saveFutureCheck" style={{ cursor: 'pointer' }}>
+                  Save and use these updated percentages for future payroll calculations
+                </label>
+              </Flex>
+            )}
+
             <Flex justify="flex-end" gap={2}>
-              <Button size="sm" variant="outline" onClick={() => setShowConfirmRunModal(false)}>
+              <Button size="sm" variant="outline" onClick={() => { setShowConfirmRunModal(false); setIsEditingInRunModal(false); }}>
                 Cancel
               </Button>
               <Button size="sm" colorPalette="green" onClick={handleConfirmRunPayroll} fontWeight="bold">
                 Run Calculations
+              </Button>
+            </Flex>
+          </Box>
+        </Box>
+      )}
+
+      {/* Standalone Formula & Rates Configuration Modal */}
+      {showFormulaModal && (
+        <Box
+          position="fixed"
+          inset="0"
+          zIndex="1450"
+          bg="rgba(15, 23, 42, 0.65)"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          p={{ base: 2, sm: 4 }}
+        >
+          <Box bg="white" borderRadius="16px" maxW="640px" w="100%" p={{ base: 4, sm: 6 }} border="1px solid #e2e8f0" boxShadow="2xl" maxH="90vh" overflowY="auto">
+            <Flex justify="space-between" align="center" mb={1}>
+              <Flex align="center" gap={2}>
+                <Sliders size={18} color="#2563eb" />
+                <Heading size="md" color="#0f172a">Payroll Calculation Formula & Rates</Heading>
+              </Flex>
+              <Button size="xs" variant="ghost" onClick={() => setShowFormulaModal(false)}>
+                <X size={16} />
+              </Button>
+            </Flex>
+            <Text fontSize="xs" color="#64748b" mb={4}>
+              Input and save the payroll items and respective percentages used when calculating monthly payroll. Saved rates are preserved and reused automatically.
+            </Text>
+
+            <Box overflowX="auto" mb={4}>
+              <Table.Root size="sm" striped>
+                <Table.Header bg="#f8fafc">
+                  <Table.Row>
+                    <Table.ColumnHeader>Component Name</Table.ColumnHeader>
+                    <Table.ColumnHeader>Classification</Table.ColumnHeader>
+                    <Table.ColumnHeader>Rate (%)</Table.ColumnHeader>
+                    <Table.ColumnHeader>Base</Table.ColumnHeader>
+                    <Table.ColumnHeader>Status</Table.ColumnHeader>
+                    <Table.ColumnHeader textAlign="right">Action</Table.ColumnHeader>
+                  </Table.Row>
+                </Table.Header>
+                <Table.Body>
+                  {formulaItems.map(item => (
+                    <Table.Row key={item.id}>
+                      <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a">{item.name}</Table.Cell>
+                      <Table.Cell>
+                        <Badge size="xs" colorPalette={item.category === 'earning' ? 'green' : 'red'}>
+                          {item.category === 'earning' ? 'Allowance (+)' : 'Deduction (-)'}
+                        </Badge>
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Input
+                          size="xs"
+                          type="number"
+                          step="0.1"
+                          min={0}
+                          max={100}
+                          w="75px"
+                          value={item.percentage}
+                          onChange={(e) => handleUpdateItemPct(item.id, Number(e.target.value))}
+                        />
+                      </Table.Cell>
+                      <Table.Cell fontSize="11px" color="#64748b">
+                        {item.basedOn === 'gross' ? 'Gross' : 'Basic'}
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Button
+                          size="xs"
+                          variant={item.isActive ? 'solid' : 'outline'}
+                          colorPalette={item.isActive ? 'green' : 'gray'}
+                          onClick={() => handleToggleItemStatus(item.id)}
+                        >
+                          {item.isActive ? 'Active' : 'Off'}
+                        </Button>
+                      </Table.Cell>
+                      <Table.Cell textAlign="right">
+                        {!item.isSystem && (
+                          <Button size="xs" variant="ghost" colorPalette="red" onClick={() => handleRemoveFormulaItem(item.id)}>
+                            <Trash2 size={12} />
+                          </Button>
+                        )}
+                      </Table.Cell>
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table.Root>
+            </Box>
+
+            {/* Add New Item Section */}
+            <Box p={3.5} mb={4} bg="#f8fafc" borderRadius="10px" border="1px solid #e2e8f0">
+              <Text fontSize="xs" fontWeight="bold" color="#334155" mb={2}>Add New Payroll Item</Text>
+              <SimpleGrid columns={{ base: 1, sm: 4 }} gap={2}>
+                <Box gridColumn={{ sm: 'span 2' }}>
+                  <Input
+                    size="xs"
+                    placeholder="e.g. Site Hazard Subsidy, Union Levy"
+                    value={newItemName}
+                    onChange={e => setNewItemName(e.target.value)}
+                  />
+                </Box>
+                <NativeSelect.Root size="xs">
+                  <NativeSelect.Field value={newItemType} onChange={e => setNewItemType(e.target.value as any)}>
+                    <option value="earning">Allowance (+)</option>
+                    <option value="deduction">Deduction (-)</option>
+                  </NativeSelect.Field>
+                </NativeSelect.Root>
+                <Flex gap={1.5}>
+                  <Input
+                    size="xs"
+                    type="number"
+                    step="0.5"
+                    placeholder="Rate %"
+                    value={newItemPct}
+                    onChange={e => setNewItemPct(Number(e.target.value))}
+                    w="70px"
+                  />
+                  <Button size="xs" colorPalette="blue" onClick={handleAddFormulaItem}>
+                    <Plus size={12} /> Add
+                  </Button>
+                </Flex>
+              </SimpleGrid>
+            </Box>
+
+            <Flex justify="space-between" align="center">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  setFormulaItems(payrollStructure?.items || []);
+                  setShowFormulaModal(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button size="sm" colorPalette="blue" onClick={handleSaveFormula} fontWeight="bold">
+                <Save size={14} /> Save Formula for Future
               </Button>
             </Flex>
           </Box>

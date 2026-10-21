@@ -764,6 +764,34 @@ export interface EmployeeLoan {
   startDate: string;
 }
 
+export interface PayrollCalculationItem {
+  id: string;
+  name: string;
+  category: 'earning' | 'deduction';
+  percentage: number;
+  basedOn: 'basic' | 'gross';
+  description?: string;
+  isActive: boolean;
+  isSystem?: boolean;
+}
+
+export interface PayrollCalculationStructure {
+  id: string;
+  name: string;
+  items: PayrollCalculationItem[];
+  updatedAt: string;
+  updatedBy?: string;
+}
+
+export interface PayslipItemBreakdown {
+  itemId: string;
+  name: string;
+  category: 'earning' | 'deduction';
+  percentage: number;
+  basedOn: 'basic' | 'gross';
+  amount: number;
+}
+
 export interface PayrollRun {
   id: number;
   monthYear: string;
@@ -791,6 +819,7 @@ export interface Payslip {
   totalDeductions: number;
   netPay: number;
   sentToPortal: boolean;
+  itemBreakdown?: PayslipItemBreakdown[];
 }
 
 export interface AttendanceRecord {
