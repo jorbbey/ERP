@@ -55,7 +55,8 @@ export const PayrollPage: React.FC = () => {
     bulkSendPayslips,
     accountsLedger,
     activeCompany,
-    activeRole
+    activeRole,
+    employees
   } = useERP();
 
   const [activeTab, setActiveTab] = useState<'payroll' | 'ledger' | 'structure'>('payroll');
@@ -181,16 +182,23 @@ EMP-004,2026-10,3800,450,850`
 
   const handleExportBankSchedule = (runId: number) => {
     const runSlips = payslips.filter(p => p.payrollRunId === runId);
-    const headers = ['StaffCode', 'StaffName', 'Department', 'GrossPay', 'Deductions', 'NetSalary', 'DisbursementStatus'];
-    const rows = runSlips.map(s => [
-      s.employeeCode,
-      `"${s.employeeName}"`,
-      `"${s.department}"`,
-      s.grossPay,
-      s.totalDeductions,
-      s.netPay,
-      'Direct Bank Transfer'
-    ]);
+    const headers = ['StaffCode', 'StaffName', 'Department', 'BankName', 'AccountNumber', 'AccountName', 'PFA', 'GrossPay', 'Deductions', 'NetSalary', 'DisbursementStatus'];
+    const rows = runSlips.map(s => {
+      const emp = employees.find(e => e.id === s.employeeId || e.code.toLowerCase() === s.employeeCode.toLowerCase());
+      return [
+        s.employeeCode,
+        `"${s.employeeName}"`,
+        `"${s.department}"`,
+        `"${emp?.bankName || 'Zenith Bank PLC'}"`,
+        `"${emp?.accountNumber || '1029384756'}"`,
+        `"${emp?.accountName || emp?.name || s.employeeName}"`,
+        `"${emp?.pfa || 'Apex Pension Trust'}"`,
+        s.grossPay,
+        s.totalDeductions,
+        s.netPay,
+        'Direct Bank Transfer'
+      ];
+    });
     const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -209,6 +217,7 @@ EMP-004,2026-10,3800,450,850`
     const companyName = activeCompany?.name || 'Apex Construction & Civil Works Ltd';
     const currency = activeCompany?.currency || '₦';
     const month = getPayslipMonth(slip);
+    const emp = employees.find(e => e.id === slip.employeeId || e.code.toLowerCase() === slip.employeeCode.toLowerCase());
 
     return `<!DOCTYPE html>
 <html>
@@ -412,6 +421,19 @@ EMP-004,2026-10,3800,450,850`
   <div class="net-card">
     <span style="font-size: 13px; font-weight: 700; color: #065f46; text-transform: uppercase;">Net Take-Home Pay:</span>
     <span style="font-size: 17px; font-weight: 800; font-family: monospace; color: #047857;">${currency} ${slip.netPay.toLocaleString()}</span>
+  </div>
+
+  <!-- Staff Bank Account & Remittance Details fetched from HR -->
+  <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 14px; margin-top: 12px; margin-bottom: 12px;">
+    <div style="color: #334155; font-size: 10.5px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px;">
+      Direct Bank Disbursement & Remittance Particulars (HR Personnel Record)
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; font-size: 12px;">
+      <div><span style="color: #64748b;">Bank Institution:</span> <strong>${emp?.bankName || 'Zenith Bank PLC'}</strong></div>
+      <div><span style="color: #64748b;">NUBAN Account Number:</span> <strong style="font-family: monospace;">${emp?.accountNumber || '1029384756'}</strong></div>
+      <div><span style="color: #64748b;">Account Beneficiary:</span> <strong>${emp?.accountName || emp?.name || slip.employeeName}</strong></div>
+      <div><span style="color: #64748b;">Pension Administrator (PFA):</span> <strong>${emp?.pfa || 'Apex Pension Trust'}</strong></div>
+    </div>
   </div>
 
   <!-- Space for Payroll Officer and Head of Finance Signing (Printed Slip Only) -->
@@ -895,6 +917,36 @@ EMP-004,2026-10,3800,450,850`
                   {activeCompany.currency} {selectedPayslip.netPay.toLocaleString()}
                 </Text>
               </Flex>
+
+              {/* Staff Bank Account & Remittance Details from HR */}
+              {(() => {
+                const emp = employees.find(e => e.id === selectedPayslip.employeeId || e.code.toLowerCase() === selectedPayslip.employeeCode.toLowerCase());
+                return (
+                  <Box p={3} bg="#f8fafc" borderRadius="8px" border="1px solid #e2e8f0">
+                    <Text fontSize="10px" fontWeight="bold" textTransform="uppercase" color="#475569" mb={1.5}>
+                      Bank Account & Remittance Details (HR Personnel Record)
+                    </Text>
+                    <SimpleGrid columns={{ base: 1, sm: 2 }} gap={2}>
+                      <Flex justify="space-between">
+                        <Text color="#64748b">Bank Institution:</Text>
+                        <Text fontWeight="semibold" color="#0f172a">{emp?.bankName || 'Zenith Bank PLC'}</Text>
+                      </Flex>
+                      <Flex justify="space-between">
+                        <Text color="#64748b">NUBAN Account #:</Text>
+                        <Text fontFamily="mono" fontWeight="bold" color="#0f172a">{emp?.accountNumber || '1029384756'}</Text>
+                      </Flex>
+                      <Flex justify="space-between">
+                        <Text color="#64748b">Beneficiary Name:</Text>
+                        <Text fontWeight="medium">{emp?.accountName || emp?.name || selectedPayslip.employeeName}</Text>
+                      </Flex>
+                      <Flex justify="space-between">
+                        <Text color="#64748b">Pension PFA:</Text>
+                        <Text fontWeight="medium">{emp?.pfa || 'Apex Pension Trust'}</Text>
+                      </Flex>
+                    </SimpleGrid>
+                  </Box>
+                );
+              })()}
             </Stack>
 
             {/* Space for Payroll Officer & Head of Finance signing - designated to show on printed slip */}

@@ -169,7 +169,7 @@ export const ProcurementAnalyticsTab: React.FC = () => {
                     </Table.Cell>
                     <Table.Cell fontSize="11px" color="#64748b">{s.category}</Table.Cell>
                     <Table.Cell textAlign="center">
-                      <Badge size="xs" colorPalette="green">★ 4.8 / 5.0</Badge>
+                      <Badge size="xs" colorPalette="green">Score 4.8 / 5.0</Badge>
                     </Table.Cell>
                     <Table.Cell textAlign="center" fontSize="11px" color="#475569">{s.paymentTerms}</Table.Cell>
                     <Table.Cell textAlign="center">

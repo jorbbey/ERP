@@ -614,6 +614,9 @@ export const AdvancesLoansTab: React.FC = () => {
                     max={payingLoan.totalAmount - payingLoan.repaidAmount}
                     required
                   />
+                  <Text fontSize="10px" color="#64748b" mt={1}>
+                    Outside Salary Payment: Payments recorded here reduce the remaining balance. If the remaining loan is less than the agreed monthly deduction ({activeCompany.currency} {payingLoan.monthlyDeduction.toLocaleString()}), only what is left will be deducted from the staff member's salary.
+                  </Text>
                 </Box>
 
                 <Flex justify="flex-end" gap={2} mt={3}>

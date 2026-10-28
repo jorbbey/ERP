@@ -2261,6 +2261,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     payrollService.processPayrollMonth(monthYear, customItems);
     setPayrollRuns(erpStorage.getPayrollRuns());
     setPayslips(erpStorage.getPayslips());
+    setEmployeeLoans(erpStorage.getEmployeeLoans());
   };
 
   const finalizePayrollRun = (runId: number) => {

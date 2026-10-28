@@ -118,6 +118,27 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
     XLSX.writeFile(wb, `${moduleKey}_import_template.xlsx`);
   };
 
+  // 1b. Download CSV Template Handler
+  const handleDownloadCsvTemplate = () => {
+    const headers = templateColumns.map(c => `"${c.label.replace(/"/g, '""')}"`);
+    const rows = sampleData.map(sample => {
+      return templateColumns.map(c => {
+        const val = sample[c.key] !== undefined ? sample[c.key] : c.example;
+        const strVal = String(val ?? '');
+        return `"${strVal.replace(/"/g, '""')}"`;
+      }).join(',');
+    });
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${moduleKey}_import_template.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   // 2. Parse Uploaded File
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -345,14 +366,19 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                   <Download size={18} color="#2563eb" />
                   <Heading size="xs" color="#0f172a">Step 1: Download Standard Template</Heading>
                 </Flex>
-                <Text fontSize="xs" color="#64748b" mb={4}>
-                  Download the official Excel template containing correct column names, required fields, and sample reference records.
+                <Text fontSize="xs" color="#64748b" mb={3}>
+                  Download the official template with standardized column headers and sample data rows.
                 </Text>
-                <Button size="sm" bg="#2563eb" color="white" _hover={{ bg: '#1d4ed8' }} onClick={handleDownloadTemplate} w="100%">
-                  <Download size={15} /> Download {moduleTitle} Template (.xlsx)
-                </Button>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={2}>
+                  <Button size="sm" bg="#2563eb" color="white" _hover={{ bg: '#1d4ed8' }} onClick={handleDownloadTemplate}>
+                    <Download size={14} /> Excel (.xlsx)
+                  </Button>
+                  <Button size="sm" variant="outline" borderColor="#2563eb" color="#2563eb" _hover={{ bg: '#eff6ff' }} onClick={handleDownloadCsvTemplate}>
+                    <Download size={14} /> CSV (.csv)
+                  </Button>
+                </SimpleGrid>
                 <Box mt={3} fontSize="11px" color="#64748b">
-                  Includes <strong>{templateColumns.length} standardized columns</strong> and field format instructions sheet.
+                  Includes <strong>{templateColumns.length} standardized columns</strong> and format guidance.
                 </Box>
               </Box>
 

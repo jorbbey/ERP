@@ -37,9 +37,9 @@ import {
   Clock,
   BarChart3,
   Cpu,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Zap
 } from 'lucide-react';
-import { PiShootingStarDuotone } from 'react-icons/pi';
 import { PublicNavbar } from './components/PublicNavbar';
 import { PublicFooter } from './components/PublicFooter';
 import { DemoRequestModal } from './components/DemoRequestModal';
@@ -508,7 +508,7 @@ export const LandingPage: React.FC = () => {
             <Box bg="#ffffff" p={6} borderRadius="16px" border="1px solid #e2e8f0" boxShadow="xs" display="flex" flexDirection="column" justifyContent="space-between">
               <Box>
                 <Box w="44px" h="44px" borderRadius="12px" bg="#eff6ff" color="#2563eb" display="flex" alignItems="center" justifyContent="center" mb={4}>
-                  <PiShootingStarDuotone size={22} />
+                  <Zap size={22} />
                 </Box>
                 <Heading size="md" color="#0f172a" mb={2}>Civil ERP Features</Heading>
                 <Text fontSize="xs" color="#64748b" lineHeight="relaxed" mb={4}>

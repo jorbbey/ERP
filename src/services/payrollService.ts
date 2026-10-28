@@ -106,8 +106,18 @@ export const payrollService = {
       let loanDeduction = 0;
       const activeLoan = loans.find(l => l.employeeId === emp.id && l.status === 'Active');
       if (activeLoan) {
-        const remaining = activeLoan.totalAmount - activeLoan.repaidAmount;
-        loanDeduction = Math.min(activeLoan.monthlyDeduction, remaining);
+        // Staff may have made outside payments via 'Record Payment'; only deduct what is left if less than monthly deduction
+        const remainingLoan = Math.max(0, activeLoan.totalAmount - (activeLoan.repaidAmount || 0));
+        if (remainingLoan > 0) {
+          loanDeduction = Math.min(activeLoan.monthlyDeduction, remainingLoan);
+          activeLoan.repaidAmount = (activeLoan.repaidAmount || 0) + loanDeduction;
+          if (activeLoan.repaidAmount >= activeLoan.totalAmount) {
+            activeLoan.status = 'Settled';
+          }
+        } else {
+          loanDeduction = 0;
+          activeLoan.status = 'Settled';
+        }
       }
 
       // Check salary advance deduction for this month
@@ -158,6 +168,7 @@ export const payrollService = {
     runs.unshift(newRun);
     erpStorage.savePayrollRuns(runs);
     erpStorage.savePayslips([...newPayslips, ...allPayslips]);
+    erpStorage.saveEmployeeLoans(loans);
 
     return newRun;
   },
@@ -352,8 +363,8 @@ export const payrollService = {
     let loanDeduction = 0;
     const activeLoan = loans.find(l => l.employeeId === emp.id && l.status === 'Active');
     if (activeLoan) {
-      const remaining = activeLoan.totalAmount - activeLoan.repaidAmount;
-      loanDeduction = Math.min(activeLoan.monthlyDeduction, remaining);
+      const remainingLoan = Math.max(0, activeLoan.totalAmount - (activeLoan.repaidAmount || 0));
+      loanDeduction = remainingLoan > 0 ? Math.min(activeLoan.monthlyDeduction, remainingLoan) : 0;
     }
 
     const activeAdvance = advances.find(

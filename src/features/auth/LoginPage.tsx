@@ -28,8 +28,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
-  ShieldCheck,
-  Sparkles
+  ShieldCheck
 } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
@@ -381,7 +380,7 @@ export const LoginPage: React.FC = () => {
               {/* Trial Callout Banner */}
               <Box p={3} bg="#eff6ff" borderRadius="10px" border="1px solid #bfdbfe" fontSize="xs">
                 <Flex align="center" gap={2} mb={1}>
-                  <Sparkles size={16} color="#2563eb" />
+                  <ShieldCheck size={16} color="#2563eb" />
                   <Text fontWeight="bold" color="#1d4ed8">14-Day Enterprise Trial Included</Text>
                 </Flex>
                 <Text color="#3b82f6" fontSize="11px">

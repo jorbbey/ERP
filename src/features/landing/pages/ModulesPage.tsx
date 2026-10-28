@@ -16,9 +16,9 @@ import {
   ExternalLink,
   Check,
   Building2,
-  Workflow
+  Workflow,
+  Compass
 } from 'lucide-react';
-import { PiShootingStarDuotone } from 'react-icons/pi';
 import { PublicNavbar } from '../components/PublicNavbar';
 import { PublicFooter } from '../components/PublicFooter';
 import { DemoRequestModal } from '../components/DemoRequestModal';
@@ -222,7 +222,7 @@ export const ModulesPage: React.FC = () => {
       route: '/portals',
       category: 'finance',
       name: 'Role Portals Hub',
-      icon: PiShootingStarDuotone,
+      icon: Compass,
       color: '#6366f1',
       bgLight: '#eef2ff',
       badge: 'External Stakeholders',

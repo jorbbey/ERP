@@ -20,6 +20,8 @@ import { StockMovementsTab } from './components/StockMovementsTab';
 import { CategoriesTab } from './components/CategoriesTab';
 import { InventoryAuditTab } from './components/InventoryAuditTab';
 import { InventoryReportsTab } from './components/InventoryReportsTab';
+import { StoreReceiptModal, StoreReceiptData } from './components/StoreReceiptModal';
+import { StockHistoryReportModal } from './components/StockHistoryReportModal';
 import {
   Boxes,
   Plus,
@@ -143,8 +145,21 @@ export const InventoryPage: React.FC = () => {
   });
   const [receiveFeedback, setReceiveFeedback] = useState<string | null>(null);
 
+  // Approved requisitions for mandatory linking
+  const approvedRequisitions = requisitions.filter(r =>
+    r.status === 'Approved' || r.status === 'Partially Approved' || r.status === 'Ready for Dispatch'
+  );
+
   // Issue Stock Modal State
   const [showIssueModal, setShowIssueModal] = useState(false);
+  const [issueReqSearchQuery, setIssueReqSearchQuery] = useState('');
+  const [isIssueReqSearchOpen, setIsIssueReqSearchOpen] = useState(false);
+
+  // Receipts and History Reports State
+  const [receiptModalData, setReceiptModalData] = useState<StoreReceiptData | null>(null);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [selectedItemForHistory, setSelectedItemForHistory] = useState<InventoryItem | null>(null);
+
   const [issueForm, setIssueForm] = useState({
     itemId: inventory[0]?.id || 1,
     quantity: 10,
@@ -155,7 +170,7 @@ export const InventoryPage: React.FC = () => {
     employeeId: employees[0]?.id || 1,
     recipientName: employees[0]?.name || currentUserName,
     destinationDetails: '',
-    requisitionId: 'none',
+    requisitionId: '',
     date: new Date().toISOString().split('T')[0],
     purpose: 'Direct site installation for ongoing slab casting',
     referenceNumber: `GP-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -483,6 +498,26 @@ export const InventoryPage: React.FC = () => {
 
     if (res.success) {
       setShowReceiveModal(false);
+      const targetItem = inventory.find(i => i.id === receiveForm.itemId);
+      const receiptData: StoreReceiptData = {
+        type: 'order_receipt',
+        receiptNo: receiveForm.referenceNumber || `GRN-${Math.floor(1000 + Math.random() * 9000)}`,
+        date: receiveForm.date,
+        itemName: targetItem?.name || 'Material Item',
+        itemCode: targetItem?.itemCode || 'SKU',
+        quantity: Number(receiveForm.quantity),
+        unit: targetItem?.unit || 'Units',
+        unitCost: targetItem?.costPrice,
+        totalValue: (targetItem?.costPrice || 0) * Number(receiveForm.quantity),
+        warehouseName: wh?.name || receiveForm.warehouseName,
+        supplierName: sName || targetItem?.supplierName,
+        purchaseOrderNo: receiveForm.referenceNumber,
+        receivedBy: currentUserName,
+        inspectorName: 'QC Store Officer',
+        conditionNotes: receiveForm.notes || 'Accepted after QC physical check'
+      };
+      setReceiptModalData(receiptData);
+      setShowReceiptModal(true);
     } else {
       setReceiveFeedback(res.error || 'Failed to record stock receipt.');
     }
@@ -491,43 +526,57 @@ export const InventoryPage: React.FC = () => {
   // Issue Stock Handlers
   const handleOpenIssueModal = () => {
     setIssueFeedback(null);
+    const firstReq = approvedRequisitions[0];
     setIssueForm({
       itemId: inventory[0]?.id || 1,
       quantity: 10,
       destinationType: 'project',
-      projectId: projects[0]?.id || 1,
+      projectId: firstReq?.projectId || projects[0]?.id || 1,
       targetWarehouseId: warehouses[1]?.id || warehouses[0]?.id || 1,
       department: 'Civil Engineering & Construction',
       employeeId: employees[0]?.id || 1,
       recipientName: employees[0]?.name || currentUserName,
-      destinationDetails: 'Zone B Pier Cap casting works',
-      requisitionId: 'none',
+      destinationDetails: firstReq ? `${firstReq.projectName || ''}` : 'Site Works',
+      requisitionId: firstReq ? String(firstReq.id) : '',
       date: new Date().toISOString().split('T')[0],
-      purpose: 'Mobilization of materials for planned site pour',
+      purpose: firstReq ? `Issuance against ${firstReq.requisitionNo}: ${firstReq.title}` : 'Site mobilization of materials',
       referenceNumber: `GP-${Math.floor(1000 + Math.random() * 9000)}`,
       notes: 'Store gate pass issued with delivery slip'
     });
+    if (firstReq) {
+      setIssueReqSearchQuery(`${firstReq.requisitionNo} - ${firstReq.projectName || 'Site'} (${firstReq.title})`);
+    } else {
+      setIssueReqSearchQuery('');
+    }
+    setIsIssueReqSearchOpen(false);
     setShowIssueModal(true);
   };
 
   const handleOpenIssueForItem = (item: InventoryItem) => {
     setIssueFeedback(null);
+    const firstReq = approvedRequisitions[0];
     setIssueForm({
       itemId: item.id,
       quantity: Math.min(10, Math.max(1, item.currentStock)),
       destinationType: 'project',
-      projectId: projects[0]?.id || 1,
+      projectId: firstReq?.projectId || projects[0]?.id || 1,
       targetWarehouseId: warehouses[1]?.id || warehouses[0]?.id || 1,
       department: 'Civil Engineering & Construction',
       employeeId: employees[0]?.id || 1,
       recipientName: employees[0]?.name || currentUserName,
-      destinationDetails: 'Active Site Works',
-      requisitionId: 'none',
+      destinationDetails: firstReq ? `${firstReq.projectName || ''}` : 'Active Site Works',
+      requisitionId: firstReq ? String(firstReq.id) : '',
       date: new Date().toISOString().split('T')[0],
-      purpose: `Site issuance of ${item.name}`,
+      purpose: firstReq ? `Issuance against ${firstReq.requisitionNo}: ${firstReq.title}` : `Site issuance of ${item.name}`,
       referenceNumber: `GP-${Math.floor(1000 + Math.random() * 9000)}`,
       notes: `Direct store withdrawal of ${item.name}`
     });
+    if (firstReq) {
+      setIssueReqSearchQuery(`${firstReq.requisitionNo} - ${firstReq.projectName || 'Site'} (${firstReq.title})`);
+    } else {
+      setIssueReqSearchQuery('');
+    }
+    setIsIssueReqSearchOpen(false);
     setShowIssueModal(true);
   };
 
@@ -538,6 +587,11 @@ export const InventoryPage: React.FC = () => {
     const targetItem = inventory.find(i => i.id === issueForm.itemId);
     if (!targetItem) {
       setIssueFeedback('Selected item not found.');
+      return;
+    }
+
+    if (!issueForm.requisitionId || issueForm.requisitionId === 'none') {
+      setIssueFeedback('A linked Approved Requisition is strictly mandatory for issuing stock from stores.');
       return;
     }
 
@@ -555,9 +609,7 @@ export const InventoryPage: React.FC = () => {
     const tgtWh = warehouses.find(w => w.id === issueForm.targetWarehouseId);
     const emp = employees.find(e => e.id === issueForm.employeeId);
 
-    const linkedReq = issueForm.requisitionId !== 'none'
-      ? requisitions.find(r => r.id === Number(issueForm.requisitionId))
-      : undefined;
+    const linkedReq = requisitions.find(r => r.id === Number(issueForm.requisitionId));
 
     const res = issueStock({
       itemId: issueForm.itemId,
@@ -582,6 +634,27 @@ export const InventoryPage: React.FC = () => {
 
     if (res.success) {
       setShowIssueModal(false);
+      const receiptData: StoreReceiptData = {
+        type: 'delivery_order_receipt',
+        receiptNo: issueForm.referenceNumber || `GP-${Math.floor(1000 + Math.random() * 9000)}`,
+        date: issueForm.date,
+        itemName: targetItem.name,
+        itemCode: targetItem.itemCode,
+        quantity: Number(issueForm.quantity),
+        unit: targetItem.unit,
+        unitCost: targetItem.costPrice,
+        totalValue: (targetItem.costPrice || 0) * Number(issueForm.quantity),
+        warehouseName: targetItem.warehouseLocation,
+        requisitionNo: linkedReq?.requisitionNo,
+        projectName: prj?.name || issueForm.destinationDetails || 'Project Site',
+        recipientName: issueForm.recipientName,
+        purpose: issueForm.purpose,
+        gatePassNo: issueForm.referenceNumber,
+        dispatchedBy: currentUserName,
+        conditionNotes: issueForm.notes || 'Dispatched for approved site mobilization'
+      };
+      setReceiptModalData(receiptData);
+      setShowReceiptModal(true);
     } else {
       setIssueFeedback(res.error || 'Failed to issue stock.');
     }
@@ -615,11 +688,6 @@ export const InventoryPage: React.FC = () => {
     link.click();
     document.body.removeChild(link);
   };
-
-  // Approved requisitions for linking
-  const approvedRequisitions = requisitions.filter(r =>
-    r.status === 'Approved' || r.status === 'Partially Approved' || r.status === 'Ready for Dispatch'
-  );
 
   return (
     <Stack gap={6}>
@@ -897,6 +965,15 @@ export const InventoryPage: React.FC = () => {
                                 title="Issue stock to site, department or project"
                               >
                                 <ArrowUpRight size={13} /> Issue
+                              </Button>
+                              <Button
+                                size="xs"
+                                variant="ghost"
+                                colorPalette="teal"
+                                onClick={() => setSelectedItemForHistory(item)}
+                                title="Stock History Dossier & Forensic Audit Report"
+                              >
+                                <History size={13} /> Dossier
                               </Button>
                               <Button size="xs" variant="ghost" colorPalette="blue" onClick={() => setViewingItem(item)} title="View Item Details">
                                 <Eye size={13} />
@@ -1337,24 +1414,110 @@ export const InventoryPage: React.FC = () => {
                   </SimpleGrid>
                 </Card.Root>
 
-                {/* Link to Approved Requisition (Optional) */}
-                <Box>
-                  <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>
-                    Link to Approved Requisition (Optional)
-                  </Text>
-                  <NativeSelect.Root size="sm">
-                    <NativeSelect.Field
-                      value={issueForm.requisitionId}
-                      onChange={(e) => setIssueForm({ ...issueForm, requisitionId: e.target.value })}
-                    >
-                      <option value="none">No Requisition Link (General Site Issuance)</option>
-                      {approvedRequisitions.map(r => (
-                        <option key={r.id} value={String(r.id)}>
-                          {r.requisitionNo} - {r.projectName} ({r.title})
-                        </option>
-                      ))}
-                    </NativeSelect.Field>
-                  </NativeSelect.Root>
+                {/* Link to Approved Requisition (Mandatory Search/Suggest) */}
+                <Box position="relative">
+                  <Flex justify="space-between" align="center" mb={1}>
+                    <Text fontSize="xs" fontWeight="bold" color="#334155">
+                      Link to Approved Requisition <Text as="span" color="#dc2626">*</Text>
+                    </Text>
+                    <Badge size="xs" colorPalette="green">Mandatory Audit Link</Badge>
+                  </Flex>
+
+                  {approvedRequisitions.length === 0 ? (
+                    <Box p={3} bg="#fef2f2" border="1px solid #fecaca" borderRadius="8px" fontSize="xs" color="#b91c1c">
+                      <Flex align="center" gap={1.5}>
+                        <AlertTriangle size={14} />
+                        <Text fontWeight="semibold">No Approved Requisitions Available</Text>
+                      </Flex>
+                      <Text mt={1} color="#7f1d1d">
+                        Store materials can only be issued against an approved requisition. Please raise or approve a requisition first.
+                      </Text>
+                    </Box>
+                  ) : (
+                    <Box position="relative">
+                      <Flex align="center" bg="#f8fafc" px={3} py={1.5} borderRadius="8px" border="1px solid #cbd5e1">
+                        <Search size={14} color="#94a3b8" style={{ marginRight: '8px' }} />
+                        <input
+                          placeholder="Search approved requisition by #, site, or trade scope..."
+                          value={issueReqSearchQuery}
+                          onChange={(e) => {
+                            setIssueReqSearchQuery(e.target.value);
+                            setIsIssueReqSearchOpen(true);
+                          }}
+                          onFocus={() => setIsIssueReqSearchOpen(true)}
+                          style={{
+                            width: '100%',
+                            fontSize: '13px',
+                            background: 'transparent',
+                            border: 'none',
+                            outline: 'none',
+                            color: '#0f172a'
+                          }}
+                          required
+                        />
+                      </Flex>
+
+                      {isIssueReqSearchOpen && (
+                        <Card.Root
+                          position="absolute"
+                          top="100%"
+                          left="0"
+                          right="0"
+                          mt={1}
+                          bg="white"
+                          borderRadius="8px"
+                          boxShadow="lg"
+                          border="1px solid #cbd5e1"
+                          maxH="220px"
+                          overflowY="auto"
+                          zIndex="20"
+                        >
+                          {approvedRequisitions
+                            .filter(r => {
+                              const q = (issueReqSearchQuery || '').toLowerCase();
+                              return (
+                                !q ||
+                                r.requisitionNo.toLowerCase().includes(q) ||
+                                (r.projectName && r.projectName.toLowerCase().includes(q)) ||
+                                (r.title && r.title.toLowerCase().includes(q)) ||
+                                (r.department && r.department.toLowerCase().includes(q))
+                              );
+                            })
+                            .map(r => (
+                              <Box
+                                key={r.id}
+                                p={2.5}
+                                borderBottom="1px solid #f1f5f9"
+                                cursor="pointer"
+                                _hover={{ bg: '#eff6ff' }}
+                                onClick={() => {
+                                  setIssueForm(prev => ({
+                                    ...prev,
+                                    requisitionId: String(r.id),
+                                    projectId: r.projectId || prev.projectId,
+                                    destinationDetails: r.projectName || prev.destinationDetails,
+                                    purpose: prev.purpose && prev.purpose !== 'Site mobilization of materials'
+                                      ? prev.purpose
+                                      : `Issuance against ${r.requisitionNo}: ${r.title}`
+                                  }));
+                                  setIssueReqSearchQuery(`${r.requisitionNo} - ${r.projectName || 'Site'} (${r.title})`);
+                                  setIsIssueReqSearchOpen(false);
+                                }}
+                              >
+                                <Flex justify="space-between" align="center">
+                                  <Text fontSize="xs" fontWeight="bold" color="#2563eb">{r.requisitionNo}</Text>
+                                  <Badge size="xs" colorPalette="green">{r.status}</Badge>
+                                </Flex>
+                                <Text fontSize="11px" fontWeight="medium" color="#0f172a">{r.title}</Text>
+                                <Text fontSize="10px" color="#64748b">
+                                  Project: {r.projectName || 'General Site'} | Requester: {r.requestedBy}
+                                </Text>
+                              </Box>
+                            ))}
+                        </Card.Root>
+                      )}
+                    </Box>
+                  )}
                 </Box>
 
                 <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
@@ -1932,6 +2095,23 @@ export const InventoryPage: React.FC = () => {
           'Valid Categories: Cement & Aggregates, Structural Steel & Rebar, Pipes & Drainage, Electrical & Conduit, Safety Equipment & PPE, Paints & Finishes.'
         ]}
         onCommitImport={bulkImportInventory}
+      />
+
+      {/* Official Printable Store Receipt & Delivery Order Voucher Modal */}
+      <StoreReceiptModal
+        isOpen={showReceiptModal}
+        onClose={() => {
+          setShowReceiptModal(false);
+          setReceiptModalData(null);
+        }}
+        receiptData={receiptModalData}
+      />
+
+      {/* Item-by-Item Stock History & Forensic Audit Dossier Modal */}
+      <StockHistoryReportModal
+        isOpen={Boolean(selectedItemForHistory)}
+        onClose={() => setSelectedItemForHistory(null)}
+        item={selectedItemForHistory}
       />
     </Stack>
   );

@@ -29,8 +29,11 @@ import {
   Building2,
   FileText,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  FileCheck2,
+  Truck
 } from 'lucide-react';
+import { StoreReceiptModal, StoreReceiptData } from './StoreReceiptModal';
 
 export const StockMovementsTab: React.FC = () => {
   const { stockMovements, transferStock, inventory, warehouses, projects, activeCompany } = useERP();
@@ -39,6 +42,33 @@ export const StockMovementsTab: React.FC = () => {
   const [warehouseFilter, setWarehouseFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showTransferModal, setShowTransferModal] = useState(false);
+  const [activeReceiptData, setActiveReceiptData] = useState<StoreReceiptData | null>(null);
+
+  const handleViewReceipt = (m: StockMovement) => {
+    const isOrderReceipt = m.movementType === 'receipt';
+    const item = inventory.find(i => i.id === m.itemId);
+    setActiveReceiptData({
+      type: isOrderReceipt ? 'order_receipt' : 'delivery_order_receipt',
+      receiptNo: m.referenceNumber || (isOrderReceipt ? `GRN-${m.id}` : `DOR-${m.id}`),
+      date: m.movementDate,
+      itemName: m.itemName,
+      itemCode: m.itemCode,
+      quantity: Math.abs(m.quantity),
+      unit: m.unit,
+      unitCost: item?.costPrice,
+      totalValue: item?.costPrice ? Math.abs(m.quantity) * item.costPrice : undefined,
+      warehouseName: m.warehouseName || m.source || 'Main Central Warehouse',
+      supplierName: isOrderReceipt ? (m.source || 'Vendor Supplier') : undefined,
+      purchaseOrderNo: isOrderReceipt ? (m.relatedDocumentRef || 'PO-STANDARD') : undefined,
+      requisitionNo: !isOrderReceipt ? (m.relatedDocumentRef || 'MR-APPROVED') : undefined,
+      projectName: m.projectName,
+      recipientName: m.destination || 'Site Representative',
+      purpose: m.reason,
+      gatePassNo: m.referenceNumber,
+      receivedBy: m.performedBy,
+      dispatchedBy: m.performedBy
+    });
+  };
 
   // Transfer Form State
   const [transferForm, setTransferForm] = useState({
@@ -220,12 +250,13 @@ export const StockMovementsTab: React.FC = () => {
                 <Table.ColumnHeader fontSize="10px">Source → Destination</Table.ColumnHeader>
                 <Table.ColumnHeader fontSize="10px">Performer</Table.ColumnHeader>
                 <Table.ColumnHeader fontSize="10px">Reason / Document</Table.ColumnHeader>
+                <Table.ColumnHeader textAlign="right" fontSize="10px">Voucher / Receipt</Table.ColumnHeader>
               </Table.Row>
             </Table.Header>
             <Table.Body>
               {filteredMovements.length === 0 ? (
                 <Table.Row>
-                  <Table.Cell colSpan={7} textAlign="center" py={8} color="#64748b" fontSize="xs">
+                  <Table.Cell colSpan={8} textAlign="center" py={8} color="#64748b" fontSize="xs">
                     No stock movement operations recorded matching current filter parameters.
                   </Table.Cell>
                 </Table.Row>
@@ -267,6 +298,40 @@ export const StockMovementsTab: React.FC = () => {
                         <Badge size="xs" variant="subtle" colorPalette="gray" mt={0.5}>
                           {m.relatedDocumentType}: {m.relatedDocumentRef}
                         </Badge>
+                      )}
+                    </Table.Cell>
+                    <Table.Cell fontSize="xs" textAlign="right">
+                      {m.movementType === 'receipt' && (
+                        <Button
+                          size="xs"
+                          variant="subtle"
+                          colorPalette="green"
+                          onClick={() => handleViewReceipt(m)}
+                          title="View Official Store Order Receipt (GRN)"
+                        >
+                          <FileCheck2 size={12} /> Order Receipt
+                        </Button>
+                      )}
+                      {m.movementType === 'issue' && (
+                        <Button
+                          size="xs"
+                          variant="subtle"
+                          colorPalette="blue"
+                          onClick={() => handleViewReceipt(m)}
+                          title="View Store Delivery Order Receipt & Gate Pass"
+                        >
+                          <Truck size={12} /> Delivery Order
+                        </Button>
+                      )}
+                      {m.movementType === 'transfer' && (
+                        <Button
+                          size="xs"
+                          variant="ghost"
+                          colorPalette="purple"
+                          onClick={() => handleViewReceipt(m)}
+                        >
+                          <ArrowRightLeft size={12} /> Transfer Note
+                        </Button>
                       )}
                     </Table.Cell>
                   </Table.Row>
@@ -397,6 +462,14 @@ export const StockMovementsTab: React.FC = () => {
             </form>
           </Box>
         </Box>
+      )}
+
+      {/* Store Receipt / Delivery Order Voucher Modal */}
+      {activeReceiptData && (
+        <StoreReceiptModal
+          receipt={activeReceiptData}
+          onClose={() => setActiveReceiptData(null)}
+        />
       )}
     </Stack>
   );

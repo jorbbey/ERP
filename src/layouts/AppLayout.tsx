@@ -29,9 +29,9 @@ import {
   Menu,
   X,
   ExternalLink,
-  LogOut
+  LogOut,
+  Compass
 } from 'lucide-react';
-import { PiShootingStarDuotone } from 'react-icons/pi';
 import { FloatingAIAssistant } from '../features/assistant/components/FloatingAIAssistant';
 import { EnterpriseSearchModal } from '../components/common/EnterpriseSearchModal';
 import { NotificationsPopover } from '../components/common/NotificationsPopover';
@@ -160,7 +160,7 @@ export const AppLayout: React.FC = () => {
       items: [
         { path: '/workflow', label: 'Approval Workflows', icon: Workflow },
         { path: '/chat', label: 'Team Live Chat', icon: MessageSquare },
-        { path: '/portals', label: 'Role Portals Hub', icon: PiShootingStarDuotone },
+        { path: '/portals', label: 'Role Portals Hub', icon: Compass },
         { path: '/settings', label: 'ERP Settings', icon: Sliders }
       ]
     }

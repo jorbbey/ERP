@@ -30,8 +30,7 @@ import {
   Users,
   Check,
   X,
-  CornerDownRight,
-  Sparkles
+  CornerDownRight
 } from 'lucide-react';
 
 interface RequisitionDetailModalProps {

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Flex, Button, Stack } from '@chakra-ui/react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowRight, Menu, X, Shield, Layers, Workflow, Award, Eye } from 'lucide-react';
-import { PiShootingStarDuotone } from 'react-icons/pi';
+import { ArrowRight, Menu, X, Shield, Layers, Workflow, Award, Eye, Zap } from 'lucide-react';
 import logoImg from '../../../assets/Minimalist Blue Architectural Growth Logo.png';
 
 interface PublicNavbarProps {
@@ -34,7 +33,7 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ onOpenDemo }) => {
   }, []);
 
   const navLinks = [
-    { label: 'Features', path: '/features', icon: PiShootingStarDuotone },
+    { label: 'Features', path: '/features', icon: Zap },
     { label: 'Modules', path: '/modules', icon: Layers },
     { label: 'Workflow', path: '/workflows', icon: Workflow },
     { label: 'Benefits', path: '/benefits', icon: Award },

@@ -23,7 +23,7 @@ import {
   Users,
   Check,
   X,
-  Sparkles,
+  FileText,
   Info,
   DollarSign,
   Package,
@@ -78,6 +78,42 @@ export const RequisitionCreateModal: React.FC<RequisitionCreateModalProps> = ({ 
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>('none');
   const [customSupplierText, setCustomSupplierText] = useState('');
   const [remarks, setRemarks] = useState('');
+
+  // Project search & suggest
+  const [projectSearch, setProjectSearch] = useState('');
+  const [isProjectSearchOpen, setIsProjectSearchOpen] = useState(false);
+  const selectedProject = projects.find(p => p.id === projectId) || projects[0];
+  const filteredProjects = projects.filter(p => {
+    if (!projectSearch.trim()) return true;
+    const q = projectSearch.toLowerCase();
+    return (
+      p.name.toLowerCase().includes(q) ||
+      p.projectNumber.toLowerCase().includes(q) ||
+      (p.siteLocation && p.siteLocation.toLowerCase().includes(q)) ||
+      (p.clientName && p.clientName.toLowerCase().includes(q))
+    );
+  });
+
+  // Title / Scope search & suggest
+  const [isTitleSuggestOpen, setIsTitleSuggestOpen] = useState(false);
+  const standardScopes = [
+    'Foundation & Ground Beam Concrete Casting (C30/37)',
+    'High-Yield Deformed Steel Rebar (16mm & 12mm) for Pier Footing',
+    'Marine Plywood 18mm & Heavy Timber Formwork Shoring Props',
+    'Electrical Conduit Piping, Distribution Boards & 4-Core Copper Cable',
+    'HDPE Pressure Drainage Pipes & Pre-Cast Manhole Covers',
+    'Quarry Granite Aggregates (20mm & 10mm) & Sharp River Sand Supply',
+    'Portland Limestone Composite Cement CEM II 42.5R (1,000 Bags)',
+    'Submersible Dewatering Pumps, Diesel Fuel Supply & Site Generators',
+    'Civil Road Sub-base Laterite Filling & Geotextile Membrane',
+    'Site Crew PPE Safety Helmets, Steel-Toe Boots & Fall Arrest Harnesses',
+    'Structural Steel I-Beams & Welded Wire Mesh Reinforcement',
+    'Ready-Mix Concrete Casting & Slump Testing Batching Run'
+  ];
+  const filteredScopeSuggestions = standardScopes.filter(s => {
+    if (!title.trim()) return true;
+    return s.toLowerCase().includes(title.toLowerCase());
+  }).slice(0, 8);
 
   // Helper: check if an employee belongs to/occupies a given office/role
   const employeeMatchesOffice = (emp: typeof employees[0], office: string) => {
@@ -362,20 +398,93 @@ export const RequisitionCreateModal: React.FC<RequisitionCreateModalProps> = ({ 
 
         <form onSubmit={handleSubmit}>
           <Stack gap={4}>
-            {/* Project & Urgency */}
+            {/* Project & Urgency with Dynamic Search/Suggest */}
             <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
-              <Box>
-                <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Allocated Project / Site *</Text>
-                <NativeSelect.Root size="sm">
-                  <NativeSelect.Field
-                    value={projectId}
-                    onChange={(e) => setProjectId(Number(e.target.value))}
-                  >
-                    {projects.map(p => (
-                      <option key={p.id} value={p.id}>{p.projectNumber} - {p.name}</option>
-                    ))}
-                  </NativeSelect.Field>
-                </NativeSelect.Root>
+              <Box position="relative">
+                <Flex justify="space-between" align="center" mb={1}>
+                  <Text fontSize="xs" fontWeight="bold" color="#334155">
+                    Allocated Project / Site *
+                  </Text>
+                  {selectedProject && (
+                    <Badge size="xs" colorPalette="blue" variant="subtle" fontFamily="mono">
+                      {selectedProject.projectNumber}
+                    </Badge>
+                  )}
+                </Flex>
+
+                <Box position="relative">
+                  <Input
+                    size="sm"
+                    placeholder="Search site by project name, number, client or location..."
+                    value={isProjectSearchOpen ? projectSearch : (selectedProject ? `${selectedProject.projectNumber} - ${selectedProject.name}` : '')}
+                    onFocus={() => {
+                      setIsProjectSearchOpen(true);
+                      setProjectSearch('');
+                    }}
+                    onChange={(e) => {
+                      setIsProjectSearchOpen(true);
+                      setProjectSearch(e.target.value);
+                    }}
+                    required
+                  />
+
+                  {isProjectSearchOpen && (
+                    <Box
+                      position="absolute"
+                      top="100%"
+                      left={0}
+                      right={0}
+                      mt={1}
+                      bg="white"
+                      borderRadius="10px"
+                      border="1px solid #cbd5e1"
+                      boxShadow="xl"
+                      zIndex={1500}
+                      maxH="220px"
+                      overflowY="auto"
+                    >
+                      <Flex justify="space-between" align="center" px={3} py={1.5} bg="#f8fafc" borderBottom="1px solid #e2e8f0">
+                        <Text fontSize="10px" fontWeight="bold" color="#64748b" textTransform="uppercase">
+                          Select Site ({filteredProjects.length} Available)
+                        </Text>
+                        <Button size="xs" variant="ghost" onClick={() => setIsProjectSearchOpen(false)}>
+                          <X size={12} />
+                        </Button>
+                      </Flex>
+
+                      {filteredProjects.length === 0 ? (
+                        <Box p={3} fontSize="xs" color="#64748b" textAlign="center">
+                          No matching projects found.
+                        </Box>
+                      ) : (
+                        filteredProjects.map(p => (
+                          <Box
+                            key={p.id}
+                            p={2.5}
+                            borderBottom="1px solid #f1f5f9"
+                            cursor="pointer"
+                            bg={p.id === projectId ? '#eff6ff' : 'white'}
+                            _hover={{ bg: '#f1f5f9' }}
+                            onClick={() => {
+                              setProjectId(p.id);
+                              setIsProjectSearchOpen(false);
+                              setProjectSearch('');
+                            }}
+                          >
+                            <Flex justify="space-between" align="center">
+                              <Text fontSize="xs" fontWeight="bold" color="#0f172a">{p.name}</Text>
+                              <Badge size="xs" colorPalette="blue">{p.projectNumber}</Badge>
+                            </Flex>
+                            <Flex justify="space-between" align="center" mt={0.5}>
+                              <Text fontSize="10px" color="#64748b">{p.siteLocation}</Text>
+                              <Text fontSize="10px" color="#94a3b8">{p.clientName}</Text>
+                            </Flex>
+                          </Box>
+                        ))
+                      )}
+                    </Box>
+                  )}
+                </Box>
               </Box>
 
               <Box>
@@ -393,18 +502,79 @@ export const RequisitionCreateModal: React.FC<RequisitionCreateModalProps> = ({ 
               </Box>
             </SimpleGrid>
 
-            {/* Title & Trade */}
+            {/* Title / Scope with Dynamic Search & Suggestions */}
             <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
-              <Box>
-                <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Requisition Title / Scope *</Text>
-                <Input
-                  size="sm"
-                  placeholder="e.g. Steel rebar & ready-mix for Pier 3 footing"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  required
-                />
+              <Box position="relative">
+                <Flex justify="space-between" align="center" mb={1}>
+                  <Text fontSize="xs" fontWeight="bold" color="#334155">
+                    Requisition Title / Scope *
+                  </Text>
+                  <Text fontSize="10px" color="#64748b">Search or select package</Text>
+                </Flex>
+
+                <Box position="relative">
+                  <Input
+                    size="sm"
+                    placeholder="Type or search scope (e.g. Steel rebar & ready-mix casting)"
+                    value={title}
+                    onFocus={() => setIsTitleSuggestOpen(true)}
+                    onChange={(e) => {
+                      setTitle(e.target.value);
+                      setIsTitleSuggestOpen(true);
+                    }}
+                    required
+                  />
+
+                  {isTitleSuggestOpen && filteredScopeSuggestions.length > 0 && (
+                    <Box
+                      position="absolute"
+                      top="100%"
+                      left={0}
+                      right={0}
+                      mt={1}
+                      bg="white"
+                      borderRadius="10px"
+                      border="1px solid #cbd5e1"
+                      boxShadow="xl"
+                      zIndex={1500}
+                      maxH="220px"
+                      overflowY="auto"
+                    >
+                      <Flex justify="space-between" align="center" px={3} py={1.5} bg="#f8fafc" borderBottom="1px solid #e2e8f0">
+                        <Flex align="center" gap={1.5}>
+                          <FileText size={12} color="#2563eb" />
+                          <Text fontSize="10px" fontWeight="bold" color="#64748b" textTransform="uppercase">
+                            Suggested Work Packages & Scopes
+                          </Text>
+                        </Flex>
+                        <Button size="xs" variant="ghost" onClick={() => setIsTitleSuggestOpen(false)}>
+                          <X size={12} />
+                        </Button>
+                      </Flex>
+
+                      {filteredScopeSuggestions.map((s, idx) => (
+                        <Box
+                          key={idx}
+                          p={2}
+                          borderBottom="1px solid #f1f5f9"
+                          cursor="pointer"
+                          _hover={{ bg: '#eff6ff' }}
+                          onClick={() => {
+                            setTitle(s);
+                            setIsTitleSuggestOpen(false);
+                          }}
+                        >
+                          <Flex align="center" gap={2}>
+                            <FileText size={12} color="#2563eb" />
+                            <Text fontSize="xs" color="#1e293b" fontWeight="medium">{s}</Text>
+                          </Flex>
+                        </Box>
+                      ))}
+                    </Box>
+                  )}
+                </Box>
               </Box>
+
               <Box>
                 <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Trade / Work Package</Text>
                 <Input

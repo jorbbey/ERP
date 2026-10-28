@@ -161,7 +161,7 @@ export const EmployeeDirectoryTab: React.FC = () => {
   const archivedCount = employees.filter(e => e.status === 'Archived').length;
 
   const handleExportCSV = () => {
-    const headers = ['Code', 'Name', 'Email', 'Phone', 'Department', 'Position', 'Role', 'Status', 'Salary', 'NIN', 'TIN', 'Bank', 'AccountNo', 'HireDate'];
+    const headers = ['Code', 'Name', 'Email', 'Phone', 'Department', 'Position', 'Role', 'Status', 'Salary', 'NIN', 'TIN', 'Bank', 'AccountNo', 'AccountName', 'PFA', 'HireDate'];
     const rows = filteredEmployees.map(e => [
       e.code,
       `"${e.name}"`,
@@ -176,6 +176,8 @@ export const EmployeeDirectoryTab: React.FC = () => {
       e.tin || '',
       `"${e.bankName || ''}"`,
       `"${e.accountNumber || ''}"`,
+      `"${e.accountName || e.name || ''}"`,
+      `"${e.pfa || ''}"`,
       e.hireDate
     ]);
 

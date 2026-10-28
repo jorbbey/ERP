@@ -32,7 +32,6 @@ import {
   ShieldCheck,
   Award
 } from 'lucide-react';
-import { PiShootingStarDuotone } from "react-icons/pi";
 
 export const RecruitmentTab: React.FC = () => {
   const {
@@ -417,7 +416,7 @@ export const RecruitmentTab: React.FC = () => {
                       <Table.Cell>
                         {app.rating ? (
                           <Flex align="center" gap={1} color="#d97706" fontSize="xs">
-                            <PiShootingStarDuotone size={14} color="#d97706" />
+                            <Award size={14} color="#d97706" />
                             <Text fontWeight="bold">{app.rating}/5</Text>
                           </Flex>
                         ) : (
@@ -926,17 +925,17 @@ export const RecruitmentTab: React.FC = () => {
             <form onSubmit={handleSaveEvaluation}>
               <Stack gap={3}>
                 <Box>
-                  <Text fontSize="xs" fontWeight="semibold" color="#334155" mb={1}>Rating (1 to 5 Stars) *</Text>
+                  <Text fontSize="xs" fontWeight="semibold" color="#334155" mb={1}>Candidate Evaluation Score *</Text>
                   <NativeSelect.Root size="sm">
                     <NativeSelect.Field
                       value={evaluationForm.rating}
                       onChange={e => setEvaluationForm({ ...evaluationForm, rating: Number(e.target.value) })}
                     >
-                      <option value="5">★★★★★ 5 - Exceptional Fit</option>
-                      <option value="4">★★★★☆ 4 - Strong Candidate</option>
-                      <option value="3">★★★☆☆ 3 - Meets Basic Criteria</option>
-                      <option value="2">★★☆☆☆ 2 - Below Expectations</option>
-                      <option value="1">★☆☆☆☆ 1 - Unqualified</option>
+                      <option value="5">Score 5 / 5 - Exceptional Fit</option>
+                      <option value="4">Score 4 / 5 - Strong Candidate</option>
+                      <option value="3">Score 3 / 5 - Meets Basic Criteria</option>
+                      <option value="2">Score 2 / 5 - Below Expectations</option>
+                      <option value="1">Score 1 / 5 - Unqualified</option>
                     </NativeSelect.Field>
                   </NativeSelect.Root>
                 </Box>
