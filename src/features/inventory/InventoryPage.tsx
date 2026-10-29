@@ -16,6 +16,7 @@ import {
 import { useERP } from '../../context/ERPContext';
 import { InventoryItem, Supplier } from '../../types';
 import { WarehousesTab } from './components/WarehousesTab';
+import { StockDispatchTab } from './components/StockDispatchTab';
 import { StockMovementsTab } from './components/StockMovementsTab';
 import { CategoriesTab } from './components/CategoriesTab';
 import { InventoryAuditTab } from './components/InventoryAuditTab';
@@ -109,7 +110,7 @@ export const InventoryPage: React.FC = () => {
     bulkImportInventory
   } = useERP();
 
-  const [activeTab, setActiveTab] = useState<'items' | 'warehouses' | 'movements' | 'categories' | 'audit' | 'reports'>('items');
+  const [activeTab, setActiveTab] = useState<'items' | 'dispatch' | 'warehouses' | 'movements' | 'categories' | 'audit' | 'reports'>('items');
   const [showImportModal, setShowImportModal] = useState(false);
 
   // Filters
@@ -665,12 +666,14 @@ export const InventoryPage: React.FC = () => {
   const isIssueQtyExceeded = currentItemForIssue ? issueForm.quantity > currentItemForIssue.currentStock : false;
 
   const handleExportCSV = () => {
-    const headers = ['Item Code', 'Item Name', 'Category', 'Unit', 'Current Stock', 'Min Level', 'Cost Price', 'Selling Price', 'Total Valuation', 'Location'];
+    const headers = ['Item Code', 'Item Name', 'Category', 'Unit', 'Allocated Stock', 'Free Stock', 'Total On-Hand Stock', 'Min Level', 'Cost Price', 'Selling Price', 'Total Valuation', 'Location'];
     const rows = filteredItems.map(i => [
       i?.itemCode || '',
       `"${(i?.name || '').replace(/"/g, '""')}"`,
       `"${(i?.categoryName || '').replace(/"/g, '""')}"`,
       i?.unit || '',
+      i?.allocatedStock ?? 0,
+      i?.freeStock ?? Math.max(0, (Number(i?.currentStock) || 0) - (Number(i?.allocatedStock) || 0)),
       i?.currentStock ?? 0,
       i?.minLevel ?? 0,
       i?.costPrice ?? 0,
@@ -780,6 +783,7 @@ export const InventoryPage: React.FC = () => {
       <Flex borderBottom="2px solid #e2e8f0" gap={4} overflowX="auto" pb="1px">
         {[
           { id: 'items', label: `Stock Catalog (${inventory.length})` },
+          { id: 'dispatch', label: `Dispatch (${inventory.filter(i => (Number(i.allocatedStock) || 0) > 0).length} Allocated)` },
           { id: 'warehouses', label: `Warehouses & Yards (${warehouses.length})` },
           { id: 'movements', label: 'Stock Movements Ledger' },
           { id: 'categories', label: `Categories (${inventoryCategories.length})` },
@@ -882,7 +886,8 @@ export const InventoryPage: React.FC = () => {
                     <Table.ColumnHeader fontSize="10px">SKU Code</Table.ColumnHeader>
                     <Table.ColumnHeader fontSize="10px">Item Name & Preferred Supplier</Table.ColumnHeader>
                     <Table.ColumnHeader fontSize="10px">Category</Table.ColumnHeader>
-                    <Table.ColumnHeader fontSize="10px">In Stock</Table.ColumnHeader>
+                    <Table.ColumnHeader fontSize="10px">Allocated Stock</Table.ColumnHeader>
+                    <Table.ColumnHeader fontSize="10px">Free Stock</Table.ColumnHeader>
                     <Table.ColumnHeader fontSize="10px">Safety Buffer</Table.ColumnHeader>
                     <Table.ColumnHeader fontSize="10px">Unit Cost</Table.ColumnHeader>
                     <Table.ColumnHeader fontSize="10px">Total Valuation</Table.ColumnHeader>
@@ -893,17 +898,19 @@ export const InventoryPage: React.FC = () => {
                 <Table.Body>
                   {filteredItems.length === 0 ? (
                     <Table.Row>
-                      <Table.Cell colSpan={9} textAlign="center" py={8} color="#64748b" fontSize="xs">
+                      <Table.Cell colSpan={10} textAlign="center" py={8} color="#64748b" fontSize="xs">
                         No materials found matching your current filter.
                       </Table.Cell>
                     </Table.Row>
                   ) : (
                     filteredItems.map((item) => {
                       const stockNum = Number(item.currentStock) || 0;
+                      const allocatedNum = Number(item.allocatedStock) || 0;
+                      const freeNum = item.freeStock !== undefined ? Number(item.freeStock) : Math.max(0, stockNum - allocatedNum);
                       const minNum = Number(item.minLevel) || 0;
                       const costNum = Number(item.costPrice) || 0;
-                      const isLow = stockNum <= minNum && stockNum > 0;
-                      const isOut = stockNum <= 0;
+                      const isLow = freeNum <= minNum && freeNum > 0;
+                      const isOut = freeNum <= 0;
                       const lineValuation = stockNum * costNum;
 
                       return (
@@ -923,9 +930,18 @@ export const InventoryPage: React.FC = () => {
                             <Badge size="xs" colorPalette="blue">{item.categoryName}</Badge>
                           </Table.Cell>
                           <Table.Cell fontSize="xs">
+                            {allocatedNum > 0 ? (
+                              <Badge size="xs" colorPalette="orange" fontWeight="bold">
+                                {allocatedNum.toLocaleString()} {item.unit}
+                              </Badge>
+                            ) : (
+                              <Text fontSize="xs" color="#94a3b8">0 {item.unit}</Text>
+                            )}
+                          </Table.Cell>
+                          <Table.Cell fontSize="xs">
                             <Flex align="center" gap={1.5}>
-                              <Text fontWeight="bold" color={isOut ? '#dc2626' : isLow ? '#d97706' : '#0f172a'}>
-                                {stockNum} {item.unit}
+                              <Text fontWeight="bold" color={isOut ? '#dc2626' : isLow ? '#d97706' : '#059669'}>
+                                {freeNum.toLocaleString()} {item.unit}
                               </Text>
                               {isOut && <Badge size="xs" colorPalette="red">DEPLETED</Badge>}
                               {isLow && <Badge size="xs" colorPalette="orange">LOW</Badge>}
@@ -998,6 +1014,11 @@ export const InventoryPage: React.FC = () => {
             </Box>
           </Card.Root>
         </Stack>
+      )}
+
+      {/* TAB: STOCK DISPATCH */}
+      {activeTab === 'dispatch' && (
+        <StockDispatchTab />
       )}
 
       {/* TAB 2: WAREHOUSES & YARDS */}
@@ -2030,10 +2051,28 @@ export const InventoryPage: React.FC = () => {
               <Button size="xs" variant="outline" onClick={() => setViewingItem(null)}>Close</Button>
             </Flex>
 
+            <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3} mb={3}>
+              <Box bg="#fffbeb" p={3} borderRadius="10px" border="1px solid #fef3c7">
+                <Text fontSize="10px" textTransform="uppercase" fontWeight="bold" color="#d97706">Allocated Stock (Committed)</Text>
+                <Text fontSize="xl" fontWeight="black" color="#d97706" mt={1}>
+                  {(viewingItem.allocatedStock ?? 0).toLocaleString()} {viewingItem.unit}
+                </Text>
+                <Text fontSize="10px" color="#d97706">Reserved in Dispatch Queue</Text>
+              </Box>
+
+              <Box bg="#ecfdf5" p={3} borderRadius="10px" border="1px solid #d1fae5">
+                <Text fontSize="10px" textTransform="uppercase" fontWeight="bold" color="#059669">Free Stock (Available)</Text>
+                <Text fontSize="xl" fontWeight="black" color="#059669" mt={1}>
+                  {(viewingItem.freeStock ?? Math.max(0, (Number(viewingItem.currentStock) || 0) - (Number(viewingItem.allocatedStock) || 0))).toLocaleString()} {viewingItem.unit}
+                </Text>
+                <Text fontSize="10px" color="#059669">Available for Project Requisition</Text>
+              </Box>
+            </SimpleGrid>
+
             <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3} mb={4}>
               <Box bg="#f8fafc" p={3} borderRadius="10px">
-                <Text fontSize="10px" textTransform="uppercase" fontWeight="bold" color="#64748b">Current Stock</Text>
-                <Text fontSize="xl" fontWeight="black" color="#0f172a" mt={1}>
+                <Text fontSize="10px" textTransform="uppercase" fontWeight="bold" color="#64748b">Total Physical On-Hand</Text>
+                <Text fontSize="lg" fontWeight="black" color="#0f172a" mt={1}>
                   {viewingItem.currentStock} {viewingItem.unit}
                 </Text>
                 <Text fontSize="10px" color="#94a3b8">Min Threshold: {viewingItem.minLevel} {viewingItem.unit}</Text>
@@ -2041,7 +2080,7 @@ export const InventoryPage: React.FC = () => {
 
               <Box bg="#f8fafc" p={3} borderRadius="10px">
                 <Text fontSize="10px" textTransform="uppercase" fontWeight="bold" color="#64748b">Total Valuation</Text>
-                <Text fontSize="xl" fontWeight="black" color="#16a34a" mt={1}>
+                <Text fontSize="lg" fontWeight="black" color="#16a34a" mt={1}>
                   {activeCompany.currency} {((Number(viewingItem.currentStock) || 0) * (Number(viewingItem.costPrice) || 0)).toLocaleString()}
                 </Text>
                 <Text fontSize="10px" color="#64748b">Unit Cost: {activeCompany.currency}{(Number(viewingItem.costPrice) || 0).toFixed(2)}</Text>

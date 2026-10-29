@@ -441,6 +441,8 @@ export interface InventoryItem {
   sellingPrice: number;
   openingStock?: number;
   currentStock: number;
+  allocatedStock?: number;
+  freeStock?: number;
   minLevel: number;
   reorderLevel?: number;
   warehouseId?: number;
@@ -619,6 +621,15 @@ export interface WaybillItem {
 export interface Waybill {
   id: number;
   waybillNumber: string;
+  waybillNo?: string;
+  gatePassNo?: string;
+  itemName?: string;
+  itemCode?: string;
+  quantity?: number;
+  unit?: string;
+  destinationProject?: string;
+  sourceWarehouse?: string;
+  recipientName?: string;
   requisitionId?: number;
   requisitionNo?: string;
   dispatchRequestId?: number;
@@ -753,6 +764,23 @@ export interface SalaryAdvance {
   deductionMonth: string;
 }
 
+export interface LoanPaymentRecord {
+  id: string;
+  loanId?: number;
+  advanceId?: number;
+  type: 'loan_repayment' | 'advance_recovery';
+  employeeId: number;
+  employeeName: string;
+  paymentDate: string;
+  amount: number;
+  paymentMethod: 'Payroll Deduction' | 'Bank Transfer' | 'Direct Bank Transfer' | 'Cash Deposit' | 'Direct Salary Recovery' | 'Cheque';
+  referenceNumber: string;
+  remainingBalanceAfter: number;
+  recordedBy: string;
+  notes?: string;
+  createdAt: string;
+}
+
 export interface EmployeeLoan {
   id: number;
   employeeId: number;
@@ -762,6 +790,7 @@ export interface EmployeeLoan {
   repaidAmount: number;
   status: 'Active' | 'Settled';
   startDate: string;
+  paymentHistory?: LoanPaymentRecord[];
 }
 
 export interface PayrollCalculationItem {

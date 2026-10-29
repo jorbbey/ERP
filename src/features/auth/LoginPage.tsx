@@ -86,6 +86,16 @@ export const LoginPage: React.FC = () => {
     }
   }, [supabaseUser, navigate]);
 
+  // Check URL query parameters for session expiration reasons
+  useEffect(() => {
+    const reason = searchParams.get('reason');
+    if (reason === 'inactivity_timeout') {
+      setErrorMessage('Your session has expired due to 24 hours of inactivity. Please log in again to continue.');
+    } else if (reason === 'session_expired') {
+      setErrorMessage('Your session has expired because the tab or browser was closed. Please log in to continue.');
+    }
+  }, [searchParams]);
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);

@@ -203,27 +203,6 @@ export const FeaturesPage: React.FC = () => {
                 Request Technical Demo
               </Button>
             </Flex>
-
-            {/* Floating Technical Specs Metadata */}
-            <Flex
-              gap={3}
-              wrap="wrap"
-              justify="center"
-              fontSize="11px"
-              color="#94a3b8"
-              fontWeight="medium"
-              mt={6}
-            >
-              <span>5-Tier WBS Hierarchy</span>
-              <span style={{ color: '#475569' }}>•</span>
-              <span>Heavy Fleet Telematics</span>
-              <span style={{ color: '#475569' }}>•</span>
-              <span>RMC Moisture Batching</span>
-              <span style={{ color: '#475569' }}>•</span>
-              <span>FIDIC Red Book 1999</span>
-              <span style={{ color: '#475569' }}>•</span>
-              <span>3-Way GRN Match</span>
-            </Flex>
           </Flex>
 
           {/* Filter Pills */}

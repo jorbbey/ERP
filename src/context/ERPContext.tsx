@@ -18,6 +18,7 @@ import {
   PurchaseOrder,
   SalaryAdvance,
   EmployeeLoan,
+  LoanPaymentRecord,
   PayrollRun,
   Payslip,
   RmcMixDesign,
@@ -88,6 +89,7 @@ import { supabaseAuth } from '../services/supabaseAuth';
 import { authAuditService } from '../services/authAuditService';
 import { supplierInvoiceService } from '../services/supplierInvoiceService';
 import { companyService, CompanyRegistrationData, ProvisionAccountData } from '../services/companyService';
+import { sessionManager } from '../services/sessionManager';
 
 interface ERPContextType {
   // Multi-Company
@@ -110,7 +112,7 @@ interface ERPContextType {
   authLoading: boolean;
   signInWithSupabase: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signUpWithSupabase: (email: string, password: string, fullName?: string) => Promise<{ success: boolean; error?: string; session?: any }>;
-  signOutWithSupabase: () => Promise<void>;
+  signOutWithSupabase: (reason?: string) => Promise<void>;
 
   // Projects
   projects: Project[];
@@ -254,6 +256,21 @@ interface ERPContextType {
     requisitionId?: number;
     requisitionNo?: string;
   }) => { success: boolean; error?: string; updatedItem?: InventoryItem; movement?: StockMovement };
+  allocateStock: (itemId: number, quantity: number, notes?: string) => { success: boolean; error?: string };
+  deallocateStock: (itemId: number, quantity: number) => { success: boolean; error?: string };
+  dispatchAllocatedStock: (params: {
+    itemId: number;
+    quantity: number;
+    projectId: number;
+    projectName?: string;
+    carrierName: string;
+    vehicleNumber: string;
+    driverPhone?: string;
+    recipientName?: string;
+    requisitionNo?: string;
+    notes?: string;
+    gatePassNo?: string;
+  }) => { success: boolean; waybill?: Waybill; error?: string };
 
   // Requisitions & Dispatches
   requisitions: Requisition[];
@@ -344,7 +361,9 @@ interface ERPContextType {
   requestSalaryAdvance: (a: Omit<SalaryAdvance, 'id' | 'requestDate' | 'status'>) => void;
   decideSalaryAdvance: (id: number, status: 'Approved' | 'Rejected') => void;
   createEmployeeLoan: (l: Omit<EmployeeLoan, 'id' | 'repaidAmount' | 'status'>) => void;
-  markLoanInstallmentPaid: (loanId: number, amount: number) => void;
+  markLoanInstallmentPaid: (loanId: number, amount: number, options?: { paymentMethod?: string; referenceNumber?: string; notes?: string }) => void;
+  loanPayments: LoanPaymentRecord[];
+  recordLoanPayment: (payment: Omit<LoanPaymentRecord, 'id' | 'createdAt'>) => LoanPaymentRecord;
 
   // Payroll
   payrollRuns: PayrollRun[];
@@ -485,6 +504,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [salaryAdvances, setSalaryAdvances] = useState<SalaryAdvance[]>(() => erpStorage.getSalaryAdvances());
   const [employeeLoans, setEmployeeLoans] = useState<EmployeeLoan[]>(() => erpStorage.getEmployeeLoans());
+  const [loanPayments, setLoanPayments] = useState<LoanPaymentRecord[]>(() => erpStorage.getLoanPayments());
   const [payrollRuns, setPayrollRuns] = useState<PayrollRun[]>(() => erpStorage.getPayrollRuns());
   const [payslips, setPayslips] = useState<Payslip[]>(() => erpStorage.getPayslips());
   const [payrollStructure, setPayrollStructureState] = useState<PayrollCalculationStructure>(() => erpStorage.getPayrollStructure());
@@ -580,16 +600,50 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     let mounted = true;
 
-    // Check initial active session
+    // Purge legacy persistent localStorage tokens (guarantees session expires on tab/browser close)
+    sessionManager.cleanupLegacyLocalStorage();
+
+    // Check if session has expired due to 24-hour inactivity
+    if (sessionManager.isExpired()) {
+      sessionManager.clearSession();
+      setSupabaseSession(null);
+      setSupabaseUser(null);
+      setAuthLoading(false);
+      return;
+    }
+
+    // 1. Check active session stored in sessionStorage (survives page refresh within tab)
+    const activeStored = sessionManager.getActiveSession();
+    if (activeStored) {
+      setSupabaseSession(activeStored.session);
+      setSupabaseUser(activeStored.user);
+      if (activeStored.userName) setCurrentUserName(activeStored.userName);
+      if (activeStored.userRole) setActiveRoleState(activeStored.userRole as any);
+      if (activeStored.companyId) setActiveCompanyIdState(activeStored.companyId);
+      setAuthLoading(false);
+      return;
+    }
+
+    // 2. Check Supabase session from sessionStorage
     supabaseAuth.getSession().then((session: any) => {
       if (!mounted) return;
-      if (session) {
+      if (session && !sessionManager.isExpired()) {
         setSupabaseSession(session);
         setSupabaseUser(session.user);
         const name = session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0];
         if (name) {
           setCurrentUserName(name);
         }
+        const role = session.user.user_metadata?.role || activeRole;
+        sessionManager.saveSession({
+          user: session.user,
+          session: session,
+          userName: name || 'User',
+          userRole: role,
+          companyId: activeCompanyId,
+          loginAt: Date.now(),
+          lastActivity: Date.now()
+        });
       }
       setAuthLoading(false);
     });
@@ -597,6 +651,13 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Subscribe to auth state changes
     const subscription = supabaseAuth.onAuthStateChange((_event: any, session: any) => {
       if (!mounted) return;
+      if (sessionManager.isExpired()) {
+        sessionManager.clearSession();
+        setSupabaseSession(null);
+        setSupabaseUser(null);
+        setAuthLoading(false);
+        return;
+      }
       setSupabaseSession(session);
       setSupabaseUser(session?.user || null);
       if (session?.user) {
@@ -604,6 +665,16 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (name) {
           setCurrentUserName(name);
         }
+        const role = session.user.user_metadata?.role || activeRole;
+        sessionManager.saveSession({
+          user: session.user,
+          session: session,
+          userName: name || 'User',
+          userRole: role,
+          companyId: activeCompanyId,
+          loginAt: Date.now(),
+          lastActivity: Date.now()
+        });
       }
       setAuthLoading(false);
     });
@@ -613,6 +684,61 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       subscription.unsubscribe();
     };
   }, []);
+
+  // User activity tracker & 24-hour inactivity session expiry monitor
+  useEffect(() => {
+    if (!supabaseUser) return;
+
+    let lastThrottledTime = Date.now();
+    const handleUserActivity = () => {
+      const now = Date.now();
+      // Throttle recording activity to at most once every 15 seconds
+      if (now - lastThrottledTime > 15000) {
+        lastThrottledTime = now;
+        sessionManager.recordActivity();
+      }
+    };
+
+    const activityEvents = ['mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
+    activityEvents.forEach(evt => window.addEventListener(evt, handleUserActivity, { passive: true }));
+
+    const checkExpiration = () => {
+      if (sessionManager.isExpired()) {
+        recordAuthEvent({
+          userEmail: supabaseUser?.email,
+          userName: currentUserName,
+          userRole: activeRole,
+          eventType: 'logout',
+          notes: 'Session automatically expired after 24 hours of inactivity'
+        });
+        sessionManager.clearSession();
+        supabaseAuth.signOut();
+        setSupabaseSession(null);
+        setSupabaseUser(null);
+        window.location.href = '/login?mode=signin&reason=inactivity_timeout';
+      }
+    };
+
+    // Check expiration every 30 seconds
+    const intervalId = setInterval(checkExpiration, 30000);
+
+    // Also check immediately when window / tab regains visibility (e.g. user resumes device after 24 hours)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkExpiration();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleVisibilityChange);
+
+    return () => {
+      activityEvents.forEach(evt => window.removeEventListener(evt, handleUserActivity));
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleVisibilityChange);
+    };
+  }, [supabaseUser, currentUserName, activeRole]);
 
   const recordAuthEvent = (event: Parameters<typeof authAuditService.recordAuthEvent>[0]) => {
     const newLog = authAuditService.recordAuthEvent(event);
@@ -630,6 +756,16 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setSupabaseUser(res.user);
       const name = res.user?.user_metadata?.full_name || res.user?.user_metadata?.name || trimmedEmail.split('@')[0];
       if (name) setCurrentUserName(name);
+      const role = res.user?.user_metadata?.role || activeRole;
+      sessionManager.saveSession({
+        user: res.user,
+        session: res.session,
+        userName: name || trimmedEmail.split('@')[0],
+        userRole: role,
+        companyId: activeCompanyId,
+        loginAt: Date.now(),
+        lastActivity: Date.now()
+      });
       recordAuthEvent({
         userId: res.user?.id ? (Number(res.user.id) || 1) : 1,
         userEmail: trimmedEmail,
@@ -729,7 +865,8 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
 
       setSupabaseUser(mockUser);
-      setSupabaseSession({ user: mockUser, access_token: `mock-token-${matchedEmployee.id}` });
+      const mockSess = { user: mockUser, access_token: `mock-token-${matchedEmployee.id}` };
+      setSupabaseSession(mockSess);
       setCurrentUserName(matchedEmployee.name);
       setActiveRoleState(userRole);
       
@@ -738,6 +875,16 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setActiveCompanyIdState(matchedEmployee.companyId);
         erpStorage.saveActiveCompanyId(matchedEmployee.companyId);
       }
+
+      sessionManager.saveSession({
+        user: mockUser,
+        session: mockSess,
+        userName: matchedEmployee.name,
+        userRole: userRole,
+        companyId: matchedEmployee.companyId || activeCompanyId,
+        loginAt: Date.now(),
+        lastActivity: Date.now()
+      });
 
       recordAuthEvent({
         userId: matchedEmployee.id,
@@ -748,7 +895,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         notes: `Staff authenticated to company workspace (Role: ${userRole})`
       });
 
-      return { success: true, user: mockUser as any, session: { user: mockUser } as any };
+      return { success: true, user: mockUser as any, session: mockSess as any };
     }
 
     // 3. Check registered company workspaces
@@ -777,11 +924,22 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
 
       setSupabaseUser(mockAdmin);
-      setSupabaseSession({ user: mockAdmin, access_token: `mock-corp-token-${matchedCompany.id}` });
+      const mockCorpSess = { user: mockAdmin, access_token: `mock-corp-token-${matchedCompany.id}` };
+      setSupabaseSession(mockCorpSess);
       setCurrentUserName(matchedCompany.contactPerson || matchedCompany.name);
       setActiveRoleState('Managing Director');
       setActiveCompanyIdState(matchedCompany.id);
       erpStorage.saveActiveCompanyId(matchedCompany.id);
+
+      sessionManager.saveSession({
+        user: mockAdmin,
+        session: mockCorpSess,
+        userName: matchedCompany.contactPerson || matchedCompany.name,
+        userRole: 'Managing Director',
+        companyId: matchedCompany.id,
+        loginAt: Date.now(),
+        lastActivity: Date.now()
+      });
 
       recordAuthEvent({
         userId: matchedCompany.id,
@@ -792,7 +950,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         notes: `Company administrator authenticated to trial workspace (${matchedCompany.name})`
       });
 
-      return { success: true, user: mockAdmin as any, session: { user: mockAdmin } as any };
+      return { success: true, user: mockAdmin as any, session: mockCorpSess as any };
     }
 
     // Failed login
@@ -818,6 +976,15 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setSupabaseSession(res.session);
       setSupabaseUser(res.user);
       if (fullName) setCurrentUserName(fullName);
+      sessionManager.saveSession({
+        user: res.user,
+        session: res.session,
+        userName: fullName || email.split('@')[0],
+        userRole: activeRole,
+        companyId: activeCompanyId,
+        loginAt: Date.now(),
+        lastActivity: Date.now()
+      });
       recordAuthEvent({
         userId: res.user?.id ? (Number(res.user.id) || 1) : 1,
         userEmail: email,
@@ -830,14 +997,15 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return res;
   };
 
-  const signOutWithSupabase = async () => {
+  const signOutWithSupabase = async (reason?: string) => {
     recordAuthEvent({
       userEmail: supabaseUser?.email,
       userName: currentUserName,
       userRole: activeRole,
       eventType: 'logout',
-      notes: 'Explicit user-initiated sign out'
+      notes: reason || 'Explicit user-initiated sign out'
     });
+    sessionManager.clearSession();
     await supabaseAuth.signOut();
     setSupabaseSession(null);
     setSupabaseUser(null);
@@ -864,6 +1032,16 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
       setSupabaseSession(mockSession);
       setSupabaseUser(mockSession.user);
+
+      sessionManager.saveSession({
+        user: mockSession.user,
+        session: mockSession,
+        userName: res.employee.name,
+        userRole: 'Managing Director',
+        companyId: res.company.id,
+        loginAt: Date.now(),
+        lastActivity: Date.now()
+      });
 
       recordAuthEvent({
         userId: res.employee.id,
@@ -1912,6 +2090,187 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return res;
   };
 
+  const allocateStock = (itemId: number, quantity: number, notes?: string): { success: boolean; error?: string } => {
+    const list = erpStorage.getInventory();
+    const item = list.find(i => i.id === itemId);
+    if (!item) return { success: false, error: 'Material SKU not found in inventory catalogue.' };
+
+    const current = Number(item.currentStock) || 0;
+    const allocated = Number(item.allocatedStock) || 0;
+    const free = Math.max(0, current - allocated);
+
+    if (quantity <= 0) return { success: false, error: 'Allocation quantity must be greater than zero.' };
+    if (quantity > free) return { success: false, error: `Insufficient free stock. Only ${free} ${item.unit} available for allocation.` };
+
+    item.allocatedStock = allocated + quantity;
+    item.freeStock = Math.max(0, current - item.allocatedStock);
+    erpStorage.saveInventory(list);
+    setInventory(erpStorage.getInventory());
+
+    const changes = erpStorage.getInventoryItemChanges();
+    changes.unshift({
+      id: Date.now(),
+      itemId: item.id,
+      itemCode: item.itemCode,
+      itemName: item.name,
+      changeReason: notes || `Stock allocation of ${quantity} ${item.unit} reserved for dispatch`,
+      beforeData: JSON.stringify({ allocatedStock: allocated, freeStock: free }),
+      afterData: JSON.stringify({ allocatedStock: item.allocatedStock, freeStock: item.freeStock }),
+      changedBy: currentUserName,
+      changedAt: new Date().toISOString().replace('T', ' ').slice(0, 16)
+    });
+    erpStorage.saveInventoryItemChanges(changes);
+    setInventoryItemChanges(changes);
+
+    return { success: true };
+  };
+
+  const deallocateStock = (itemId: number, quantity: number): { success: boolean; error?: string } => {
+    const list = erpStorage.getInventory();
+    const item = list.find(i => i.id === itemId);
+    if (!item) return { success: false, error: 'Material SKU not found in inventory catalogue.' };
+
+    const current = Number(item.currentStock) || 0;
+    const allocated = Number(item.allocatedStock) || 0;
+    const toRemove = Math.min(allocated, Math.max(1, quantity));
+
+    item.allocatedStock = Math.max(0, allocated - toRemove);
+    item.freeStock = Math.max(0, current - item.allocatedStock);
+    erpStorage.saveInventory(list);
+    setInventory(erpStorage.getInventory());
+
+    return { success: true };
+  };
+
+  const dispatchAllocatedStock = (params: {
+    itemId: number;
+    quantity: number;
+    projectId: number;
+    projectName?: string;
+    carrierName: string;
+    vehicleNumber: string;
+    driverPhone?: string;
+    recipientName?: string;
+    requisitionNo?: string;
+    notes?: string;
+    gatePassNo?: string;
+  }): { success: boolean; waybill?: Waybill; error?: string } => {
+    const list = erpStorage.getInventory();
+    const item = list.find(i => i.id === params.itemId);
+    if (!item) return { success: false, error: 'Material SKU not found in inventory catalogue.' };
+
+    const allocated = Number(item.allocatedStock) || 0;
+    if (params.quantity <= 0) return { success: false, error: 'Dispatch quantity must be greater than zero.' };
+    if (params.quantity > allocated) {
+      return {
+        success: false,
+        error: `Cannot dispatch ${params.quantity} ${item.unit}. Only ${allocated} ${item.unit} is currently allocated.`
+      };
+    }
+
+    // 1. Deduct from allocated stock and physical on-hand stock
+    item.allocatedStock = Math.max(0, allocated - params.quantity);
+    item.currentStock = Math.max(0, (Number(item.currentStock) || 0) - params.quantity);
+    item.freeStock = Math.max(0, item.currentStock - item.allocatedStock);
+    if (item.currentStock <= 0) {
+      item.status = 'out_of_stock';
+    } else if (item.currentStock <= item.minLevel) {
+      item.status = 'low_stock';
+    }
+    erpStorage.saveInventory(list);
+    setInventory(erpStorage.getInventory());
+
+    // 2. Record Stock Movement
+    const movements = erpStorage.getStockMovements();
+    const movRef = params.gatePassNo || `SM-DISP-${Date.now().toString().slice(-6)}`;
+    const targetPrj = projects.find(p => p.id === params.projectId);
+    const prjName = params.projectName || targetPrj?.name || 'Project Site';
+
+    const movement: StockMovement = {
+      id: movements.length > 0 ? Math.max(...movements.map(m => m.id)) + 1 : 1,
+      referenceNumber: movRef,
+      movementType: 'issue',
+      itemId: item.id,
+      itemCode: item.itemCode,
+      itemName: item.name,
+      quantity: params.quantity,
+      unit: item.unit,
+      source: item.warehouseLocation || 'Central Warehouse Yard',
+      destination: prjName,
+      warehouseId: 1,
+      warehouseName: item.warehouseLocation || 'Central Warehouse Yard',
+      projectId: params.projectId,
+      projectName: prjName,
+      performedBy: currentUserName,
+      movementDate: new Date().toISOString().replace('T', ' ').slice(0, 16),
+      reason: `Site dispatch of allocated stock to ${prjName} via ${params.carrierName} (${params.vehicleNumber})`,
+      relatedDocumentType: 'Waybill',
+      status: 'completed',
+      createdAt: new Date().toISOString()
+    };
+    movements.unshift(movement);
+    erpStorage.saveStockMovements(movements);
+    setStockMovements(movements);
+
+    // 3. Create Waybill
+    const waybills = erpStorage.getWaybills();
+    const wbNumber = params.gatePassNo || `WB-2026-${String(waybills.length + 30).padStart(3, '0')}`;
+    const newWaybill: Waybill = {
+      id: waybills.length > 0 ? Math.max(...waybills.map(w => w.id)) + 1 : 1,
+      waybillNumber: wbNumber,
+      waybillNo: wbNumber,
+      gatePassNo: params.gatePassNo,
+      itemName: item.name,
+      itemCode: item.itemCode,
+      quantity: params.quantity,
+      unit: item.unit,
+      destinationProject: prjName,
+      sourceWarehouse: item.warehouseLocation || 'Central Stores Yard',
+      recipientName: params.recipientName,
+      projectId: params.projectId,
+      projectName: prjName,
+      sourceWarehouseId: 1,
+      sourceWarehouseName: item.warehouseLocation || 'Central Stores Yard',
+      destinationSite: `${prjName} Site Receiving Yard`,
+      carrierName: params.carrierName,
+      vehicleNumber: params.vehicleNumber,
+      driverPhone: params.driverPhone,
+      dispatchedBy: currentUserName,
+      dispatchDate: new Date().toISOString().split('T')[0],
+      status: 'In Transit',
+      items: [
+        {
+          itemId: item.id,
+          itemCode: item.itemCode,
+          itemName: item.name,
+          unit: item.unit,
+          quantityDispatched: params.quantity,
+          condition: 'Good',
+          notes: params.notes || 'Allocated stock inspected and dispatched.'
+        }
+      ],
+      notes: params.notes,
+      createdAt: new Date().toISOString()
+    };
+    waybills.unshift(newWaybill);
+    erpStorage.saveWaybills(waybills);
+    setWaybills(waybills);
+
+    // 4. Update Requisition if linked
+    if (params.requisitionNo) {
+      const allReqs = erpStorage.getRequisitions();
+      const match = allReqs.find(r => r.requisitionNo === params.requisitionNo);
+      if (match) {
+        match.status = 'Dispatched';
+        match.dispatchNote = `Dispatched ${params.quantity} ${item.unit} via ${params.carrierName} (${params.vehicleNumber})`;
+        erpStorage.saveRequisitions(allReqs);
+        setRequisitions(allReqs);
+      }
+    }
+
+    return { success: true, waybill: newWaybill };
+  };
+
   // Requisitions
   const createRequisition = (rData: Omit<Requisition, 'id' | 'requisitionNo' | 'status' | 'requisitionDate'>) => {
     const proj = projects.find(p => p.id === rData.projectId);
@@ -2229,20 +2588,63 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     erpStorage.saveEmployeeLoans(updated);
   };
 
-  const markLoanInstallmentPaid = (loanId: number, amount: number) => {
-    const updated = employeeLoans.map(l => {
-      if (l.id === loanId) {
-        const repaid = l.repaidAmount + amount;
-        return {
-          ...l,
-          repaidAmount: repaid,
-          status: (repaid >= l.totalAmount ? 'Settled' : 'Active') as EmployeeLoan['status']
-        };
-      }
-      return l;
+  const recordLoanPayment = (payment: Omit<LoanPaymentRecord, 'id' | 'createdAt'>): LoanPaymentRecord => {
+    const newId = `LP-${Date.now().toString().slice(-6)}`;
+    const newRecord: LoanPaymentRecord = {
+      ...payment,
+      id: newId,
+      createdAt: new Date().toISOString().replace('T', ' ').slice(0, 19)
+    };
+    const updatedPayments = [newRecord, ...loanPayments];
+    setLoanPayments(updatedPayments);
+    erpStorage.saveLoanPayments(updatedPayments);
+
+    if (payment.loanId) {
+      const updatedLoans = employeeLoans.map(l => {
+        if (l.id === payment.loanId) {
+          const repaid = Math.min(l.totalAmount, l.repaidAmount + payment.amount);
+          const history = l.paymentHistory ? [newRecord, ...l.paymentHistory] : [newRecord];
+          return {
+            ...l,
+            repaidAmount: repaid,
+            status: (repaid >= l.totalAmount ? 'Settled' : 'Active') as EmployeeLoan['status'],
+            paymentHistory: history
+          };
+        }
+        return l;
+      });
+      setEmployeeLoans(updatedLoans);
+      erpStorage.saveEmployeeLoans(updatedLoans);
+    }
+
+    return newRecord;
+  };
+
+  const markLoanInstallmentPaid = (
+    loanId: number,
+    amount: number,
+    options?: { paymentMethod?: string; referenceNumber?: string; notes?: string }
+  ) => {
+    const targetLoan = employeeLoans.find(l => l.id === loanId);
+    if (!targetLoan) return;
+
+    const remainingBefore = Math.max(0, targetLoan.totalAmount - targetLoan.repaidAmount);
+    const actualPay = Math.min(remainingBefore, Math.max(0, amount));
+    const remainingAfter = Math.max(0, remainingBefore - actualPay);
+
+    recordLoanPayment({
+      loanId: targetLoan.id,
+      type: 'loan_repayment',
+      employeeId: targetLoan.employeeId,
+      employeeName: targetLoan.employeeName,
+      paymentDate: new Date().toISOString().split('T')[0],
+      amount: actualPay,
+      paymentMethod: (options?.paymentMethod as any) || 'Payroll Deduction',
+      referenceNumber: options?.referenceNumber || `RCP-${Date.now().toString().slice(-6)}`,
+      remainingBalanceAfter: remainingAfter,
+      recordedBy: currentUserName,
+      notes: options?.notes || 'Installment payment credited against staff loan'
     });
-    setEmployeeLoans(updated);
-    erpStorage.saveEmployeeLoans(updated);
   };
 
   // Requisition Mandatory Offices Policy
@@ -2529,6 +2931,9 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateInventoryItem,
         deleteInventoryItem,
         adjustStock,
+        allocateStock,
+        deallocateStock,
+        dispatchAllocatedStock,
         inventoryCategories,
         addInventoryCategory,
         updateInventoryCategory,
@@ -2576,6 +2981,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         disabledColumns,
         salaryAdvances,
         employeeLoans,
+        loanPayments,
         addEmployee,
         updateEmployee,
         archiveEmployee,
@@ -2604,6 +3010,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         decideSalaryAdvance,
         createEmployeeLoan,
         markLoanInstallmentPaid,
+        recordLoanPayment,
         payrollRuns,
         payslips,
         processPayrollMonth,

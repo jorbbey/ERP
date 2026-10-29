@@ -36,6 +36,7 @@ import {
   PurchaseOrder,
   SalaryAdvance,
   EmployeeLoan,
+  LoanPaymentRecord,
   PayrollRun,
   Payslip,
   PayrollCalculationStructure,
@@ -2508,6 +2509,8 @@ export const initialInventory: InventoryItem[] = [
     costPrice: 12.5,
     sellingPrice: 15.0,
     currentStock: 840,
+    allocatedStock: 240,
+    freeStock: 600,
     minLevel: 300,
     warehouseLocation: 'Yard Warehouse A - Bay 1'
   },
@@ -2522,6 +2525,8 @@ export const initialInventory: InventoryItem[] = [
     costPrice: 940.0,
     sellingPrice: 1100.0,
     currentStock: 24,
+    allocatedStock: 8,
+    freeStock: 16,
     minLevel: 15,
     warehouseLocation: 'Steel Yard Staging Area'
   },
@@ -2536,6 +2541,8 @@ export const initialInventory: InventoryItem[] = [
     costPrice: 960.0,
     sellingPrice: 1120.0,
     currentStock: 8, // Low stock warning
+    allocatedStock: 2,
+    freeStock: 6,
     minLevel: 12,
     warehouseLocation: 'Steel Yard Staging Area'
   },
@@ -2550,6 +2557,8 @@ export const initialInventory: InventoryItem[] = [
     costPrice: 38.0,
     sellingPrice: 48.0,
     currentStock: 320,
+    allocatedStock: 70,
+    freeStock: 250,
     minLevel: 100,
     warehouseLocation: 'Batching Plant Aggregate Bunker 2'
   },
@@ -2564,6 +2573,8 @@ export const initialInventory: InventoryItem[] = [
     costPrice: 18.0,
     sellingPrice: 24.0,
     currentStock: 85,
+    allocatedStock: 25,
+    freeStock: 60,
     minLevel: 25,
     warehouseLocation: 'Tool & Safety Store Locker 3'
   },
@@ -2578,6 +2589,8 @@ export const initialInventory: InventoryItem[] = [
     costPrice: 340.0,
     sellingPrice: 420.0,
     currentStock: 3, // Low stock
+    allocatedStock: 0,
+    freeStock: 3,
     minLevel: 5,
     warehouseLocation: 'Equipment Workshop Bay 2'
   }
@@ -2764,6 +2777,84 @@ export const initialSalaryAdvances: SalaryAdvance[] = [
   }
 ];
 
+export const initialLoanPayments: LoanPaymentRecord[] = [
+  {
+    id: 'LP-2026-001',
+    loanId: 1,
+    type: 'loan_repayment',
+    employeeId: 2,
+    employeeName: 'Ngozi Eze',
+    paymentDate: '2026-05-02',
+    amount: 500,
+    paymentMethod: 'Payroll Deduction',
+    referenceNumber: 'PAY-2026-05-DED',
+    remainingBalanceAfter: 5500,
+    recordedBy: 'Finance / Payroll Automated Recovery',
+    notes: 'May 2026 scheduled salary deduction installment',
+    createdAt: '2026-05-02 14:30:00'
+  },
+  {
+    id: 'LP-2026-002',
+    loanId: 1,
+    type: 'loan_repayment',
+    employeeId: 2,
+    employeeName: 'Ngozi Eze',
+    paymentDate: '2026-06-02',
+    amount: 500,
+    paymentMethod: 'Payroll Deduction',
+    referenceNumber: 'PAY-2026-06-DED',
+    remainingBalanceAfter: 5000,
+    recordedBy: 'Finance / Payroll Automated Recovery',
+    notes: 'June 2026 scheduled salary deduction installment',
+    createdAt: '2026-06-02 14:30:00'
+  },
+  {
+    id: 'LP-2026-003',
+    loanId: 1,
+    type: 'loan_repayment',
+    employeeId: 2,
+    employeeName: 'Ngozi Eze',
+    paymentDate: '2026-07-02',
+    amount: 500,
+    paymentMethod: 'Payroll Deduction',
+    referenceNumber: 'PAY-2026-07-DED',
+    remainingBalanceAfter: 4500,
+    recordedBy: 'Finance / Payroll Automated Recovery',
+    notes: 'July 2026 scheduled salary deduction installment',
+    createdAt: '2026-07-02 14:30:00'
+  },
+  {
+    id: 'LP-2026-004',
+    loanId: 1,
+    type: 'loan_repayment',
+    employeeId: 2,
+    employeeName: 'Ngozi Eze',
+    paymentDate: '2026-08-02',
+    amount: 500,
+    paymentMethod: 'Payroll Deduction',
+    referenceNumber: 'PAY-2026-08-DED',
+    remainingBalanceAfter: 4000,
+    recordedBy: 'Finance / Payroll Automated Recovery',
+    notes: 'August 2026 scheduled salary deduction installment',
+    createdAt: '2026-08-02 14:30:00'
+  },
+  {
+    id: 'LP-2026-005',
+    loanId: 1,
+    type: 'loan_repayment',
+    employeeId: 2,
+    employeeName: 'Ngozi Eze',
+    paymentDate: '2026-09-02',
+    amount: 500,
+    paymentMethod: 'Payroll Deduction',
+    referenceNumber: 'PAY-2026-09-DED',
+    remainingBalanceAfter: 3500,
+    recordedBy: 'Finance / Payroll Automated Recovery',
+    notes: 'September 2026 scheduled salary deduction installment',
+    createdAt: '2026-09-02 14:30:00'
+  }
+];
+
 export const initialEmployeeLoans: EmployeeLoan[] = [
   {
     id: 1,
@@ -2773,7 +2864,8 @@ export const initialEmployeeLoans: EmployeeLoan[] = [
     monthlyDeduction: 500,
     repaidAmount: 2500,
     status: 'Active',
-    startDate: '2026-04-01'
+    startDate: '2026-04-01',
+    paymentHistory: initialLoanPayments
   }
 ];
 

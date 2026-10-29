@@ -17,6 +17,7 @@ import {
   PurchaseOrder,
   SalaryAdvance,
   EmployeeLoan,
+  LoanPaymentRecord,
   PayrollRun,
   Payslip,
   PayrollCalculationStructure,
@@ -105,6 +106,7 @@ import {
   initialPurchaseOrders,
   initialSalaryAdvances,
   initialEmployeeLoans,
+  initialLoanPayments,
   initialPayrollRuns,
   initialPayslips,
   initialPayrollStructure,
@@ -240,7 +242,19 @@ export const erpStorage = {
   getProjectActivities: () => getStored<ProjectActivity[]>('project_activities', initialProjectActivities),
   saveProjectActivities: (a: ProjectActivity[]) => setStored('project_activities', a),
 
-  getInventory: () => getStored<InventoryItem[]>('inventory', initialInventory),
+  getInventory: (): InventoryItem[] => {
+    const items = getStored<InventoryItem[]>('inventory', initialInventory);
+    return items.map(i => {
+      const allocated = i.allocatedStock !== undefined ? Number(i.allocatedStock) : 0;
+      const current = Number(i.currentStock) || 0;
+      return {
+        ...i,
+        currentStock: current,
+        allocatedStock: allocated,
+        freeStock: Math.max(0, current - allocated)
+      };
+    });
+  },
   saveInventory: (i: InventoryItem[]) => setStored('inventory', i),
 
   getInventoryCategories: () => getStored<InventoryCategory[]>('inventory_categories', initialInventoryCategories),
@@ -281,6 +295,9 @@ export const erpStorage = {
 
   getEmployeeLoans: () => getStored<EmployeeLoan[]>('employee_loans', initialEmployeeLoans),
   saveEmployeeLoans: (l: EmployeeLoan[]) => setStored('employee_loans', l),
+
+  getLoanPayments: () => getStored<LoanPaymentRecord[]>('loan_payments', initialLoanPayments),
+  saveLoanPayments: (p: LoanPaymentRecord[]) => setStored('loan_payments', p),
 
   getPayrollRuns: () => getStored<PayrollRun[]>('payroll_runs', initialPayrollRuns),
   savePayrollRuns: (r: PayrollRun[]) => setStored('payroll_runs', r),
