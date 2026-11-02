@@ -396,7 +396,7 @@ export interface Project {
   progressPercent: number;
   status: 'planned' | 'in_progress' | 'completed' | 'on_hold' | 'cancelled';
   manager: string;
-  assignedEngineers: string[];
+  assignedEngineers?: string[];
   companyId?: number;
   createdAt?: string;
 }
@@ -603,6 +603,8 @@ export interface Requisition {
   approvalStage?: 'Requested By' | 'Departmental Head' | 'Stock Control' | 'Finance Review' | 'Approved By' | 'Completed' | 'Rejected' | 'Clarification';
   stageSignatures?: { stage: string; actorName: string; actorRole: string; action: string; date: string; comments?: string; }[];
   remarks?: string;
+  purchaseOrderId?: number;
+  purchaseOrderNo?: string;
   messages?: RequisitionMessage[];
   approvalHistory?: RequisitionApprovalStep[];
 }
@@ -709,6 +711,23 @@ export interface PurchaseOrder {
   approvalDate?: string;
   rejectionReason?: string;
   notes?: string;
+  requisitionId?: number;
+  requisitionNo?: string;
+  approvalHistory?: Array<{
+    id: number;
+    action: string;
+    actorName: string;
+    actorRole: string;
+    comments?: string;
+    timestamp: string;
+  }>;
+  messages?: Array<{
+    id: number;
+    userName: string;
+    role: string;
+    message: string;
+    createdAt: string;
+  }>;
   items: PurchaseOrderItem[];
   createdAt?: string;
 }

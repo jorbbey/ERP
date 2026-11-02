@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Flex,
@@ -16,6 +16,7 @@ import {
 } from '@chakra-ui/react';
 import { useERP } from '../../../context/ERPContext';
 import { PurchaseOrder } from '../../../types';
+import { PurchaseOrderVoucherModal } from './PurchaseOrderVoucherModal';
 import {
   ShoppingCart,
   Plus,
@@ -35,22 +36,34 @@ import {
   Eye,
   Trash2,
   Layers,
-  ArrowRight
+  ArrowRight,
+  MessageSquare,
+  Send,
+  User,
+  ClipboardList,
+  ShieldCheck,
+  ExternalLink
 } from 'lucide-react';
 
 interface PurchaseOrdersTabProps {
   onOpenCreateGRNForPO?: (po: PurchaseOrder) => void;
+  prefillRequisitionId?: number;
 }
 
-export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({ onOpenCreateGRNForPO }) => {
+export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({ 
+  onOpenCreateGRNForPO,
+  prefillRequisitionId
+}) => {
   const {
     purchaseOrders,
     createPurchaseOrder,
     updatePOStatus,
+    addPOMessage,
     suppliers,
     projects,
     warehouses,
     inventory,
+    requisitions,
     activeCompany,
     activeRole,
     currentUserName
@@ -64,10 +77,14 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({ onOpenCrea
   // Modals
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedPO, setSelectedPO] = useState<PurchaseOrder | null>(null);
+  const [voucherPO, setVoucherPO] = useState<PurchaseOrder | null>(null);
   const [showApproveModal, setShowApproveModal] = useState<PurchaseOrder | null>(null);
   const [showRejectModal, setShowRejectModal] = useState<PurchaseOrder | null>(null);
   const [approvalNotes, setApprovalNotes] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
+  const [selectedRequisitionId, setSelectedRequisitionId] = useState<number | ''>('');
+  const [poDetailTab, setPoDetailTab] = useState<'details' | 'history' | 'discussion'>('details');
+  const [poChatMessage, setPoChatMessage] = useState('');
 
   // Form State
   const [formData, setFormData] = useState({
@@ -221,6 +238,53 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({ onOpenCrea
   }, 0);
   const calcTotal = calcSubtotal - calcDiscount + calcTax;
 
+  const handleSourceRequisition = (reqIdStr: string) => {
+    const reqId = Number(reqIdStr);
+    if (!reqId) {
+      setSelectedRequisitionId('');
+      return;
+    }
+    setSelectedRequisitionId(reqId);
+    const req = requisitions.find(r => r.id === reqId);
+    if (req) {
+      const proj = projects.find(p => p.id === req.projectId);
+      setFormData(prev => ({
+        ...prev,
+        projectId: req.projectId,
+        projectName: req.projectName,
+        deliveryAddress: proj ? `${proj.name} Compound, ${proj.siteLocation || 'Main Construction Gate'}` : prev.deliveryAddress,
+        notes: `Procurement generated directly for Site Requisition ${req.requisitionNo} (${req.title}). Requested by: ${req.requestedBy}.`
+      }));
+
+      if (req.items && req.items.length > 0) {
+        const mappedItems = req.items.map(ri => {
+          const matchingInv = inventory.find(i => 
+            (ri.itemId && i.id === ri.itemId) || 
+            (i.name && ri.itemName && i.name.toLowerCase() === ri.itemName.toLowerCase())
+          );
+          return {
+            inventoryItemId: matchingInv?.id || ri.itemId || inventory[0]?.id || 1,
+            itemCode: matchingInv?.itemCode || 'MAT-REQ',
+            description: ri.itemName || (ri as any).description || 'Requested Material',
+            quantity: ri.quantity || 1,
+            unit: ri.unit || matchingInv?.unit || 'Units',
+            unitPrice: ri.estimatedRate || matchingInv?.costPrice || 50,
+            discountPercent: 0,
+            taxPercent: 5
+          };
+        });
+        setPoItems(mappedItems);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (prefillRequisitionId) {
+      handleSourceRequisition(String(prefillRequisitionId));
+      setShowCreateModal(true);
+    }
+  }, [prefillRequisitionId]);
+
   const handleSubmitPO = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.supplierName || poItems.length === 0) return;
@@ -236,8 +300,12 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({ onOpenCrea
       };
     });
 
+    const linkedReq = selectedRequisitionId ? requisitions.find(r => r.id === selectedRequisitionId) : undefined;
+
     createPurchaseOrder({
       ...formData,
+      requisitionId: linkedReq ? linkedReq.id : undefined,
+      requisitionNo: linkedReq ? linkedReq.requisitionNo : undefined,
       subtotal: calcSubtotal,
       discountTotal: calcDiscount,
       taxTotal: calcTax,
@@ -246,6 +314,7 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({ onOpenCrea
     });
 
     setShowCreateModal(false);
+    setSelectedRequisitionId('');
   };
 
   const handleApprovePO = () => {
@@ -419,9 +488,16 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({ onOpenCrea
                       <Text fontSize="xs" color="#334155" fontWeight="medium">
                         {po.projectName || 'Central Warehouse'}
                       </Text>
-                      {po.warehouseName && (
-                        <Text fontSize="10px" color="#64748b">{po.warehouseName}</Text>
-                      )}
+                      <Flex align="center" gap={1.5} wrap="wrap" mt={0.5}>
+                        {po.warehouseName && (
+                          <Text fontSize="10px" color="#64748b">{po.warehouseName}</Text>
+                        )}
+                        {po.requisitionNo && (
+                          <Badge size="xs" colorPalette="purple" variant="subtle">
+                            <ClipboardList size={10} style={{ marginRight: 2 }} /> Req: {po.requisitionNo}
+                          </Badge>
+                        )}
+                      </Flex>
                     </Table.Cell>
 
                     <Table.Cell fontSize="xs" color="#64748b">
@@ -457,10 +533,23 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({ onOpenCrea
                           size="xs"
                           variant="ghost"
                           colorPalette="blue"
-                          title="View PO Details & Voucher"
-                          onClick={() => setSelectedPO(po)}
+                          title="View PO Details & Workflow"
+                          onClick={() => {
+                            setSelectedPO(po);
+                            setPoDetailTab('details');
+                          }}
                         >
-                          <Eye size={14} /> View
+                          <Eye size={14} /> Review
+                        </Button>
+
+                        <Button
+                          size="xs"
+                          variant="ghost"
+                          colorPalette="gray"
+                          title="Print Official PO Voucher"
+                          onClick={() => setVoucherPO(po)}
+                        >
+                          <Printer size={13} /> Voucher
                         </Button>
 
                         {po.status === 'pending_approval' && canApprove && (
@@ -503,176 +592,328 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({ onOpenCrea
         </Box>
       </Card.Root>
 
-      {/* Modal: View Official PO Voucher */}
-      {selectedPO && (
-        <Box
-          position="fixed"
-          inset="0"
-          zIndex="1100"
-          bg="rgba(15, 23, 42, 0.65)"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          p={{ base: 2, sm: 4 }}
-          backdropFilter="blur(2px)"
-        >
-          <Box bg="white" borderRadius="16px" p={{ base: 3, sm: 6 }} maxW="780px" w="100%" boxShadow="2xl" maxH="90vh" overflowY="auto">
-            {/* Action Bar */}
-            <Flex justify="space-between" align="center" pb={4} mb={4} borderBottom="1px solid #e2e8f0" wrap="wrap" gap={2}>
-              <Flex align="center" gap={2}>
-                <Badge size="md" colorPalette="blue" fontFamily="mono" fontSize="sm">
-                  {selectedPO.poNumber}
-                </Badge>
-                <Badge
-                  size="sm"
-                  colorPalette={
-                    selectedPO.status === 'received' ? 'green' :
-                    selectedPO.status === 'approved' ? 'teal' :
-                    selectedPO.status === 'rejected' ? 'red' : 'orange'
-                  }
+      {/* Modal: View & Review Purchase Order */}
+      {selectedPO && (() => {
+        const activePO = purchaseOrders.find(p => p.id === selectedPO.id) || selectedPO;
+        const isApproved = activePO.status === 'approved' || activePO.status === 'partially_received';
+        const isPending = activePO.status === 'pending_approval';
+
+        const handleSendChat = (e: React.FormEvent) => {
+          e.preventDefault();
+          if (!poChatMessage.trim()) return;
+          addPOMessage(activePO.id, currentUserName, activeRole, poChatMessage.trim());
+          setPoChatMessage('');
+        };
+
+        return (
+          <Box
+            position="fixed"
+            inset="0"
+            zIndex="1100"
+            bg="rgba(15, 23, 42, 0.65)"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            p={{ base: 2, sm: 4 }}
+            backdropFilter="blur(2px)"
+          >
+            <Box bg="white" borderRadius="16px" p={{ base: 4, sm: 6 }} maxW="880px" w="100%" boxShadow="2xl" maxH="92vh" overflowY="auto">
+              {/* Action Bar */}
+              <Flex justify="space-between" align="center" pb={4} mb={4} borderBottom="1px solid #e2e8f0" wrap="wrap" gap={3}>
+                <Flex align="center" gap={2} wrap="wrap">
+                  <Badge size="md" colorPalette="blue" fontFamily="mono" fontSize="sm">
+                    {activePO.poNumber}
+                  </Badge>
+                  <Badge
+                    size="sm"
+                    colorPalette={
+                      activePO.status === 'received' ? 'green' :
+                      activePO.status === 'approved' ? 'teal' :
+                      activePO.status === 'partially_received' ? 'blue' :
+                      activePO.status === 'rejected' ? 'red' : 'orange'
+                    }
+                  >
+                    {activePO.status.replace('_', ' ').toUpperCase()}
+                  </Badge>
+                  {activePO.requisitionNo && (
+                    <Badge size="sm" colorPalette="purple" variant="subtle">
+                      <ClipboardList size={12} style={{ marginRight: 3 }} /> Req: {activePO.requisitionNo}
+                    </Badge>
+                  )}
+                </Flex>
+
+                <Flex gap={2} wrap="wrap">
+                  <Button size="xs" colorPalette="blue" variant="outline" onClick={() => setVoucherPO(activePO)}>
+                    <Printer size={13} /> Official Voucher
+                  </Button>
+
+                  {isPending && canApprove && (
+                    <>
+                      <Button size="xs" colorPalette="green" onClick={() => setShowApproveModal(activePO)}>
+                        <CheckCircle2 size={13} /> Approve
+                      </Button>
+                      <Button size="xs" variant="outline" colorPalette="red" onClick={() => setShowRejectModal(activePO)}>
+                        <XCircle size={13} /> Reject
+                      </Button>
+                    </>
+                  )}
+
+                  {isApproved && canReceive && onOpenCreateGRNForPO && (
+                    <Button
+                      size="xs"
+                      colorPalette="purple"
+                      onClick={() => {
+                        onOpenCreateGRNForPO(activePO);
+                        setSelectedPO(null);
+                      }}
+                    >
+                      <PackageCheck size={13} /> Receive GRN
+                    </Button>
+                  )}
+
+                  <Button size="xs" variant="ghost" onClick={() => setSelectedPO(null)}>
+                    Close
+                  </Button>
+                </Flex>
+              </Flex>
+
+              {/* Header Title & Sub-tabs */}
+              <Flex justify="space-between" align="flex-start" wrap="wrap" gap={2} mb={4}>
+                <Box>
+                  <Heading size="md" color="#0f172a">{activePO.supplierName}</Heading>
+                  <Text fontSize="xs" color="#64748b" mt={0.5}>
+                    Target Project: <Text as="span" fontWeight="bold" color="#2563eb">{activePO.projectName || 'Central Warehouse'}</Text> • Delivery: {activePO.expectedDelivery}
+                  </Text>
+                </Box>
+                <Text fontSize="lg" fontWeight="black" color="#0f172a">
+                  {activeCompany.currency} {activePO.totalAmount.toLocaleString()}
+                </Text>
+              </Flex>
+
+              {/* Navigation Tabs */}
+              <Flex gap={2} borderBottom="1px solid #e2e8f0" pb={3} mb={5} wrap="wrap">
+                <Button
+                  size="xs"
+                  variant={poDetailTab === 'details' ? 'solid' : 'ghost'}
+                  colorPalette={poDetailTab === 'details' ? 'blue' : 'gray'}
+                  onClick={() => setPoDetailTab('details')}
                 >
-                  {selectedPO.status.replace('_', ' ').toUpperCase()}
-                </Badge>
-              </Flex>
-              <Flex gap={2}>
-                <Button size="xs" variant="outline" onClick={() => window.print()}>
-                  <Printer size={13} /> Print PO
+                  <FileText size={13} /> Order Items & Terms
                 </Button>
-                <Button size="xs" variant="ghost" onClick={() => setSelectedPO(null)}>
-                  Close
+                <Button
+                  size="xs"
+                  variant={poDetailTab === 'history' ? 'solid' : 'ghost'}
+                  colorPalette={poDetailTab === 'history' ? 'blue' : 'gray'}
+                  onClick={() => setPoDetailTab('history')}
+                >
+                  <Clock size={13} /> Approval Trail ({activePO.approvalHistory?.length || 0})
+                </Button>
+                <Button
+                  size="xs"
+                  variant={poDetailTab === 'discussion' ? 'solid' : 'ghost'}
+                  colorPalette={poDetailTab === 'discussion' ? 'blue' : 'gray'}
+                  onClick={() => setPoDetailTab('discussion')}
+                >
+                  <MessageSquare size={13} /> Coordination Discussion ({activePO.messages?.length || 0})
                 </Button>
               </Flex>
-            </Flex>
 
-            {/* Printable Document Body */}
-            <Box p={{ base: 3, sm: 6 }} border="1px solid #cbd5e1" borderRadius="10px" bg="white">
-              {/* Header */}
-              <Flex justify="space-between" align="flex-start" mb={6} borderBottom="2px solid #0f172a" pb={4} wrap="wrap" gap={4}>
-                <Box>
-                  <Heading size="md" color="#0f172a">{activeCompany.name}</Heading>
-                  <Text fontSize="xs" color="#64748b">Headquarters & Central Procurement Division</Text>
-                  <Text fontSize="xs" color="#64748b">{activeCompany.address || '742 Industrial Boulevard, Sector 4'}</Text>
-                  <Text fontSize="xs" color="#64748b">Email: {activeCompany.email || 'procurement@apexconstruction.ng'} • Tel: {activeCompany.phone || '+234 803 234 8900'}</Text>
-                </Box>
-                <Box textAlign={{ base: 'left', sm: 'right' }}>
-                  <Heading size="lg" color="#2563eb" letterSpacing="tight">PURCHASE ORDER</Heading>
-                  <Text fontSize="xs" fontFamily="mono" fontWeight="bold" color="#0f172a">
-                    NO: {selectedPO.poNumber}
-                  </Text>
-                  <Text fontSize="xs" color="#64748b">Order Date: {selectedPO.orderDate}</Text>
-                  <Text fontSize="xs" color="#64748b">Expected: {selectedPO.expectedDelivery}</Text>
-                </Box>
-              </Flex>
-
-              {/* Vendor & Delivery Box */}
-              <SimpleGrid columns={{ base: 1, sm: 2 }} gap={4} p={{ base: 3, sm: 4 }} bg="#f8fafc" borderRadius="8px" mb={6} border="1px solid #e2e8f0">
-                <Box>
-                  <Text fontSize="xs" fontWeight="bold" color="#64748b" textTransform="uppercase">VENDOR / SUPPLIER</Text>
-                  <Text fontSize="sm" fontWeight="bold" color="#0f172a" mt={1}>{selectedPO.supplierName}</Text>
-                  <Text fontSize="xs" color="#475569">{selectedPO.supplierAddress || 'Official Supplier Address On File'}</Text>
-                  <Text fontSize="xs" color="#475569">Phone: {selectedPO.supplierPhone || 'N/A'}</Text>
-                  <Text fontSize="xs" color="#475569">Terms: {selectedPO.paymentTerms}</Text>
-                </Box>
-                <Box>
-                  <Text fontSize="xs" fontWeight="bold" color="#64748b" textTransform="uppercase">SHIP TO / PROJECT SITE</Text>
-                  <Text fontSize="sm" fontWeight="bold" color="#0f172a" mt={1}>
-                    {selectedPO.projectName || 'Central Logistics Warehouse'}
-                  </Text>
-                  <Text fontSize="xs" color="#475569">{selectedPO.deliveryAddress || 'Central Stores Compound Gate 1'}</Text>
-                  <Text fontSize="xs" color="#475569">Target Warehouse: {selectedPO.warehouseName || 'Yard Main Store'}</Text>
-                </Box>
-              </SimpleGrid>
-
-              {/* Items Table */}
-              <Box overflowX="auto" mb={4}>
-                <Table.Root size="sm" variant="outline" minW="650px">
-                  <Table.Header bg="#f1f5f9">
-                    <Table.Row>
-                      <Table.ColumnHeader fontSize="10px">#</Table.ColumnHeader>
-                      <Table.ColumnHeader fontSize="10px">ITEM DESCRIPTION</Table.ColumnHeader>
-                      <Table.ColumnHeader fontSize="10px" textAlign="center">QTY</Table.ColumnHeader>
-                      <Table.ColumnHeader fontSize="10px" textAlign="center">UNIT</Table.ColumnHeader>
-                      <Table.ColumnHeader fontSize="10px" textAlign="right">UNIT PRICE</Table.ColumnHeader>
-                      <Table.ColumnHeader fontSize="10px" textAlign="right">DISC %</Table.ColumnHeader>
-                      <Table.ColumnHeader fontSize="10px" textAlign="right">TAX %</Table.ColumnHeader>
-                      <Table.ColumnHeader fontSize="10px" textAlign="right">TOTAL ({activeCompany.currency})</Table.ColumnHeader>
-                    </Table.Row>
-                  </Table.Header>
-                  <Table.Body>
-                    {selectedPO.items.map((item, idx) => (
-                      <Table.Row key={idx}>
-                        <Table.Cell fontSize="xs">{idx + 1}</Table.Cell>
-                        <Table.Cell fontSize="xs" fontWeight="medium">
-                          {item.description}
-                          {item.itemCode && <Text as="span" fontSize="10px" color="#64748b" ml={1}>({item.itemCode})</Text>}
-                        </Table.Cell>
-                        <Table.Cell fontSize="xs" textAlign="center" fontWeight="bold">{item.quantity}</Table.Cell>
-                        <Table.Cell fontSize="xs" textAlign="center">{item.unit || 'Units'}</Table.Cell>
-                        <Table.Cell fontSize="xs" textAlign="right">{item.unitPrice.toLocaleString()}</Table.Cell>
-                        <Table.Cell fontSize="xs" textAlign="right">{item.discountPercent || 0}%</Table.Cell>
-                        <Table.Cell fontSize="xs" textAlign="right">{item.taxPercent || 0}%</Table.Cell>
-                        <Table.Cell fontSize="xs" textAlign="right" fontWeight="bold">{item.total.toLocaleString()}</Table.Cell>
-                      </Table.Row>
-                    ))}
-                  </Table.Body>
-                </Table.Root>
-              </Box>
-
-              {/* Totals Summary */}
-              <Flex justify="flex-end" mb={6}>
-                <Box w={{ base: '100%', sm: '280px' }} fontSize="xs">
-                  <Flex justify="space-between" py={1} borderBottom="1px solid #f1f5f9">
-                    <Text color="#64748b">Subtotal:</Text>
-                    <Text fontWeight="semibold">{activeCompany.currency} {(selectedPO.subtotal || selectedPO.totalAmount).toLocaleString()}</Text>
-                  </Flex>
-                  {selectedPO.discountTotal !== undefined && selectedPO.discountTotal > 0 && (
-                    <Flex justify="space-between" py={1} borderBottom="1px solid #f1f5f9" color="#16a34a">
-                      <Text>Discount Total:</Text>
-                      <Text>- {activeCompany.currency} {selectedPO.discountTotal.toLocaleString()}</Text>
-                    </Flex>
+              {/* Tab 1: Details */}
+              {poDetailTab === 'details' && (
+                <Stack gap={4}>
+                  {activePO.requisitionNo && (
+                    <Box p={3} bg="#f5f3ff" borderRadius="8px" border="1px solid #ddd6fe" fontSize="xs">
+                      <Flex align="center" gap={2}>
+                        <ClipboardList size={16} color="#7c3aed" />
+                        <Text fontWeight="bold" color="#6d28d9">
+                          Originating Site Requisition: {activePO.requisitionNo}
+                        </Text>
+                      </Flex>
+                      <Text color="#5b21b6" mt={1}>
+                        This purchase order is linked to job site material requirements. Once items arrive and GRN is issued, the requisition will be flagged ready for store dispatch.
+                      </Text>
+                    </Box>
                   )}
-                  {selectedPO.taxTotal !== undefined && selectedPO.taxTotal > 0 && (
-                    <Flex justify="space-between" py={1} borderBottom="1px solid #f1f5f9">
-                      <Text color="#64748b">Tax / VAT:</Text>
-                      <Text fontWeight="semibold">+ {activeCompany.currency} {selectedPO.taxTotal.toLocaleString()}</Text>
-                    </Flex>
-                  )}
-                  <Flex justify="space-between" py={2} borderTop="2px solid #0f172a" fontSize="sm" fontWeight="bold" color="#0f172a">
-                    <Text>Grand Total:</Text>
-                    <Text>{activeCompany.currency} {selectedPO.totalAmount.toLocaleString()}</Text>
-                  </Flex>
-                </Box>
-              </Flex>
 
-              {/* Notes & Terms */}
-              {selectedPO.notes && (
-                <Box mb={6} p={3} bg="#f8fafc" borderRadius="6px" fontSize="11px" color="#475569">
-                  <Text fontWeight="bold" color="#334155" mb={1}>Notes & Special Instructions:</Text>
-                  <Text>{selectedPO.notes}</Text>
-                </Box>
+                  <SimpleGrid columns={{ base: 1, sm: 2 }} gap={4} p={3.5} bg="#f8fafc" borderRadius="8px" border="1px solid #e2e8f0" fontSize="xs">
+                    <Box>
+                      <Text fontSize="10px" fontWeight="bold" color="#64748b" textTransform="uppercase">VENDOR DETAILS</Text>
+                      <Text fontWeight="bold" color="#0f172a" mt={1}>{activePO.supplierName}</Text>
+                      <Text color="#475569">{activePO.supplierAddress || 'Official Supplier Address On File'}</Text>
+                      <Text color="#475569">Phone: {activePO.supplierPhone || 'N/A'}</Text>
+                      <Text color="#475569">Payment Terms: <Text as="span" fontWeight="semibold">{activePO.paymentTerms}</Text></Text>
+                    </Box>
+                    <Box>
+                      <Text fontSize="10px" fontWeight="bold" color="#64748b" textTransform="uppercase">DELIVERY DESTINATION</Text>
+                      <Text fontWeight="bold" color="#0f172a" mt={1}>{activePO.projectName || 'Central Logistics Warehouse'}</Text>
+                      <Text color="#475569">{activePO.deliveryAddress || 'Central Stores Compound Gate 1'}</Text>
+                      <Text color="#475569">Receiving Warehouse: {activePO.warehouseName || 'Yard Main Store'}</Text>
+                    </Box>
+                  </SimpleGrid>
+
+                  <Box overflowX="auto">
+                    <Table.Root size="sm" variant="outline" minW="650px">
+                      <Table.Header bg="#f1f5f9">
+                        <Table.Row>
+                          <Table.ColumnHeader fontSize="10px">#</Table.ColumnHeader>
+                          <Table.ColumnHeader fontSize="10px">ITEM DESCRIPTION</Table.ColumnHeader>
+                          <Table.ColumnHeader fontSize="10px" textAlign="center">QTY</Table.ColumnHeader>
+                          <Table.ColumnHeader fontSize="10px" textAlign="center">UNIT</Table.ColumnHeader>
+                          <Table.ColumnHeader fontSize="10px" textAlign="right">UNIT PRICE</Table.ColumnHeader>
+                          <Table.ColumnHeader fontSize="10px" textAlign="right">DISC %</Table.ColumnHeader>
+                          <Table.ColumnHeader fontSize="10px" textAlign="right">TAX %</Table.ColumnHeader>
+                          <Table.ColumnHeader fontSize="10px" textAlign="right">TOTAL ({activeCompany.currency})</Table.ColumnHeader>
+                        </Table.Row>
+                      </Table.Header>
+                      <Table.Body>
+                        {activePO.items.map((item, idx) => (
+                          <Table.Row key={idx}>
+                            <Table.Cell fontSize="xs">{idx + 1}</Table.Cell>
+                            <Table.Cell fontSize="xs" fontWeight="medium">
+                              {item.description}
+                              {item.itemCode && <Text as="span" fontSize="10px" color="#64748b" ml={1}>({item.itemCode})</Text>}
+                            </Table.Cell>
+                            <Table.Cell fontSize="xs" textAlign="center" fontWeight="bold">{item.quantity}</Table.Cell>
+                            <Table.Cell fontSize="xs" textAlign="center">{item.unit || 'Units'}</Table.Cell>
+                            <Table.Cell fontSize="xs" textAlign="right">{item.unitPrice.toLocaleString()}</Table.Cell>
+                            <Table.Cell fontSize="xs" textAlign="right">{item.discountPercent || 0}%</Table.Cell>
+                            <Table.Cell fontSize="xs" textAlign="right">{item.taxPercent || 0}%</Table.Cell>
+                            <Table.Cell fontSize="xs" textAlign="right" fontWeight="bold">{item.total.toLocaleString()}</Table.Cell>
+                          </Table.Row>
+                        ))}
+                      </Table.Body>
+                    </Table.Root>
+                  </Box>
+
+                  <Flex justify="flex-end">
+                    <Box w={{ base: '100%', sm: '280px' }} fontSize="xs">
+                      <Flex justify="space-between" py={1} borderBottom="1px solid #f1f5f9">
+                        <Text color="#64748b">Subtotal:</Text>
+                        <Text fontWeight="semibold">{activeCompany.currency} {(activePO.subtotal || activePO.totalAmount).toLocaleString()}</Text>
+                      </Flex>
+                      {activePO.discountTotal !== undefined && activePO.discountTotal > 0 && (
+                        <Flex justify="space-between" py={1} borderBottom="1px solid #f1f5f9" color="#16a34a">
+                          <Text>Discount Total:</Text>
+                          <Text>- {activeCompany.currency} {activePO.discountTotal.toLocaleString()}</Text>
+                        </Flex>
+                      )}
+                      {activePO.taxTotal !== undefined && activePO.taxTotal > 0 && (
+                        <Flex justify="space-between" py={1} borderBottom="1px solid #f1f5f9">
+                          <Text color="#64748b">Tax / VAT:</Text>
+                          <Text fontWeight="semibold">+ {activeCompany.currency} {activePO.taxTotal.toLocaleString()}</Text>
+                        </Flex>
+                      )}
+                      <Flex justify="space-between" py={2} borderTop="2px solid #0f172a" fontSize="sm" fontWeight="bold" color="#0f172a">
+                        <Text>Grand Total:</Text>
+                        <Text>{activeCompany.currency} {activePO.totalAmount.toLocaleString()}</Text>
+                      </Flex>
+                    </Box>
+                  </Flex>
+
+                  {activePO.notes && (
+                    <Box p={3} bg="#f8fafc" borderRadius="6px" fontSize="11px" color="#475569">
+                      <Text fontWeight="bold" color="#334155" mb={1}>Notes & Special Instructions:</Text>
+                      <Text>{activePO.notes}</Text>
+                    </Box>
+                  )}
+                </Stack>
               )}
 
-              {/* Signatures */}
-              <SimpleGrid columns={{ base: 1, sm: 3 }} gap={4} pt={8} borderTop="1px solid #cbd5e1" textAlign="center" fontSize="xs">
-                <Box>
-                  <Box h="36px" borderBottom="1px dashed #94a3b8" mb={2} />
-                  <Text fontWeight="bold" color="#334155">Prepared By</Text>
-                  <Text fontSize="10px" color="#64748b">Procurement Officer</Text>
-                </Box>
-                <Box>
-                  <Box h="36px" borderBottom="1px dashed #94a3b8" mb={2} />
-                  <Text fontWeight="bold" color="#334155">Authorized Approver</Text>
-                  <Text fontSize="10px" color="#64748b">Managing Director / CFO</Text>
-                </Box>
-                <Box>
-                  <Box h="36px" borderBottom="1px dashed #94a3b8" mb={2} />
-                  <Text fontWeight="bold" color="#334155">Supplier Acknowledgment</Text>
-                  <Text fontSize="10px" color="#64748b">Signature & Company Seal</Text>
-                </Box>
-              </SimpleGrid>
+              {/* Tab 2: Approval Trail */}
+              {poDetailTab === 'history' && (
+                <Stack gap={3}>
+                  <Text fontSize="xs" color="#64748b">
+                    Multi-level workflow audit trail showing when this purchase order was raised, reviewed, and approved.
+                  </Text>
+                  {(!activePO.approvalHistory || activePO.approvalHistory.length === 0) ? (
+                    <Box p={6} textAlign="center" bg="#f8fafc" borderRadius="8px" color="#94a3b8" fontSize="xs">
+                      No workflow history events logged yet.
+                    </Box>
+                  ) : (
+                    activePO.approvalHistory.map((step, idx) => (
+                      <Card.Root key={idx} p={3.5} borderRadius="10px" border="1px solid #e2e8f0" bg="#fbfcfd">
+                        <Flex justify="space-between" align="flex-start" wrap="wrap" gap={2}>
+                          <Flex align="center" gap={2}>
+                            <Box p={1.5} bg={step.action.includes('Approved') ? '#dcfce7' : step.action.includes('Rejected') ? '#fee2e2' : '#eff6ff'} borderRadius="8px">
+                              <ShieldCheck size={16} color={step.action.includes('Approved') ? '#16a34a' : step.action.includes('Rejected') ? '#dc2626' : '#2563eb'} />
+                            </Box>
+                            <Box>
+                              <Text fontSize="xs" fontWeight="bold" color="#0f172a">{step.action}</Text>
+                              <Text fontSize="11px" color="#64748b">
+                                By <Text as="span" fontWeight="semibold" color="#334155">{step.actorName}</Text> ({step.actorRole})
+                              </Text>
+                            </Box>
+                          </Flex>
+                          <Badge size="xs" colorPalette="gray">{step.date}</Badge>
+                        </Flex>
+                        {step.notes && (
+                          <Box mt={2} p={2} bg="white" borderRadius="6px" border="1px solid #f1f5f9" fontSize="11px" color="#475569">
+                            {step.notes}
+                          </Box>
+                        )}
+                      </Card.Root>
+                    ))
+                  )}
+                </Stack>
+              )}
+
+              {/* Tab 3: Coordination Discussion */}
+              {poDetailTab === 'discussion' && (
+                <Stack gap={4}>
+                  <Text fontSize="xs" color="#64748b">
+                    Internal supply chain collaboration thread between Procurement, Site Engineers, Storekeepers, and Finance.
+                  </Text>
+
+                  <Box maxH="280px" overflowY="auto" p={3} bg="#f8fafc" borderRadius="10px" border="1px solid #e2e8f0">
+                    {(!activePO.messages || activePO.messages.length === 0) ? (
+                      <Box p={6} textAlign="center" color="#94a3b8" fontSize="xs">
+                        No messages yet. Start a coordination thread below.
+                      </Box>
+                    ) : (
+                      <Stack gap={2.5}>
+                        {activePO.messages.map((msg, idx) => (
+                          <Box key={idx} p={2.5} bg="white" borderRadius="8px" border="1px solid #e2e8f0" fontSize="xs">
+                            <Flex justify="space-between" align="center" mb={1}>
+                              <Flex align="center" gap={1.5}>
+                                <User size={13} color="#2563eb" />
+                                <Text fontWeight="bold" color="#0f172a">{msg.userName}</Text>
+                                <Badge size="xs" colorPalette="blue" variant="subtle">{msg.role}</Badge>
+                              </Flex>
+                              <Text fontSize="10px" color="#94a3b8">{msg.timestamp}</Text>
+                            </Flex>
+                            <Text color="#334155">{msg.message}</Text>
+                          </Box>
+                        ))}
+                      </Stack>
+                    )}
+                  </Box>
+
+                  <form onSubmit={handleSendChat}>
+                    <Flex gap={2}>
+                      <Input
+                        size="sm"
+                        placeholder="Add coordination note, delivery update, or QC question..."
+                        value={poChatMessage}
+                        onChange={(e) => setPoChatMessage(e.target.value)}
+                      />
+                      <Button size="sm" colorPalette="blue" type="submit" disabled={!poChatMessage.trim()}>
+                        <Send size={14} /> Send
+                      </Button>
+                    </Flex>
+                  </form>
+                </Stack>
+              )}
             </Box>
           </Box>
-        </Box>
+        );
+      })()}
+
+      {/* Official Voucher Printable Modal */}
+      {voucherPO && (
+        <PurchaseOrderVoucherModal
+          po={voucherPO}
+          onClose={() => setVoucherPO(null)}
+        />
       )}
 
       {/* Modal: Create Purchase Order */}
@@ -696,6 +937,41 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({ onOpenCrea
 
             <form onSubmit={handleSubmitPO}>
               <Stack gap={4} fontSize="xs">
+                {/* Source from Requisition (Module Cross-Communication) */}
+                <Box p={3.5} bg="#eff6ff" borderRadius="10px" border="1px solid #bfdbfe">
+                  <Flex align="center" justify="space-between" mb={1.5} wrap="wrap" gap={2}>
+                    <Flex align="center" gap={1.5}>
+                      <ClipboardList size={16} color="#2563eb" />
+                      <Text fontWeight="bold" color="#1e40af" fontSize="xs">
+                        Source from Approved Site Requisition (Optional)
+                      </Text>
+                    </Flex>
+                    {selectedRequisitionId && (
+                      <Badge size="xs" colorPalette="blue">Linked Requisition Active</Badge>
+                    )}
+                  </Flex>
+                  <Text fontSize="11px" color="#3b82f6" mb={2}>
+                    Selecting an approved site requisition automatically fills project details, delivery destination, and required line items.
+                  </Text>
+                  <NativeSelect.Root size="sm">
+                    <NativeSelect.Field
+                      aria-label="Source Requisition"
+                      value={selectedRequisitionId}
+                      onChange={(e) => handleSourceRequisition(e.target.value)}
+                      bg="white"
+                    >
+                      <option value="">-- Standalone Procurement (Manual Entry) --</option>
+                      {requisitions
+                        .filter(r => r.status === 'Approved' || r.status === 'Ready for Dispatch' || r.status === 'Pending Review')
+                        .map(r => (
+                          <option key={r.id} value={r.id}>
+                            [{r.requisitionNo}] {r.title} — {r.projectName} ({r.items?.length || 0} items, {r.status})
+                          </option>
+                        ))}
+                    </NativeSelect.Field>
+                  </NativeSelect.Root>
+                </Box>
+
                 {/* Header Information */}
                 <SimpleGrid columns={{ base: 1, sm: 3 }} gap={3}>
                   <Box>

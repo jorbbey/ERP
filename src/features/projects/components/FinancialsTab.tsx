@@ -24,11 +24,14 @@ interface FinancialsTabProps {
 export const FinancialsTab: React.FC<FinancialsTabProps> = ({ project }) => {
   const { projectInvoices, addProjectInvoice, updateProjectInvoice, activeCompany } = useERP();
 
+  const currency = activeCompany?.currency || '₦';
   const currentInvoices = projectInvoices.filter(i => i.projectId === project.id);
-  const totalBilled = currentInvoices.reduce((sum, i) => sum + i.totalAmount, 0);
-  const totalPaid = currentInvoices.reduce((sum, i) => sum + i.paidAmount, 0);
+  const totalBilled = currentInvoices.reduce((sum, i) => sum + (Number(i?.totalAmount) || 0), 0);
+  const totalPaid = currentInvoices.reduce((sum, i) => sum + (Number(i?.paidAmount) || 0), 0);
   const outstandingAmount = totalBilled - totalPaid;
-  const billingCoveragePercent = project.contractValue > 0 ? Math.round((totalBilled / project.contractValue) * 100) : 0;
+  const projectContractVal = Number(project?.contractValue ?? project?.budget ?? 0) || 0;
+  const projectBudgetVal = Number(project?.budget ?? 0) || 0;
+  const billingCoveragePercent = projectContractVal > 0 ? Math.round((totalBilled / projectContractVal) * 100) : 0;
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -104,7 +107,7 @@ export const FinancialsTab: React.FC<FinancialsTabProps> = ({ project }) => {
             Agreed Contract Sum
           </Text>
           <Text fontSize="xl" fontWeight="black" color="#0f172a" mt={1}>
-            {activeCompany.currency} {project.contractValue.toLocaleString()}
+            {currency} {(projectContractVal ?? 0).toLocaleString()}
           </Text>
           <Text fontSize="11px" color="#64748b" mt={1}>
             Baseline lump sum value
@@ -116,7 +119,7 @@ export const FinancialsTab: React.FC<FinancialsTabProps> = ({ project }) => {
             Total Allocated Budget
           </Text>
           <Text fontSize="xl" fontWeight="black" color="#2563eb" mt={1}>
-            {activeCompany.currency} {project.budget.toLocaleString()}
+            {currency} {(projectBudgetVal ?? 0).toLocaleString()}
           </Text>
           <Text fontSize="11px" color="#64748b" mt={1}>
             Operating expense cap
@@ -128,7 +131,7 @@ export const FinancialsTab: React.FC<FinancialsTabProps> = ({ project }) => {
             Total Invoiced / Billed
           </Text>
           <Text fontSize="xl" fontWeight="black" color="#7c3aed" mt={1}>
-            {activeCompany.currency} {totalBilled.toLocaleString()}
+            {currency} {(totalBilled ?? 0).toLocaleString()}
           </Text>
           <Text fontSize="11px" color="#7c3aed" fontWeight="medium" mt={1}>
             {billingCoveragePercent}% of Contract Billed
@@ -140,7 +143,7 @@ export const FinancialsTab: React.FC<FinancialsTabProps> = ({ project }) => {
             Total Received / Paid
           </Text>
           <Text fontSize="xl" fontWeight="black" color="#16a34a" mt={1}>
-            {activeCompany.currency} {totalPaid.toLocaleString()}
+            {currency} {(totalPaid ?? 0).toLocaleString()}
           </Text>
           <Text fontSize="11px" color="#16a34a" fontWeight="medium" mt={1}>
             Certified client collections
@@ -152,7 +155,7 @@ export const FinancialsTab: React.FC<FinancialsTabProps> = ({ project }) => {
             Outstanding Receivable
           </Text>
           <Text fontSize="xl" fontWeight="black" color={outstandingAmount > 0 ? '#d97706' : '#16a34a'} mt={1}>
-            {activeCompany.currency} {outstandingAmount.toLocaleString()}
+            {currency} {(outstandingAmount ?? 0).toLocaleString()}
           </Text>
           <Text fontSize="11px" color={outstandingAmount > 0 ? '#d97706' : '#16a34a'} fontWeight="bold" mt={1}>
             {outstandingAmount > 0 ? 'Pending Settlement' : 'Settled in Full'}
@@ -209,10 +212,10 @@ export const FinancialsTab: React.FC<FinancialsTabProps> = ({ project }) => {
                       {inv.description || 'Milestone payment'}
                     </Table.Cell>
                     <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a" textAlign="right">
-                      {activeCompany.currency} {inv.totalAmount.toLocaleString()}
+                      {currency} {(Number(inv?.totalAmount) || 0).toLocaleString()}
                     </Table.Cell>
                     <Table.Cell fontSize="xs" color="#16a34a" fontWeight="bold" textAlign="right">
-                      {activeCompany.currency} {inv.paidAmount.toLocaleString()}
+                      {currency} {(Number(inv?.paidAmount) || 0).toLocaleString()}
                     </Table.Cell>
                     <Table.Cell>
                       <Badge
@@ -252,7 +255,7 @@ export const FinancialsTab: React.FC<FinancialsTabProps> = ({ project }) => {
             TOTAL CERTIFIED IPC BILLINGS ({currentInvoices.length} Certificates)
           </Text>
           <Text fontSize="base" fontWeight="black" color="#2563eb">
-            {activeCompany.currency} {totalBilled.toLocaleString()}
+            {currency} {(totalBilled ?? 0).toLocaleString()}
           </Text>
         </Flex>
       </Card.Root>
@@ -322,7 +325,7 @@ export const FinancialsTab: React.FC<FinancialsTabProps> = ({ project }) => {
 
                 <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
-                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Certified Billing Sum ({activeCompany.currency}) *</Text>
+                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Certified Billing Sum ({currency}) *</Text>
                     <Input
                       size="sm"
                       type="number"
@@ -333,7 +336,7 @@ export const FinancialsTab: React.FC<FinancialsTabProps> = ({ project }) => {
                     />
                   </Box>
                   <Box>
-                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Initial Disbursed / Paid ({activeCompany.currency})</Text>
+                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Initial Disbursed / Paid ({currency})</Text>
                     <Input
                       size="sm"
                       type="number"

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Flex,
@@ -30,7 +31,8 @@ import {
   Users,
   Check,
   X,
-  CornerDownRight
+  CornerDownRight,
+  ShoppingCart
 } from 'lucide-react';
 
 interface RequisitionDetailModalProps {
@@ -46,6 +48,7 @@ export const RequisitionDetailModal: React.FC<RequisitionDetailModalProps> = ({
   onOpenPrintVoucher,
   onOpenDispatch
 }) => {
+  const navigate = useNavigate();
   const {
     updateRequisitionStatus,
     flagRequisitionForClarification,
@@ -157,6 +160,11 @@ export const RequisitionDetailModal: React.FC<RequisitionDetailModalProps> = ({
               <Badge size="xs" colorPalette={requisition.priority === 'Urgent' ? 'red' : 'gray'}>
                 {requisition.priority} PRIORITY
               </Badge>
+              {requisition.purchaseOrderNo && (
+                <Badge size="xs" colorPalette="purple">
+                  <ShoppingCart size={11} style={{ marginRight: 3 }} /> Linked PO: {requisition.purchaseOrderNo}
+                </Badge>
+              )}
             </Flex>
             <Heading size="md" color="#0f172a" mt={2}>{requisition.title}</Heading>
             <Text fontSize="xs" color="#64748b" mt={0.5}>
@@ -262,6 +270,36 @@ export const RequisitionDetailModal: React.FC<RequisitionDetailModalProps> = ({
               {requisition.status === 'Approved' && canDispatch && (
                 <Button size="xs" colorPalette="purple" onClick={() => onOpenDispatch(requisition)}>
                   <Truck size={14} /> Prepare Site Dispatch
+                </Button>
+              )}
+
+              {(requisition.status === 'Approved' || requisition.status === 'Pending Review' || requisition.status === 'Ready for Dispatch') && !requisition.purchaseOrderNo && (
+                <Button
+                  size="xs"
+                  colorPalette="blue"
+                  variant="outline"
+                  onClick={() => {
+                    navigate('/procurement', { state: { prefillRequisitionId: requisition.id } });
+                    onClose();
+                  }}
+                  title="Source materials via Vendor Purchase Order"
+                >
+                  <ShoppingCart size={14} /> Procure Externally (PO)
+                </Button>
+              )}
+
+              {requisition.purchaseOrderNo && (
+                <Button
+                  size="xs"
+                  colorPalette="purple"
+                  variant="subtle"
+                  onClick={() => {
+                    navigate('/procurement');
+                    onClose();
+                  }}
+                  title="View linked Purchase Order in Procurement module"
+                >
+                  <ShoppingCart size={14} /> View PO ({requisition.purchaseOrderNo})
                 </Button>
               )}
             </Flex>

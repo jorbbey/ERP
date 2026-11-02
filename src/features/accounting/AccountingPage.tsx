@@ -24,12 +24,15 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Plus,
-  Scale
+  Scale,
+  ShoppingCart,
+  PackageCheck,
+  ClipboardList
 } from 'lucide-react';
 
 export const AccountingPage: React.FC = () => {
-  const { accountsLedger, activeCompany, payrollRuns, purchaseOrders } = useERP();
-  const [activeTab, setActiveTab] = useState<'chart' | 'pnl' | 'balancesheet'>('chart');
+  const { accountsLedger, activeCompany, payrollRuns, purchaseOrders, goodsReceivedNotes, suppliers } = useERP();
+  const [activeTab, setActiveTab] = useState<'chart' | 'pnl' | 'balancesheet' | 'payables'>('chart');
   const [filterType, setFilterType] = useState('all');
 
   const filteredAccounts = accountsLedger.filter(acc => {
@@ -200,6 +203,20 @@ export const AccountingPage: React.FC = () => {
             onClick={() => setActiveTab('balancesheet')}
           >
             Balance Sheet Statement
+          </Button>
+          <Button
+            variant="plain"
+            pb={3}
+            pt={1}
+            px={2}
+            borderBottom="2px solid"
+            borderColor={activeTab === 'payables' ? '#2563eb' : 'transparent'}
+            color={activeTab === 'payables' ? '#2563eb' : '#64748b'}
+            fontWeight={activeTab === 'payables' ? 'bold' : 'medium'}
+            fontSize="sm"
+            onClick={() => setActiveTab('payables')}
+          >
+            <ShoppingCart size={14} style={{ marginRight: 4, display: 'inline' }} /> Vendor Payables & PO Commitments ({purchaseOrders.length})
           </Button>
         </Flex>
       </Box>
@@ -383,6 +400,165 @@ export const AccountingPage: React.FC = () => {
           </Stack>
         </Card.Root>
       )}
+
+      {/* Vendor Payables & PO Commitments */}
+      {activeTab === 'payables' && (() => {
+        const totalPOCommitted = purchaseOrders.reduce((sum, p) => sum + (p.totalAmount || 0), 0);
+        const pendingApprovalPOValue = purchaseOrders.filter(p => p.status === 'pending_approval').reduce((sum, p) => sum + (p.totalAmount || 0), 0);
+        const approvedPOValue = purchaseOrders.filter(p => p.status === 'approved' || p.status === 'partially_received').reduce((sum, p) => sum + (p.totalAmount || 0), 0);
+        const fullyDeliveredPOValue = purchaseOrders.filter(p => p.status === 'received').reduce((sum, p) => sum + (p.totalAmount || 0), 0);
+
+        return (
+          <Stack gap={5}>
+            {/* Payables KPIs */}
+            <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} gap={4}>
+              <Card.Root bg="white" border="1px solid #e2e8f0" borderRadius="14px" p={4}>
+                <Text fontSize="11px" fontWeight="bold" textTransform="uppercase" color="#64748b">
+                  Committed Procurement
+                </Text>
+                <Text fontSize="xl" fontWeight="black" color="#0f172a" mt={1}>
+                  {activeCompany.currency} {totalPOCommitted.toLocaleString()}
+                </Text>
+                <Text fontSize="11px" color="#64748b" mt={1}>{purchaseOrders.length} Total Issued Orders</Text>
+              </Card.Root>
+
+              <Card.Root bg="white" border="1px solid #e2e8f0" borderRadius="14px" p={4}>
+                <Text fontSize="11px" fontWeight="bold" textTransform="uppercase" color="#64748b">
+                  Approved & Accruing
+                </Text>
+                <Text fontSize="xl" fontWeight="black" color="#2563eb" mt={1}>
+                  {activeCompany.currency} {approvedPOValue.toLocaleString()}
+                </Text>
+                <Text fontSize="11px" color="#2563eb" mt={1}>In Transit / Active Delivery</Text>
+              </Card.Root>
+
+              <Card.Root bg="white" border="1px solid #e2e8f0" borderRadius="14px" p={4}>
+                <Text fontSize="11px" fontWeight="bold" textTransform="uppercase" color="#64748b">
+                  Site Received (GRN Verified)
+                </Text>
+                <Text fontSize="xl" fontWeight="black" color="#16a34a" mt={1}>
+                  {activeCompany.currency} {fullyDeliveredPOValue.toLocaleString()}
+                </Text>
+                <Text fontSize="11px" color="#16a34a" mt={1}>Ready for 3-Way Invoice Match</Text>
+              </Card.Root>
+
+              <Card.Root bg="white" border="1px solid #e2e8f0" borderRadius="14px" p={4}>
+                <Text fontSize="11px" fontWeight="bold" textTransform="uppercase" color="#64748b">
+                  Awaiting Executive Sign-off
+                </Text>
+                <Text fontSize="xl" fontWeight="black" color="#d97706" mt={1}>
+                  {activeCompany.currency} {pendingApprovalPOValue.toLocaleString()}
+                </Text>
+                <Text fontSize="11px" color="#d97706" mt={1}>Pending Finance Approval</Text>
+              </Card.Root>
+            </SimpleGrid>
+
+            {/* Payables Ledger Table */}
+            <Card.Root bg="white" border="1px solid #e2e8f0" borderRadius="14px" p={{ base: 4, sm: 5 }}>
+              <Flex justify="space-between" align={{ base: 'flex-start', sm: 'center' }} direction={{ base: 'column', sm: 'row' }} gap={2} mb={4}>
+                <Box>
+                  <Heading size="sm" color="#0f172a">
+                    Purchase Order Payables & 3-Way Match Schedule
+                  </Heading>
+                  <Text fontSize="xs" color="#64748b" mt={0.5}>
+                    Cross-module ledger linking vendor orders, warehouse GRN receipts, and accounts payable obligations.
+                  </Text>
+                </Box>
+              </Flex>
+
+              <Box overflowX="auto">
+                <Table.Root size="sm" variant="outline" minW="850px">
+                  <Table.Header bg="#f8fafc">
+                    <Table.Row>
+                      <Table.ColumnHeader fontSize="10px">PO #</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px">VENDOR / SUPPLIER</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px">PROJECT ALLOCATION</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px">ORDER DATE</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px">TERMS</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px" textAlign="right">AMOUNT ({activeCompany.currency})</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px" textAlign="center">STATUS</Table.ColumnHeader>
+                      <Table.ColumnHeader fontSize="10px" textAlign="center">MATCHING STATE</Table.ColumnHeader>
+                    </Table.Row>
+                  </Table.Header>
+                  <Table.Body>
+                    {purchaseOrders.length === 0 ? (
+                      <Table.Row>
+                        <Table.Cell colSpan={8} textAlign="center" py={8} color="#94a3b8" fontSize="xs">
+                          No procurement purchase orders on file.
+                        </Table.Cell>
+                      </Table.Row>
+                    ) : (
+                      purchaseOrders.map(po => {
+                        const isGRNMatched = po.status === 'received';
+                        const isPartiallyReceived = po.status === 'partially_received';
+                        return (
+                          <Table.Row key={po.id} _hover={{ bg: '#fbfcfd' }}>
+                            <Table.Cell fontSize="xs" fontWeight="bold" fontFamily="mono" color="#2563eb">
+                              {po.poNumber}
+                            </Table.Cell>
+                            <Table.Cell fontSize="xs">
+                              <Text fontWeight="semibold" color="#0f172a">{po.supplierName}</Text>
+                            </Table.Cell>
+                            <Table.Cell fontSize="xs">
+                              <Text color="#334155">{po.projectName || 'Central Warehouse'}</Text>
+                              {po.requisitionNo && (
+                                <Badge size="xs" colorPalette="purple" variant="subtle" mt={0.5}>
+                                  Req: {po.requisitionNo}
+                                </Badge>
+                              )}
+                            </Table.Cell>
+                            <Table.Cell fontSize="xs" color="#64748b">
+                              {po.orderDate}
+                            </Table.Cell>
+                            <Table.Cell fontSize="xs" color="#64748b">
+                              {po.paymentTerms}
+                            </Table.Cell>
+                            <Table.Cell fontSize="xs" textAlign="right" fontWeight="bold" color="#0f172a">
+                              {po.totalAmount.toLocaleString()}
+                            </Table.Cell>
+                            <Table.Cell fontSize="xs" textAlign="center">
+                              <Badge
+                                size="xs"
+                                colorPalette={
+                                  po.status === 'received' ? 'green' :
+                                  po.status === 'approved' ? 'teal' :
+                                  po.status === 'partially_received' ? 'blue' :
+                                  po.status === 'rejected' ? 'red' : 'orange'
+                                }
+                              >
+                                {po.status.replace('_', ' ').toUpperCase()}
+                              </Badge>
+                            </Table.Cell>
+                            <Table.Cell fontSize="xs" textAlign="center">
+                              {isGRNMatched ? (
+                                <Badge size="xs" colorPalette="green">
+                                  <PackageCheck size={11} style={{ marginRight: 2 }} /> GRN VERIFIED
+                                </Badge>
+                              ) : isPartiallyReceived ? (
+                                <Badge size="xs" colorPalette="blue">
+                                  PARTIAL RECEIPT
+                                </Badge>
+                              ) : po.status === 'approved' ? (
+                                <Badge size="xs" colorPalette="yellow">
+                                  AWAITING DELIVERY
+                                </Badge>
+                              ) : (
+                                <Badge size="xs" colorPalette="gray">
+                                  UNCOMMITTED
+                                </Badge>
+                              )}
+                            </Table.Cell>
+                          </Table.Row>
+                        );
+                      })
+                    )}
+                  </Table.Body>
+                </Table.Root>
+              </Box>
+            </Card.Root>
+          </Stack>
+        );
+      })()}
     </Box>
   );
 };

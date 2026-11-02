@@ -54,6 +54,10 @@ export const purchaseOrderService = {
     paymentTerms: string;
     deliveryAddress?: string;
     notes?: string;
+    requisitionId?: number;
+    requisitionNo?: string;
+    actorName?: string;
+    actorRole?: string;
     items: Array<{
       inventoryItemId?: number;
       itemCode?: string;
@@ -101,6 +105,7 @@ export const purchaseOrderService = {
     });
 
     const grandTotal = subtotal - totalDiscount + totalTax;
+    const nowStr = `${new Date().toISOString().split('T')[0]} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
     const newPO: PurchaseOrder = {
       id: newId,
@@ -123,12 +128,56 @@ export const purchaseOrderService = {
       paymentTerms: data.paymentTerms,
       deliveryAddress: data.deliveryAddress,
       notes: data.notes,
+      requisitionId: data.requisitionId,
+      requisitionNo: data.requisitionNo,
+      approvalHistory: [
+        {
+          id: 1,
+          action: 'Created & Submitted',
+          actorName: data.actorName || 'Procurement Officer',
+          actorRole: data.actorRole || 'Procurement',
+          comments: data.notes || (data.requisitionNo ? `Created from site requisition ${data.requisitionNo}.` : 'Submitted for management review and budget clearance.'),
+          timestamp: nowStr
+        }
+      ],
+      messages: [
+        {
+          id: 1,
+          userName: 'System Bot',
+          role: 'Notification',
+          message: data.requisitionNo
+            ? `Purchase Order generated from approved Requisition ${data.requisitionNo} for project "${data.projectName || 'Civil Site'}".`
+            : `Purchase Order submitted for vendor "${data.supplierName}". Total: ₦${grandTotal.toLocaleString()}.`,
+          createdAt: nowStr
+        }
+      ],
       items: formattedItems,
       createdAt: new Date().toISOString()
     };
 
     list.unshift(newPO);
     erpStorage.savePurchaseOrders(list);
+
+    // Cross-module update: If tied to a Requisition, link the PO on that Requisition
+    if (data.requisitionId || data.requisitionNo) {
+      const allReqs = erpStorage.getRequisitions();
+      const targetReq = allReqs.find(r => r.id === data.requisitionId || r.requisitionNo === data.requisitionNo);
+      if (targetReq) {
+        targetReq.purchaseOrderId = newId;
+        targetReq.purchaseOrderNo = poNumber;
+        if (!targetReq.messages) targetReq.messages = [];
+        targetReq.messages.push({
+          id: Date.now(),
+          userName: 'Procurement Desk',
+          role: 'Procurement Officer',
+          message: `Official Purchase Order ${poNumber} has been issued to ${data.supplierName} for required materials.`,
+          createdAt: nowStr,
+          isSystemEvent: true
+        });
+        erpStorage.saveRequisitions(allReqs);
+      }
+    }
+
     return newPO;
   },
 
@@ -136,19 +185,61 @@ export const purchaseOrderService = {
     id: number,
     status: PurchaseOrder['status'],
     actorName?: string,
-    rejectionReason?: string
+    actorRole?: string,
+    comments?: string
   ): PurchaseOrder | null => {
     const list = erpStorage.getPurchaseOrders();
     const po = list.find(p => p.id === id);
     if (!po) return null;
 
     po.status = status;
+    const nowStr = `${new Date().toISOString().split('T')[0]} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+    if (!po.approvalHistory) {
+      po.approvalHistory = [];
+    }
+
     if (status === 'approved') {
       po.approvedBy = actorName || 'Managing Director';
       po.approvalDate = new Date().toISOString().split('T')[0];
-    } else if (status === 'cancelled') {
-      po.rejectionReason = rejectionReason || 'Cancelled by authorized management.';
+      po.approvalHistory.push({
+        id: Date.now(),
+        action: 'Executive Approval',
+        actorName: actorName || 'Managing Director',
+        actorRole: actorRole || 'Executive Authority',
+        comments: comments || 'Purchase order verified against project budget and authorized for vendor placement.',
+        timestamp: nowStr
+      });
+    } else if (status === 'cancelled' || status === 'rejected') {
+      po.rejectionReason = comments || 'Cancelled by authorized management.';
+      po.approvalHistory.push({
+        id: Date.now(),
+        action: 'Cancelled / Rejected',
+        actorName: actorName || 'Management',
+        actorRole: actorRole || 'Executive Authority',
+        comments: comments || 'Order cancelled or rejected during budget review.',
+        timestamp: nowStr
+      });
     }
+
+    erpStorage.savePurchaseOrders(list);
+    return po;
+  },
+
+  addPOMessage: (id: number, userName: string, role: string, message: string): PurchaseOrder | null => {
+    const list = erpStorage.getPurchaseOrders();
+    const po = list.find(p => p.id === id);
+    if (!po) return null;
+
+    if (!po.messages) po.messages = [];
+    const nowStr = `${new Date().toISOString().split('T')[0]} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    po.messages.push({
+      id: Date.now(),
+      userName,
+      role,
+      message,
+      createdAt: nowStr
+    });
 
     erpStorage.savePurchaseOrders(list);
     return po;

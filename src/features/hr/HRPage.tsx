@@ -20,6 +20,7 @@ import {
   TrendingUp,
   FileCheck
 } from 'lucide-react';
+import { PageActionGuide } from '../../components/common/PageActionGuide';
 
 import { EmployeeDirectoryTab } from './components/EmployeeDirectoryTab';
 import { DepartmentsTab } from './components/DepartmentsTab';
@@ -89,6 +90,36 @@ export const HRPage: React.FC = () => {
           </Flex>
         </Flex>
       </Card.Root>
+
+      {/* Plain-English Guided Workflow */}
+      <PageActionGuide
+        storageKey="hr_page_guide"
+        title="How HR & Staff Management Works"
+        goalDescription="Manage your company's full construction workforce, site engineers, artisans, and office staff. Record attendance, process leave applications, manage hiring pipelines, and review salary advances."
+        steps={[
+          {
+            stepNumber: 1,
+            title: "Staff Profiles",
+            description: "Add or view employees, job designations, departments, basic salaries, and emergency contacts."
+          },
+          {
+            stepNumber: 2,
+            title: "Biometric Attendance",
+            description: "View daily check-ins and check-outs across office and construction sites."
+          },
+          {
+            stepNumber: 3,
+            title: "Leave Approvals",
+            description: "Employees apply for annual, sick, or compassionate leave; managers approve or flag them."
+          },
+          {
+            stepNumber: 4,
+            title: "Advances & Loans",
+            description: "Manage mid-month salary advances and longer-term staff loans with clear monthly deductions."
+          }
+        ]}
+        tip="Need to review staff loan history or disburse an advance? Switch to the 'Advances & Loans' tab above."
+      />
 
       {/* Main Tab Navigation */}
       <Flex

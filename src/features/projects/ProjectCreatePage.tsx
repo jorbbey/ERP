@@ -38,6 +38,7 @@ export const ProjectCreatePage: React.FC = () => {
     currentUserName,
     activeRole
   } = useERP();
+  const currency = activeCompany?.currency || '₦';
 
   const isAuthorized = ['Managing Director', 'Project Manager', 'Super Admin'].includes(activeRole);
 
@@ -409,13 +410,13 @@ export const ProjectCreatePage: React.FC = () => {
               <DollarSign size={18} color="#16a34a" /> Contract Financials & Budget Allocation
             </Heading>
             <Text fontSize="xs" color="#64748b" mb={4}>
-              Agreed client contract value, baseline cost budget, and expected profit margin in {activeCompany.currency}.
+              Agreed client contract value, baseline cost budget, and expected profit margin in {currency}.
             </Text>
 
             <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>
               <Box>
                 <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1.5}>
-                  Agreed Contract Value ({activeCompany.currency}) *
+                  Agreed Contract Value ({currency}) *
                 </Text>
                 <Input
                   size="sm"
@@ -431,7 +432,7 @@ export const ProjectCreatePage: React.FC = () => {
 
               <Box>
                 <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1.5}>
-                  Target Budget / Cost Ceiling ({activeCompany.currency}) *
+                  Target Budget / Cost Ceiling ({currency}) *
                 </Text>
                 <Input
                   size="sm"
@@ -449,8 +450,8 @@ export const ProjectCreatePage: React.FC = () => {
                 <Text fontSize="10px" textTransform="uppercase" fontWeight="bold" color="#64748b">
                   Projected Gross Margin
                 </Text>
-                <Text fontSize="lg" fontWeight="black" color={form.contractValue - form.budget >= 0 ? '#16a34a' : '#dc2626'} mt={1}>
-                  {activeCompany.currency} {(form.contractValue - form.budget).toLocaleString()}
+                <Text fontSize="lg" fontWeight="black" color={Number(form.contractValue || 0) - Number(form.budget || 0) >= 0 ? '#16a34a' : '#dc2626'} mt={1}>
+                  {currency} {((Number(form.contractValue) || 0) - (Number(form.budget) || 0)).toLocaleString()}
                 </Text>
                 <Text fontSize="11px" color="#64748b">
                   {form.contractValue > 0 ? Math.round(((form.contractValue - form.budget) / form.contractValue) * 100) : 0}% contract margin
@@ -534,7 +535,7 @@ export const ProjectCreatePage: React.FC = () => {
                   </Text>
                   <NativeSelect.Root size="sm">
                     <NativeSelect.Field
-                      value={form.assignedEngineers[0] || currentUserName}
+                      value={form.assignedEngineers?.[0] || currentUserName}
                       onChange={(e) => setForm({ ...form, assignedEngineers: [e.target.value] })}
                     >
                       {employees.map(emp => (

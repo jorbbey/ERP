@@ -29,6 +29,7 @@ import {
   FileCheck,
   Scale
 } from 'lucide-react';
+import { PageActionGuide } from '../../components/common/PageActionGuide';
 
 export const ContractAdminPage: React.FC = () => {
   const {
@@ -208,6 +209,36 @@ export const ContractAdminPage: React.FC = () => {
           </Button>
         </Flex>
       </Flex>
+
+      {/* Plain-English Guided Workflow */}
+      <PageActionGuide
+        storageKey="contracts_page_guide"
+        title="How Construction Contracts & Legal Variations Work"
+        goalDescription="Track your client agreements, contract award values, deadlines, and legal changes. In construction, contracts follow standards (like FIDIC Red Book) where any change to design or cost is logged as a Variation."
+        steps={[
+          {
+            stepNumber: 1,
+            title: "Register Contract Agreement",
+            description: "Click 'New Contract' to log the client name, procurement route (Tender/Direct), estimated value, and completion deadline."
+          },
+          {
+            stepNumber: 2,
+            title: "Track Contract Status",
+            description: "Monitor milestones through Opportunity, Tendering, Under Evaluation, Awarded, Active, and Completed."
+          },
+          {
+            stepNumber: 3,
+            title: "Log Variations & Claims",
+            description: "When the client requests extra work or site conditions change, use 'Log Variation / Event' to protect your payment rights."
+          },
+          {
+            stepNumber: 4,
+            title: "Contract Document Vault",
+            description: "Upload signed FIDIC agreements, bank guarantees, and insurance certificates for auditable records."
+          }
+        ]}
+        tip="Need to record extra scope or site delay? Click 'Log Variation / Event' above to register the event with date and notes."
+      />
 
       {/* KPI Cards */}
       <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} gap={4} mb={6}>

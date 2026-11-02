@@ -121,7 +121,7 @@ export const SettingsPage: React.FC = () => {
 
   const modulesList = [
     { key: 'projects', label: 'Projects & Sites', desc: 'Civil progress tracking, daily logs & RFIs' },
-    { key: 'requisitions', label: 'Material Requisitions', desc: 'Site material requests and approval chain' },
+    { key: 'requisitions', label: 'Requisition', desc: 'Site material requests and approval chain' },
     { key: 'inventory', label: 'Stores & Inventory', desc: 'Central stock control, SKU catalog & reorder alerts' },
     { key: 'procurement', label: 'Procurement & PO', desc: 'Vendor orders and Goods Receipt Notes' },
     { key: 'hr', label: 'HR & Personnel', desc: 'Staff directory, salary advances & loans' },

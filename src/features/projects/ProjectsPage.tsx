@@ -24,7 +24,6 @@ import {
   Calendar, 
   Users, 
   Search, 
-  Sun, 
   ShieldCheck, 
   CheckCircle, 
   ArrowUpRight,
@@ -41,6 +40,7 @@ import {
   FileSpreadsheet
 } from 'lucide-react';
 import { ExcelImportModal, TemplateColumn } from '../../components/common/ExcelImportModal';
+import { PageActionGuide } from '../../components/common/PageActionGuide';
 
 export const ProjectsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -48,15 +48,12 @@ export const ProjectsPage: React.FC = () => {
     projects, 
     addProject, 
     updateProject,
-    dailyLogs, 
-    addDailyLog, 
     activeCompany, 
     currentUserName,
     employees,
     bulkImportProjects
   } = useERP();
 
-  const [activeTab, setActiveTab] = useState<'projects' | 'dailyLogs'>('projects');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -68,7 +65,6 @@ export const ProjectsPage: React.FC = () => {
   const [showAddProjectModal, setShowAddProjectModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
-  const [showAddLogModal, setShowAddLogModal] = useState(false);
 
   // Form Validation & Feedback
   const [formFeedback, setFormFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -95,19 +91,7 @@ export const ProjectsPage: React.FC = () => {
   // Edit Project Form State
   const [editForm, setEditForm] = useState<Partial<Project>>({});
 
-  // New Daily Log State
-  const [newLog, setNewLog] = useState({
-    projectId: projects[0]?.id || 1,
-    weather: 'Clear, 28°C',
-    completedWork: '',
-    manpower: '18 Workers, 2 Foremen, 4 Operators',
-    equipment: '1x Hydraulic Excavator, 2x Transit Concrete Mixers',
-    workersOnSite: 24,
-    safetyIncident: false,
-    loggedBy: currentUserName
-  });
-
-  const currency = activeCompany?.currency || 'USD';
+  const currency = activeCompany?.currency || '₦';
 
   // Client and Manager Options
   const uniqueClients = Array.from(new Set(projects.map(p => p?.clientName || '').filter(Boolean)));
@@ -190,7 +174,7 @@ export const ProjectsPage: React.FC = () => {
       status: p.status,
       manager: p.manager,
       progressPercent: p.progressPercent,
-      assignedEngineers: [...p.assignedEngineers]
+      assignedEngineers: [...(p.assignedEngineers || [p.manager || currentUserName])]
     });
     setFormFeedback(null);
   };
@@ -249,27 +233,6 @@ export const ProjectsPage: React.FC = () => {
     }, 600);
   };
 
-  const handleCreateLog = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newLog.completedWork.trim()) return;
-    addDailyLog({
-      ...newLog,
-      projectId: Number(newLog.projectId),
-      logDate: new Date().toISOString().split('T')[0]
-    });
-    setShowAddLogModal(false);
-    setNewLog({
-      projectId: projects[0]?.id || 1,
-      weather: 'Clear, 28°C',
-      completedWork: '',
-      manpower: '18 Workers, 2 Foremen, 4 Operators',
-      equipment: '1x Hydraulic Excavator, 2x Transit Concrete Mixers',
-      workersOnSite: 24,
-      safetyIncident: false,
-      loggedBy: currentUserName
-    });
-  };
-
   const getStatusBadge = (status: Project['status']) => {
     switch (status) {
       case 'in_progress':
@@ -326,15 +289,6 @@ export const ProjectsPage: React.FC = () => {
           </Button>
           <Button 
             size="sm" 
-            variant="outline" 
-            borderColor="#cbd5e1" 
-            color="#334155" 
-            onClick={() => setShowAddLogModal(true)}
-          >
-            <Sun size={16} /> Log Daily Progress
-          </Button>
-          <Button 
-            size="sm" 
             variant="outline"
             borderColor="#2563eb"
             color="#2563eb"
@@ -354,6 +308,36 @@ export const ProjectsPage: React.FC = () => {
           </Button>
         </Flex>
       </Flex>
+
+      {/* Plain-English Guided Workflow */}
+      <PageActionGuide
+        storageKey="projects_page_guide"
+        title="How Construction Projects & Job Sites Work"
+        goalDescription="This module lets you track all active and upcoming construction projects, monitor real work progress versus budget, and review project-level site activity."
+        steps={[
+          {
+            stepNumber: 1,
+            title: "Register a Project",
+            description: "Click 'Quick Add' or 'Full Create Form' to set the project name, client, site location, agreed budget, and assigned engineers."
+          },
+          {
+            stepNumber: 2,
+            title: "Track Progress & Budget",
+            description: "Open any project card below to review physical progress percentage, Bill of Quantities (BOQ), and expenses incurred."
+          },
+          {
+            stepNumber: 3,
+            title: "Submit Daily Site Logs",
+            description: "Site engineers record weather, workforce headcount, and completed daily progress reports inside each project's Manage page."
+          },
+          {
+            stepNumber: 4,
+            title: "Connect with Requisitions",
+            description: "Material requests and truck dispatches automatically link back to their respective site so costs stay transparent."
+          }
+        ]}
+        tip="First time here? Click 'Quick Add' to create your first site, or click on any existing project card below to view live milestone progress."
+      />
 
       {/* KPI Overview Metrics */}
       <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} gap={4} mb={6}>
@@ -436,41 +420,8 @@ export const ProjectsPage: React.FC = () => {
         </Card.Root>
       </SimpleGrid>
 
-      {/* Tabs */}
-      <Flex borderBottom="1px solid #e2e8f0" gap={4} mb={6}>
-        <Button
-          variant="plain"
-          pb={3}
-          pt={1}
-          px={2}
-          borderBottom="2px solid"
-          borderColor={activeTab === 'projects' ? '#2563eb' : 'transparent'}
-          color={activeTab === 'projects' ? '#2563eb' : '#64748b'}
-          fontWeight={activeTab === 'projects' ? 'bold' : 'medium'}
-          fontSize="sm"
-          onClick={() => setActiveTab('projects')}
-        >
-          Projects Catalog ({projects.length})
-        </Button>
-        <Button
-          variant="plain"
-          pb={3}
-          pt={1}
-          px={2}
-          borderBottom="2px solid"
-          borderColor={activeTab === 'dailyLogs' ? '#2563eb' : 'transparent'}
-          color={activeTab === 'dailyLogs' ? '#2563eb' : '#64748b'}
-          fontWeight={activeTab === 'dailyLogs' ? 'bold' : 'medium'}
-          fontSize="sm"
-          onClick={() => setActiveTab('dailyLogs')}
-        >
-          Daily Site Progress Reports ({dailyLogs.length})
-        </Button>
-      </Flex>
-
-      {/* Projects Tab */}
-      {activeTab === 'projects' && (
-        <Box>
+      {/* Projects Catalog Content */}
+      <Box>
           {/* Search, Filter & Layout Controls */}
           <Flex direction={{ base: 'column', md: 'row' }} gap={3} justify="space-between" align={{ md: 'center' }} mb={5}>
             <Flex gap={2} flex="1" maxW={{ md: '450px' }}>
@@ -812,77 +763,6 @@ export const ProjectsPage: React.FC = () => {
             </Card.Root>
           )}
         </Box>
-      )}
-
-      {/* Daily Logs Tab */}
-      {activeTab === 'dailyLogs' && (
-        <Box>
-          <Flex justify="space-between" align="center" mb={4}>
-            <Box>
-              <Heading size="sm" color="#0f172a">
-                Site Progress & Daily Weather Logs
-              </Heading>
-              <Text fontSize="xs" color="#64748b">
-                Field engineer daily reports, workforce headcounts, equipment deployment, and work milestones.
-              </Text>
-            </Box>
-            <Button size="sm" bg="#2563eb" color="white" onClick={() => setShowAddLogModal(true)}>
-              <Plus size={16} /> New Daily Entry
-            </Button>
-          </Flex>
-
-          <Stack gap={4}>
-            {dailyLogs.map((log) => {
-              const p = projects.find(proj => proj.id === log.projectId);
-              return (
-                <Card.Root key={log.id} bg="white" border="1px solid #e2e8f0" borderRadius="14px" p={5}>
-                  <Flex justify="space-between" align="flex-start" mb={2}>
-                    <Box>
-                      <Flex align="center" gap={2}>
-                        <Badge colorPalette="blue" variant="subtle" fontSize="10px">
-                          {p ? p.projectNumber : `Project #${log.projectId}`}
-                        </Badge>
-                        <Text fontSize="xs" fontWeight="bold" color="#0f172a">
-                          {p?.name}
-                        </Text>
-                      </Flex>
-                      <Text fontSize="11px" color="#64748b" mt={0.5}>
-                        Date: <Text as="span" fontWeight="semibold" color="#334155">{log.logDate}</Text> • Weather: <Text as="span" color="#d97706" fontWeight="medium">{log.weather}</Text>
-                      </Text>
-                    </Box>
-
-                    {log.safetyIncident ? (
-                      <Badge colorPalette="red" variant="solid">Safety Incident Reported</Badge>
-                    ) : (
-                      <Badge colorPalette="green" variant="subtle">Zero Incidents</Badge>
-                    )}
-                  </Flex>
-
-                  <Box p={3} bg="#f8fafc" borderRadius="10px" border="1px solid #f1f5f9" my={3} fontSize="xs">
-                    <Text fontWeight="bold" color="#0f172a" mb={1}>Work Execution Summary:</Text>
-                    <Text color="#334155">{log.completedWork}</Text>
-                  </Box>
-
-                  <SimpleGrid columns={{ base: 1, md: 3 }} gap={3} fontSize="xs" color="#64748b">
-                    <Box>
-                      <Text fontWeight="bold" color="#475569" fontSize="10px" textTransform="uppercase">Manpower Deployed:</Text>
-                      <Text color="#0f172a" mt={0.5}>{log.manpower} ({log.workersOnSite} on site)</Text>
-                    </Box>
-                    <Box>
-                      <Text fontWeight="bold" color="#475569" fontSize="10px" textTransform="uppercase">Heavy Equipment:</Text>
-                      <Text color="#0f172a" mt={0.5}>{log.equipment}</Text>
-                    </Box>
-                    <Box>
-                      <Text fontWeight="bold" color="#475569" fontSize="10px" textTransform="uppercase">Submitted By:</Text>
-                      <Text color="#0f172a" mt={0.5}>{log.loggedBy}</Text>
-                    </Box>
-                  </SimpleGrid>
-                </Card.Root>
-              );
-            })}
-          </Stack>
-        </Box>
-      )}
 
       {/* Add Project Modal */}
       {showAddProjectModal && (
@@ -1026,7 +906,7 @@ export const ProjectsPage: React.FC = () => {
 
                 <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
-                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Contract Value ({activeCompany.currency}) *</Text>
+                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Contract Value ({currency}) *</Text>
                     <Input
                       size="sm"
                       type="number"
@@ -1036,7 +916,7 @@ export const ProjectsPage: React.FC = () => {
                     />
                   </Box>
                   <Box>
-                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Total Budget ({activeCompany.currency}) *</Text>
+                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Total Budget ({currency}) *</Text>
                     <Input
                       size="sm"
                       type="number"
@@ -1196,7 +1076,7 @@ export const ProjectsPage: React.FC = () => {
 
                 <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
-                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Contract Value ({activeCompany.currency})</Text>
+                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Contract Value ({currency})</Text>
                     <Input
                       size="sm"
                       type="number"
@@ -1205,7 +1085,7 @@ export const ProjectsPage: React.FC = () => {
                     />
                   </Box>
                   <Box>
-                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Target Budget ({activeCompany.currency})</Text>
+                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Target Budget ({currency})</Text>
                     <Input
                       size="sm"
                       type="number"
@@ -1271,121 +1151,6 @@ export const ProjectsPage: React.FC = () => {
                   </Button>
                   <Button size="sm" bg="#2563eb" color="white" type="submit">
                     Save Changes
-                  </Button>
-                </Flex>
-              </Stack>
-            </form>
-          </Box>
-        </Box>
-      )}
-
-      {/* Add Daily Log Modal */}
-      {showAddLogModal && (
-        <Box 
-          position="fixed" 
-          inset="0" 
-          bg="rgba(15, 23, 42, 0.6)" 
-          zIndex="1000" 
-          display="flex" 
-          alignItems="center" 
-          justifyContent="center" 
-          p={{ base: 2, sm: 4 }}
-        >
-          <Box bg="white" borderRadius="16px" maxW="520px" w="100%" p={{ base: 4, sm: 6 }} boxShadow="2xl" maxH="90vh" overflowY="auto">
-            <Heading size="md" color="#0f172a" mb={1}>
-              Log Daily Site Progress
-            </Heading>
-            <Text fontSize="xs" color="#64748b" mb={4}>
-              Submit daily field report for engineering supervision and client tracking.
-            </Text>
-
-            <form onSubmit={handleCreateLog}>
-              <Stack gap={3}>
-                <Box>
-                  <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Select Site Project</Text>
-                  <NativeSelect.Root size="sm">
-                    <NativeSelect.Field
-                      value={newLog.projectId}
-                      onChange={(e) => setNewLog({ ...newLog, projectId: Number(e.target.value) })}
-                    >
-                      {projects.map(p => (
-                        <option key={p.id} value={p.id}>
-                          {p.projectNumber} — {p.name}
-                        </option>
-                      ))}
-                    </NativeSelect.Field>
-                  </NativeSelect.Root>
-                </Box>
-
-                <Box>
-                  <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Site Weather Conditions</Text>
-                  <Input
-                    size="sm"
-                    value={newLog.weather}
-                    onChange={(e) => setNewLog({ ...newLog, weather: e.target.value })}
-                    required
-                  />
-                </Box>
-
-                <Box>
-                  <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Completed Work Scope Today *</Text>
-                  <Input
-                    size="sm"
-                    placeholder="e.g. Cast 40m³ foundation footing on Grid B; installed column shuttering"
-                    value={newLog.completedWork}
-                    onChange={(e) => setNewLog({ ...newLog, completedWork: e.target.value })}
-                    required
-                  />
-                </Box>
-
-                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
-                  <Box>
-                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Manpower Breakdown</Text>
-                    <Input
-                      size="sm"
-                      value={newLog.manpower}
-                      onChange={(e) => setNewLog({ ...newLog, manpower: e.target.value })}
-                    />
-                  </Box>
-                  <Box>
-                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Headcount on Site</Text>
-                    <Input
-                      size="sm"
-                      type="number"
-                      value={newLog.workersOnSite}
-                      onChange={(e) => setNewLog({ ...newLog, workersOnSite: Number(e.target.value) })}
-                    />
-                  </Box>
-                </SimpleGrid>
-
-                <Box>
-                  <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Heavy Plant & Equipment Deployed</Text>
-                  <Input
-                    size="sm"
-                    value={newLog.equipment}
-                    onChange={(e) => setNewLog({ ...newLog, equipment: e.target.value })}
-                  />
-                </Box>
-
-                <Flex align="center" gap={2} p={2.5} bg="#f8fafc" borderRadius="8px" border="1px solid #e2e8f0">
-                  <input
-                    type="checkbox"
-                    id="safetyCheck"
-                    checked={newLog.safetyIncident}
-                    onChange={(e) => setNewLog({ ...newLog, safetyIncident: e.target.checked })}
-                    style={{ width: '16px', height: '16px' }}
-                  />
-                  <label htmlFor="safetyCheck" style={{ fontSize: '12px', fontWeight: 'bold', color: newLog.safetyIncident ? '#dc2626' : '#334155' }}>
-                    Safety incident or near-miss occurred on site today
-                  </label>
-                </Flex>
-
-                <Flex justify="flex-end" gap={2} mt={3}>
-                  <Button size="sm" variant="outline" onClick={() => setShowAddLogModal(false)}>
-                    Cancel
-                  </Button>
-                  <Button size="sm" bg="#2563eb" color="white" type="submit">
-                    Save Site Report
                   </Button>
                 </Flex>
               </Stack>

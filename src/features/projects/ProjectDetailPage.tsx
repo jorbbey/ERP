@@ -317,16 +317,21 @@ export const ProjectDetailPage: React.FC = () => {
     return matchesCategory && matchesStatus && matchesSearch;
   });
 
-  const totalBOQCost = currentBudgets.reduce((acc, b) => acc + (b.quantity * b.unitCost), 0);
-  const materialsSubtotal = currentBudgets.filter(b => b.category === 'Materials').reduce((sum, b) => sum + (b.quantity * b.unitCost), 0);
-  const labourSubtotal = currentBudgets.filter(b => b.category === 'Labour').reduce((sum, b) => sum + (b.quantity * b.unitCost), 0);
-  const subcontractSubtotal = currentBudgets.filter(b => b.category === 'Subcontract').reduce((sum, b) => sum + (b.quantity * b.unitCost), 0);
-  const equipmentSubtotal = currentBudgets.filter(b => b.category === 'Equipment').reduce((sum, b) => sum + (b.quantity * b.unitCost), 0);
-  const overheadSubtotal = currentBudgets.filter(b => b.category === 'Overhead').reduce((sum, b) => sum + (b.quantity * b.unitCost), 0);
+  const currency = activeCompany?.currency || '₦';
+
+  const totalBOQCost = currentBudgets.reduce((acc, b) => acc + ((Number(b?.quantity) || 0) * (Number(b?.unitCost) || 0)), 0);
+  const materialsSubtotal = currentBudgets.filter(b => b.category === 'Materials').reduce((sum, b) => sum + ((Number(b?.quantity) || 0) * (Number(b?.unitCost) || 0)), 0);
+  const labourSubtotal = currentBudgets.filter(b => b.category === 'Labour').reduce((sum, b) => sum + ((Number(b?.quantity) || 0) * (Number(b?.unitCost) || 0)), 0);
+  const subcontractSubtotal = currentBudgets.filter(b => b.category === 'Subcontract').reduce((sum, b) => sum + ((Number(b?.quantity) || 0) * (Number(b?.unitCost) || 0)), 0);
+  const equipmentSubtotal = currentBudgets.filter(b => b.category === 'Equipment').reduce((sum, b) => sum + ((Number(b?.quantity) || 0) * (Number(b?.unitCost) || 0)), 0);
+  const overheadSubtotal = currentBudgets.filter(b => b.category === 'Overhead').reduce((sum, b) => sum + ((Number(b?.quantity) || 0) * (Number(b?.unitCost) || 0)), 0);
 
   // Financial Variances
-  const budgetVariance = project.budget - project.spent;
-  const budgetUtilization = project.budget > 0 ? Math.round((project.spent / project.budget) * 100) : 0;
+  const projectContractVal = Number(project.contractValue ?? project.budget ?? 0) || 0;
+  const projectBudgetVal = Number(project.budget ?? 0) || 0;
+  const projectSpentVal = Number(project.spent ?? 0) || 0;
+  const budgetVariance = projectBudgetVal - projectSpentVal;
+  const budgetUtilization = projectBudgetVal > 0 ? Math.round((projectSpentVal / projectBudgetVal) * 100) : 0;
 
   // Handlers
   const handleOpenEditProject = () => {
@@ -868,7 +873,7 @@ export const ProjectDetailPage: React.FC = () => {
             Agreed Contract Value
           </Text>
           <Text fontSize="xl" fontWeight="black" color="#0f172a" mt={1}>
-            {activeCompany.currency} {project.contractValue.toLocaleString()}
+            {currency} {(projectContractVal ?? 0).toLocaleString()}
           </Text>
           <Text fontSize="11px" color="#64748b" mt={1}>
             Client certified baseline lump sum
@@ -880,7 +885,7 @@ export const ProjectDetailPage: React.FC = () => {
             Total BOQ Cost / Budget
           </Text>
           <Text fontSize="xl" fontWeight="black" color="#2563eb" mt={1}>
-            {activeCompany.currency} {totalBOQCost > 0 ? totalBOQCost.toLocaleString() : project.budget.toLocaleString()}
+            {currency} {(totalBOQCost > 0 ? totalBOQCost : projectBudgetVal).toLocaleString()}
           </Text>
           <Text fontSize="11px" color="#64748b" mt={1}>
             Calculated from {currentBudgets.length} BOQ items
@@ -892,7 +897,7 @@ export const ProjectDetailPage: React.FC = () => {
             Actual Direct Spend
           </Text>
           <Text fontSize="xl" fontWeight="black" color="#16a34a" mt={1}>
-            {activeCompany.currency} {project.spent.toLocaleString()}
+            {currency} {(projectSpentVal ?? 0).toLocaleString()}
           </Text>
           <Text fontSize="11px" color="#64748b" mt={1}>
             {budgetUtilization}% of budget consumed
@@ -904,7 +909,7 @@ export const ProjectDetailPage: React.FC = () => {
             Remaining Budget Variance
           </Text>
           <Text fontSize="xl" fontWeight="black" color={budgetVariance >= 0 ? '#16a34a' : '#dc2626'} mt={1}>
-            {activeCompany.currency} {budgetVariance.toLocaleString()}
+            {currency} {(budgetVariance ?? 0).toLocaleString()}
           </Text>
           <Text fontSize="11px" color={budgetVariance >= 0 ? '#16a34a' : '#dc2626'} fontWeight="bold" mt={1}>
             {budgetVariance >= 0 ? 'Within Allocated Limit' : 'Cost Overrun Detected'}
@@ -998,14 +1003,17 @@ export const ProjectDetailPage: React.FC = () => {
             </Heading>
 
             <Stack gap={2.5}>
-              {project.assignedEngineers.map((eng, idx) => (
+              {(project.assignedEngineers && project.assignedEngineers.length > 0 
+                ? project.assignedEngineers 
+                : [project.manager || 'Resident Engineer']
+              ).map((eng, idx) => (
                 <Flex key={idx} align="center" justify="space-between" p={3} bg="#f8fafc" borderRadius="10px" border="1px solid #f1f5f9">
                   <Flex align="center" gap={3}>
                     <Box w="34px" h="34px" borderRadius="full" bg="#2563eb" color="white" display="flex" alignItems="center" justifyContent="center" fontSize="xs" fontWeight="bold">
-                      {eng.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                      {(eng || '').split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2) || 'RE'}
                     </Box>
                     <Box>
-                      <Text fontSize="xs" fontWeight="bold" color="#0f172a">{eng}</Text>
+                      <Text fontSize="xs" fontWeight="bold" color="#0f172a">{eng || 'Resident Engineer'}</Text>
                       <Text fontSize="10px" color="#64748b">Resident Site Engineer</Text>
                     </Box>
                   </Flex>
@@ -1046,7 +1054,7 @@ export const ProjectDetailPage: React.FC = () => {
             <Card.Root bg="white" borderRadius="12px" p={3.5} border="1px solid #e2e8f0">
               <Text fontSize="10px" textTransform="uppercase" fontWeight="bold" color="#64748b">Materials</Text>
               <Text fontSize="sm" fontWeight="bold" color="#0f172a" mt={1}>
-                {activeCompany.currency} {materialsSubtotal.toLocaleString()}
+                {currency} {(materialsSubtotal ?? 0).toLocaleString()}
               </Text>
               <Text fontSize="10px" color="#94a3b8">Cement, steel, sand</Text>
             </Card.Root>
@@ -1054,7 +1062,7 @@ export const ProjectDetailPage: React.FC = () => {
             <Card.Root bg="white" borderRadius="12px" p={3.5} border="1px solid #e2e8f0">
               <Text fontSize="10px" textTransform="uppercase" fontWeight="bold" color="#64748b">Labour</Text>
               <Text fontSize="sm" fontWeight="bold" color="#0f172a" mt={1}>
-                {activeCompany.currency} {labourSubtotal.toLocaleString()}
+                {currency} {(labourSubtotal ?? 0).toLocaleString()}
               </Text>
               <Text fontSize="10px" color="#94a3b8">Masons, fixers, helpers</Text>
             </Card.Root>
@@ -1062,7 +1070,7 @@ export const ProjectDetailPage: React.FC = () => {
             <Card.Root bg="white" borderRadius="12px" p={3.5} border="1px solid #e2e8f0">
               <Text fontSize="10px" textTransform="uppercase" fontWeight="bold" color="#64748b">Subcontract</Text>
               <Text fontSize="sm" fontWeight="bold" color="#0f172a" mt={1}>
-                {activeCompany.currency} {subcontractSubtotal.toLocaleString()}
+                {currency} {(subcontractSubtotal ?? 0).toLocaleString()}
               </Text>
               <Text fontSize="10px" color="#94a3b8">Specialist trades</Text>
             </Card.Root>
@@ -1070,7 +1078,7 @@ export const ProjectDetailPage: React.FC = () => {
             <Card.Root bg="white" borderRadius="12px" p={3.5} border="1px solid #e2e8f0">
               <Text fontSize="10px" textTransform="uppercase" fontWeight="bold" color="#64748b">Equipment</Text>
               <Text fontSize="sm" fontWeight="bold" color="#0f172a" mt={1}>
-                {activeCompany.currency} {equipmentSubtotal.toLocaleString()}
+                {currency} {(equipmentSubtotal ?? 0).toLocaleString()}
               </Text>
               <Text fontSize="10px" color="#94a3b8">Cranes, plant, pumps</Text>
             </Card.Root>
@@ -1078,7 +1086,7 @@ export const ProjectDetailPage: React.FC = () => {
             <Card.Root bg="white" borderRadius="12px" p={3.5} border="1px solid #e2e8f0">
               <Text fontSize="10px" textTransform="uppercase" fontWeight="bold" color="#64748b">Overhead</Text>
               <Text fontSize="sm" fontWeight="bold" color="#0f172a" mt={1}>
-                {activeCompany.currency} {overheadSubtotal.toLocaleString()}
+                {currency} {(overheadSubtotal ?? 0).toLocaleString()}
               </Text>
               <Text fontSize="10px" color="#94a3b8">Site safety & setup</Text>
             </Card.Root>
@@ -1185,10 +1193,10 @@ export const ProjectDetailPage: React.FC = () => {
                         </Badge>
                       </Table.Cell>
                       <Table.Cell fontSize="xs" textAlign="center" color="#64748b">{b.unitOfMeasure}</Table.Cell>
-                      <Table.Cell fontSize="xs" textAlign="right" fontWeight="semibold" color="#0f172a">{b.quantity.toLocaleString()}</Table.Cell>
-                      <Table.Cell fontSize="xs" textAlign="right" color="#475569">{activeCompany.currency} {b.unitCost.toLocaleString()}</Table.Cell>
+                      <Table.Cell fontSize="xs" textAlign="right" fontWeight="semibold" color="#0f172a">{(Number(b?.quantity) || 0).toLocaleString()}</Table.Cell>
+                      <Table.Cell fontSize="xs" textAlign="right" color="#475569">{currency} {(Number(b?.unitCost) || 0).toLocaleString()}</Table.Cell>
                       <Table.Cell fontSize="xs" textAlign="right" fontWeight="bold" color="#2563eb">
-                        {activeCompany.currency} {(b.quantity * b.unitCost).toLocaleString()}
+                        {currency} {((Number(b?.quantity) || 0) * (Number(b?.unitCost) || 0)).toLocaleString()}
                       </Table.Cell>
                       <Table.Cell fontSize="xs" color="#64748b">{b.supplier || 'Site Direct'}</Table.Cell>
                       <Table.Cell>
@@ -1218,7 +1226,7 @@ export const ProjectDetailPage: React.FC = () => {
                 TOTAL CALCULATED BOQ LINE VALUE ({filteredBOQ.length} Items Displayed)
               </Text>
               <Text fontSize="base" fontWeight="black" color="#2563eb">
-                {activeCompany.currency} {filteredBOQ.reduce((sum, b) => sum + (b.quantity * b.unitCost), 0).toLocaleString()}
+                {currency} {filteredBOQ.reduce((sum, b) => sum + ((Number(b?.quantity) || 0) * (Number(b?.unitCost) || 0)), 0).toLocaleString()}
               </Text>
             </Flex>
           </Card.Root>
@@ -1774,11 +1782,11 @@ export const ProjectDetailPage: React.FC = () => {
                 </Box>
                 <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
                   <Box>
-                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Contract Value ({activeCompany.currency})</Text>
+                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Contract Value ({currency})</Text>
                     <Input size="sm" type="number" value={projectEditForm.contractValue} onChange={(e) => setProjectEditForm({ ...projectEditForm, contractValue: Number(e.target.value) })} />
                   </Box>
                   <Box>
-                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Target Budget ({activeCompany.currency})</Text>
+                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Target Budget ({currency})</Text>
                     <Input size="sm" type="number" value={projectEditForm.budget} onChange={(e) => setProjectEditForm({ ...projectEditForm, budget: Number(e.target.value) })} />
                   </Box>
                 </SimpleGrid>
@@ -1866,7 +1874,7 @@ export const ProjectDetailPage: React.FC = () => {
                     <Input size="sm" type="number" step="any" min={0} value={newBudget.quantity} onChange={(e) => setNewBudget({ ...newBudget, quantity: Number(e.target.value) })} required />
                   </Box>
                   <Box>
-                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Unit Cost ({activeCompany.currency}) *</Text>
+                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Unit Cost ({currency}) *</Text>
                     <Input size="sm" type="number" step="any" min={0} value={newBudget.unitCost} onChange={(e) => setNewBudget({ ...newBudget, unitCost: Number(e.target.value) })} required />
                   </Box>
                 </SimpleGrid>
@@ -1876,7 +1884,7 @@ export const ProjectDetailPage: React.FC = () => {
                   <Flex justify="space-between" align="center">
                     <Text fontSize="xs" fontWeight="bold" color="#1e40af">Calculated Total Line Cost:</Text>
                     <Text fontSize="sm" fontWeight="black" color="#1e40af">
-                      {activeCompany.currency} {(newBudget.quantity * newBudget.unitCost).toLocaleString()}
+                      {currency} {((Number(newBudget.quantity) || 0) * (Number(newBudget.unitCost) || 0)).toLocaleString()}
                     </Text>
                   </Flex>
                 </Box>
@@ -1958,7 +1966,7 @@ export const ProjectDetailPage: React.FC = () => {
                     <Input size="sm" type="number" step="any" value={budgetEditForm.quantity ?? 0} onChange={(e) => setBudgetEditForm({ ...budgetEditForm, quantity: Number(e.target.value) })} required />
                   </Box>
                   <Box>
-                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Unit Cost ({activeCompany.currency})</Text>
+                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Unit Cost ({currency})</Text>
                     <Input size="sm" type="number" step="any" value={budgetEditForm.unitCost ?? 0} onChange={(e) => setBudgetEditForm({ ...budgetEditForm, unitCost: Number(e.target.value) })} required />
                   </Box>
                 </SimpleGrid>
@@ -1967,7 +1975,7 @@ export const ProjectDetailPage: React.FC = () => {
                   <Flex justify="space-between" align="center">
                     <Text fontSize="xs" fontWeight="bold" color="#1e40af">Recalculated Line Total:</Text>
                     <Text fontSize="sm" fontWeight="black" color="#1e40af">
-                      {activeCompany.currency} {((budgetEditForm.quantity ?? 0) * (budgetEditForm.unitCost ?? 0)).toLocaleString()}
+                      {currency} {((Number(budgetEditForm.quantity) || 0) * (Number(budgetEditForm.unitCost) || 0)).toLocaleString()}
                     </Text>
                   </Flex>
                 </Box>

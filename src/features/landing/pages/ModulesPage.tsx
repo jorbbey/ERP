@@ -51,7 +51,7 @@ export const ModulesPage: React.FC = () => {
       id: 'requisitions',
       route: '/requisitions',
       category: 'supply',
-      name: 'Material Requisitions (MRN)',
+      name: 'Requisition',
       icon: ClipboardList,
       color: '#ea580c',
       bgLight: '#fff7ed',

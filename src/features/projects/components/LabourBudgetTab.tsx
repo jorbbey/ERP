@@ -23,10 +23,11 @@ interface LabourBudgetTabProps {
 
 export const LabourBudgetTab: React.FC<LabourBudgetTabProps> = ({ project }) => {
   const { labourBudgets, addLabourBudget, updateLabourBudget, deleteLabourBudget, activeCompany } = useERP();
+  const currency = activeCompany?.currency || '₦';
 
-  const currentLabour = labourBudgets.filter(l => l.projectId === project.id);
-  const totalLabourCost = currentLabour.reduce((sum, l) => sum + (l.quantity * l.unitRate), 0);
-  const totalLabourDays = currentLabour.reduce((sum, l) => sum + l.quantity, 0);
+  const currentLabour = labourBudgets.filter(l => l?.projectId === project?.id);
+  const totalLabourCost = currentLabour.reduce((sum, l) => sum + ((Number(l?.quantity) || 0) * (Number(l?.unitRate) || 0)), 0);
+  const totalLabourDays = currentLabour.reduce((sum, l) => sum + (Number(l?.quantity) || 0), 0);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<ProjectLabourBudget | null>(null);
@@ -129,7 +130,7 @@ export const LabourBudgetTab: React.FC<LabourBudgetTabProps> = ({ project }) => 
                 Total Labour Budget
               </Text>
               <Text fontSize="xl" fontWeight="black" color="#2563eb" mt={1}>
-                {activeCompany.currency} {totalLabourCost.toLocaleString()}
+                {currency} {(totalLabourCost ?? 0).toLocaleString()}
               </Text>
             </Box>
             <Box p={2.5} bg="#eff6ff" color="#2563eb" borderRadius="10px">
@@ -148,7 +149,7 @@ export const LabourBudgetTab: React.FC<LabourBudgetTabProps> = ({ project }) => 
                 Budgeted Labour Units / Days
               </Text>
               <Text fontSize="xl" fontWeight="black" color="#0f172a" mt={1}>
-                {totalLabourDays.toLocaleString()} Man-Days
+                {(totalLabourDays ?? 0).toLocaleString()} Man-Days
               </Text>
             </Box>
             <Box p={2.5} bg="#faf5ff" color="#7c3aed" borderRadius="10px">
@@ -167,7 +168,7 @@ export const LabourBudgetTab: React.FC<LabourBudgetTabProps> = ({ project }) => 
                 Avg. Daily Rate
               </Text>
               <Text fontSize="xl" fontWeight="black" color="#16a34a" mt={1}>
-                {activeCompany.currency} {totalLabourDays > 0 ? Math.round(totalLabourCost / totalLabourDays).toLocaleString() : '0'} / Day
+                {currency} {totalLabourDays > 0 ? Math.round(totalLabourCost / totalLabourDays).toLocaleString() : '0'} / Day
               </Text>
             </Box>
             <Box p={2.5} bg="#f0fdf4" color="#16a34a" borderRadius="10px">
@@ -206,8 +207,8 @@ export const LabourBudgetTab: React.FC<LabourBudgetTabProps> = ({ project }) => 
                   <Table.ColumnHeader color="#475569">Task Scope</Table.ColumnHeader>
                   <Table.ColumnHeader color="#475569">Labour Trade / Category</Table.ColumnHeader>
                   <Table.ColumnHeader color="#475569" textAlign="right">Man-Days / Qty</Table.ColumnHeader>
-                  <Table.ColumnHeader color="#475569" textAlign="right">Unit Rate ({activeCompany.currency})</Table.ColumnHeader>
-                  <Table.ColumnHeader color="#475569" textAlign="right">Total Cost ({activeCompany.currency})</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569" textAlign="right">Unit Rate ({currency})</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569" textAlign="right">Total Cost ({currency})</Table.ColumnHeader>
                   <Table.ColumnHeader color="#475569">Notes</Table.ColumnHeader>
                   <Table.ColumnHeader color="#475569" textAlign="right">Actions</Table.ColumnHeader>
                 </Table.Row>
@@ -224,13 +225,13 @@ export const LabourBudgetTab: React.FC<LabourBudgetTabProps> = ({ project }) => 
                       </Badge>
                     </Table.Cell>
                     <Table.Cell fontSize="xs" color="#334155" textAlign="right">
-                      {item.quantity.toLocaleString()} Days
+                      {(Number(item?.quantity) || 0).toLocaleString()} Days
                     </Table.Cell>
                     <Table.Cell fontSize="xs" color="#334155" textAlign="right">
-                      {activeCompany.currency} {item.unitRate.toLocaleString()}
+                      {currency} {(Number(item?.unitRate) || 0).toLocaleString()}
                     </Table.Cell>
                     <Table.Cell fontSize="xs" fontWeight="bold" color="#2563eb" textAlign="right">
-                      {activeCompany.currency} {(item.quantity * item.unitRate).toLocaleString()}
+                      {currency} {((Number(item?.quantity) || 0) * (Number(item?.unitRate) || 0)).toLocaleString()}
                     </Table.Cell>
                     <Table.Cell fontSize="xs" color="#64748b">
                       {item.notes || 'Standard task staffing'}
@@ -258,7 +259,7 @@ export const LabourBudgetTab: React.FC<LabourBudgetTabProps> = ({ project }) => 
             TOTAL LABOUR BUDGET ALLOCATION ({currentLabour.length} Items)
           </Text>
           <Text fontSize="base" fontWeight="black" color="#2563eb">
-            {activeCompany.currency} {totalLabourCost.toLocaleString()}
+            {currency} {(totalLabourCost ?? 0).toLocaleString()}
           </Text>
         </Flex>
       </Card.Root>
@@ -321,7 +322,7 @@ export const LabourBudgetTab: React.FC<LabourBudgetTabProps> = ({ project }) => 
                     />
                   </Box>
                   <Box>
-                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Unit Daily Rate ({activeCompany.currency}) *</Text>
+                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Unit Daily Rate ({currency}) *</Text>
                     <Input
                       size="sm"
                       type="number"
@@ -337,7 +338,7 @@ export const LabourBudgetTab: React.FC<LabourBudgetTabProps> = ({ project }) => 
                   <Flex justify="space-between" align="center">
                     <Text fontSize="xs" color="#1e40af" fontWeight="medium">Calculated Line Total:</Text>
                     <Text fontSize="sm" fontWeight="bold" color="#1d4ed8">
-                      {activeCompany.currency} {(Number(form.quantity || 0) * Number(form.unitRate || 0)).toLocaleString()}
+                      {currency} {((Number(form.quantity) || 0) * (Number(form.unitRate) || 0)).toLocaleString()}
                     </Text>
                   </Flex>
                 </Box>
@@ -423,7 +424,7 @@ export const LabourBudgetTab: React.FC<LabourBudgetTabProps> = ({ project }) => 
                     />
                   </Box>
                   <Box>
-                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Unit Daily Rate ({activeCompany.currency}) *</Text>
+                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Unit Daily Rate ({currency}) *</Text>
                     <Input
                       size="sm"
                       type="number"
@@ -439,7 +440,7 @@ export const LabourBudgetTab: React.FC<LabourBudgetTabProps> = ({ project }) => 
                   <Flex justify="space-between" align="center">
                     <Text fontSize="xs" color="#1e40af" fontWeight="medium">Calculated Line Total:</Text>
                     <Text fontSize="sm" fontWeight="bold" color="#1d4ed8">
-                      {activeCompany.currency} {(Number(editForm.quantity || 0) * Number(editForm.unitRate || 0)).toLocaleString()}
+                      {currency} {((Number(editForm.quantity) || 0) * (Number(editForm.unitRate) || 0)).toLocaleString()}
                     </Text>
                   </Flex>
                 </Box>

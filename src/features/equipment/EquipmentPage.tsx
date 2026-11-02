@@ -395,7 +395,7 @@ export const EquipmentPage: React.FC = () => {
             fontSize="sm"
             onClick={() => setActiveTab('fuel')}
           >
-            <Fuel size={16} /> Bulk Fuel Consumption Logs ({fuelConsumptions.length})
+            <Fuel size={16} /> Fuel Consumption Logs ({fuelConsumptions.length})
           </Button>
         </Flex>
       </Box>

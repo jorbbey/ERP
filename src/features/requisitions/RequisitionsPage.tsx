@@ -20,6 +20,7 @@ import { WaybillsTab } from './components/WaybillsTab';
 import { RequisitionCreateModal } from './components/RequisitionCreateModal';
 import { RequisitionDetailModal } from './components/RequisitionDetailModal';
 import { RequisitionVoucherModal } from './components/RequisitionVoucherModal';
+import { PageActionGuide } from '../../components/common/PageActionGuide';
 import { 
   ClipboardList, 
   Plus, 
@@ -116,19 +117,49 @@ export const RequisitionsPage: React.FC = () => {
               </Box>
               <Box>
                 <Heading size="lg" color="#0f172a" fontWeight="bold">
-                  Material Requisitions & Site Dispatches
+                  Requisition & Site Dispatches
                 </Heading>
                 <Text fontSize="xs" color="#64748b" mt={0.5}>
-                  Site engineer BOQ requisitions, executive review workflow, store gate passes, and transport waybills.
+                  Site engineer material requests, management review workflow, warehouse stock allocations, and transport waybills.
                 </Text>
               </Box>
             </Flex>
           </Box>
           <Button size="sm" colorPalette="blue" onClick={() => setShowCreateModal(true)} fontWeight="semibold">
-            <Plus size={16} /> Raise Requisition (MR)
+            <Plus size={16} /> Request Materials
           </Button>
         </Flex>
       </Card.Root>
+
+      {/* Plain-English Guided Workflow */}
+      <PageActionGuide
+        storageKey="requisitions_page_guide"
+        title="How Material Requests & Dispatches Work"
+        goalDescription="When job sites need cement, rebar, gravel, or equipment, site engineers submit a Material Request here. Once approved by management, the warehouse reserves the stock and arranges truck dispatch."
+        steps={[
+          {
+            stepNumber: 1,
+            title: "Submit Material Request",
+            description: "Click 'Request Materials' above. Select your project, required items, quantity, and urgency (Normal or Urgent)."
+          },
+          {
+            stepNumber: 2,
+            title: "Management Approval",
+            description: "Department heads and managers review the request against project budget. Upon approval, items are allocated from store stock."
+          },
+          {
+            stepNumber: 3,
+            title: "Dispatch Truck & Issue Waybill",
+            description: "The warehouse prepares the materials, assigns a driver and truck, and generates a formal delivery waybill (Gate Pass)."
+          },
+          {
+            stepNumber: 4,
+            title: "Site Receives Delivery",
+            description: "The site foreman checks physical quantities upon arrival, signs the delivery note, and marks the request as delivered."
+          }
+        ]}
+        tip="Looking to dispatch stock that has already been approved? Switch to the 'Dispatch Requests Queue' tab below to load trucks and print waybills."
+      />
 
       {/* KPI Cards */}
       <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} gap={4}>
@@ -307,6 +338,13 @@ export const RequisitionsPage: React.FC = () => {
                         </Table.Cell>
                         <Table.Cell fontSize="xs">
                           {getStatusBadge(req.status)}
+                          {req.purchaseOrderNo && (
+                            <Box mt={1}>
+                              <Badge size="xs" colorPalette="purple" variant="subtle">
+                                PO: {req.purchaseOrderNo}
+                              </Badge>
+                            </Box>
+                          )}
                         </Table.Cell>
                         <Table.Cell fontSize="xs" textAlign="right">
                           <Flex justify="flex-end" gap={1}>

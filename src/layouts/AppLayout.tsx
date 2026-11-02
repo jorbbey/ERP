@@ -30,7 +30,10 @@ import {
   X,
   ExternalLink,
   LogOut,
-  Compass
+  Compass,
+  BookOpen,
+  HelpCircle,
+  Info
 } from 'lucide-react';
 import { FloatingAIAssistant } from '../features/assistant/components/FloatingAIAssistant';
 import { EnterpriseSearchModal } from '../components/common/EnterpriseSearchModal';
@@ -87,6 +90,7 @@ export const AppLayout: React.FC = () => {
   interface NavItem {
     path: string;
     label: string;
+    subtitle?: string;
     icon: any;
     badge?: string;
     badgeColor?: string;
@@ -99,69 +103,73 @@ export const AppLayout: React.FC = () => {
 
   const navGroups: NavGroup[] = [
     {
-      group: 'Core Operations',
+      group: 'Overview & Sites',
       items: [
-        { path: '/dashboard', label: 'Executive Dashboard', icon: LayoutDashboard },
+        { path: '/dashboard', label: 'Company Overview', subtitle: 'Executive dashboard & alerts', icon: LayoutDashboard },
         { 
           path: '/assistant', 
           label: 'ERP Assistant', 
+          subtitle: 'Ask questions in plain English',
           icon: Bot,
           badge: 'AI',
           badgeColor: 'blue'
         },
-        { path: '/projects', label: 'Projects & Sites', icon: HardHat }
+        { path: '/projects', label: 'Projects & Sites', subtitle: 'Active construction sites & BOQ', icon: HardHat }
       ]
     },
     {
-      group: 'Supply Chain & Plant',
+      group: 'Materials & Equipment',
       items: [
         { 
           path: '/requisitions', 
-          label: 'Material Requisitions', 
+          label: 'Requisition', 
+          subtitle: 'Site material requests & dispatches',
           icon: ClipboardList,
           badge: pendingReqsCount > 0 ? String(pendingReqsCount) : undefined,
           badgeColor: 'orange'
         },
         { 
           path: '/inventory', 
-          label: 'Stores & Inventory', 
+          label: 'Warehouse & Stock', 
+          subtitle: 'Stock levels, allocation & dispatch',
           icon: Boxes,
           badge: lowStockCount > 0 ? `${lowStockCount} Low` : undefined,
           badgeColor: 'red'
         },
-        { path: '/procurement', label: 'Procurement & PO', icon: ShoppingCart },
-        { path: '/rmc', label: 'Ready-Mix Concrete', icon: Truck },
-        { path: '/equipment', label: 'Plant & Heavy Fleet', icon: Truck }
+        { path: '/procurement', label: 'Purchasing & POs', subtitle: 'Buy from vendors & log GRNs', icon: ShoppingCart },
+        { path: '/rmc', label: 'Concrete Batching (RMC)', subtitle: 'Mix designs, tickets & tests', icon: Truck },
+        { path: '/equipment', label: 'Machinery & Fleet', subtitle: 'Excavators, trucks, fuel & repairs', icon: Truck }
       ]
     },
     {
-      group: 'Human Capital',
+      group: 'People & Salaries',
       items: [
         { 
           path: '/hr', 
-          label: 'HR & Personnel', 
+          label: 'Staff & Team (HR)', 
+          subtitle: 'Employees, clock-in, leaves & loans',
           icon: Users,
           badge: pendingHRActionsCount > 0 ? String(pendingHRActionsCount) : undefined,
           badgeColor: 'purple'
         },
-        { path: '/payroll', label: 'Payroll & Remuneration', icon: Wallet }
+        { path: '/payroll', label: 'Salaries & Payslips', subtitle: 'Monthly payroll & staff slips', icon: Wallet }
       ]
     },
     {
-      group: 'Finance & Governance',
+      group: 'Finance & Legal',
       items: [
-        { path: '/contract-admin', label: 'FIDIC Contracts', icon: FileText },
-        { path: '/accounting', label: 'Accounting & Ledger', icon: Scale },
-        { path: '/documents', label: 'Documents & Vault', icon: FolderKanban }
+        { path: '/contract-admin', label: 'Contracts & Legal (FIDIC)', subtitle: 'Client contracts, variations & claims', icon: FileText },
+        { path: '/accounting', label: 'Money & Accounts', subtitle: 'Invoices, supplier bills & cash flow', icon: Scale },
+        { path: '/documents', label: 'Company Files & Vault', subtitle: 'Drawings, permits & certificates', icon: FolderKanban }
       ]
     },
     {
-      group: 'System & Portals',
+      group: 'Settings & Tools',
       items: [
-        { path: '/workflow', label: 'Approval Workflows', icon: Workflow },
-        { path: '/chat', label: 'Team Live Chat', icon: MessageSquare },
-        { path: '/portals', label: 'Role Portals Hub', icon: Compass },
-        { path: '/settings', label: 'ERP Settings', icon: Sliders }
+        { path: '/workflow', label: 'Approval Workflows', subtitle: 'Multi-level sign-off rules', icon: Workflow },
+        { path: '/chat', label: 'Team Live Chat', subtitle: 'Internal office & site chat', icon: MessageSquare },
+        { path: '/portals', label: 'Role Portals Hub', subtitle: 'Engineer & storekeeper views', icon: Compass },
+        { path: '/settings', label: 'ERP Settings', subtitle: 'Company details, roles & currency', icon: Sliders }
       ]
     }
   ];
@@ -330,6 +338,7 @@ export const AppLayout: React.FC = () => {
 
           {/* Right Controls: Impersonation, Role Switcher, Search (mobile), Notifications, Profile */}
           <Flex align="center" gap={2}>
+
             {/* Mobile Search Button */}
             <Box 
               as="button"
@@ -547,7 +556,14 @@ export const AppLayout: React.FC = () => {
                           <Icon size={16} style={{ flexShrink: 0, color: isActive ? '#2563eb' : '#64748b' }} />
                           {!collapsed && (
                             <Flex justify="space-between" align="center" flex="1" overflow="hidden">
-                              <Text truncate>{item.label}</Text>
+                              <Box minW="0" pr={1}>
+                                <Text truncate fontWeight={isActive ? "bold" : "medium"}>{item.label}</Text>
+                                {item.subtitle && (
+                                  <Text fontSize="10px" color={isActive ? "#2563eb" : "#94a3b8"} truncate fontWeight="normal">
+                                    {item.subtitle}
+                                  </Text>
+                                )}
+                              </Box>
                               {item.badge && (
                                 <Badge 
                                   size="xs" 
@@ -555,6 +571,8 @@ export const AppLayout: React.FC = () => {
                                   variant="solid" 
                                   fontSize="9px" 
                                   px={1.5}
+                                  flexShrink={0}
+                                  ml={1.5}
                                 >
                                   {item.badge}
                                 </Badge>
@@ -642,9 +660,16 @@ export const AppLayout: React.FC = () => {
                               color={isActive ? "#1d4ed8" : "#475569"}
                               bg={isActive ? "#eff6ff" : "transparent"}
                             >
-                              <Flex align="center" gap={2.5}>
-                                <Icon size={16} color={isActive ? '#2563eb' : '#64748b'} />
-                                <Text>{item.label}</Text>
+                              <Flex align="center" gap={2.5} minW="0" pr={2}>
+                                <Icon size={16} color={isActive ? '#2563eb' : '#64748b'} style={{ flexShrink: 0 }} />
+                                <Box textAlign="left" minW="0">
+                                  <Text truncate fontWeight={isActive ? "bold" : "medium"}>{item.label}</Text>
+                                  {item.subtitle && (
+                                    <Text fontSize="10px" color={isActive ? "#2563eb" : "#94a3b8"} truncate fontWeight="normal">
+                                      {item.subtitle}
+                                    </Text>
+                                  )}
+                                </Box>
                               </Flex>
                               {item.badge && (
                                 <Badge size="xs" colorPalette={item.badgeColor as any} variant="solid">
@@ -683,8 +708,8 @@ export const AppLayout: React.FC = () => {
         <Box as="main" flex="1" minW="0" overflowY="auto" overflowX="hidden" p={{ base: 2.5, sm: 4, md: 5, lg: 6 }} bg="#f8fafc" w="100%">
           <Box maxW="1520px" mx="auto" w="100%" minW="0">
             {/* Elegant Breadcrumb Header */}
-            <Flex align="center" justify="space-between" mb={5} pb={3} borderBottom="1px solid #e2e8f0">
-              <Flex align="center" gap={2} fontSize="xs" color="#64748b">
+            <Flex align="center" justify="space-between" mb={4} pb={2.5} borderBottom="1px solid #e2e8f0" flexWrap="wrap" gap={2}>
+              <Flex align="center" gap={2} fontSize="xs" color="#64748b" flexWrap="wrap">
                 <Box as="button" onClick={() => navigate('/dashboard')} display="flex" alignItems="center" _hover={{ color: '#0f172a' }}>
                   <Home size={14} style={{ marginRight: '4px' }} />
                   ERP
@@ -693,9 +718,12 @@ export const AppLayout: React.FC = () => {
                 <Text color="#0f172a" fontWeight="semibold">
                   {currentTitle}
                 </Text>
+                {currentNav?.subtitle && (
+                  <Badge size="xs" colorPalette="gray" variant="subtle" display={{ base: 'none', md: 'inline-flex' }} fontSize="10px">
+                    {currentNav.subtitle}
+                  </Badge>
+                )}
               </Flex>
-
-
             </Flex>
 
             {/* Active Route Content */}

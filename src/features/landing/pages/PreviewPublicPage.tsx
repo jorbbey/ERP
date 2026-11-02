@@ -152,7 +152,7 @@ export const PreviewPublicPage: React.FC = () => {
             {[
               { id: 'exec', label: 'Executive Overview', icon: BarChart3 },
               { id: 'projects', label: 'Civil Projects & BOQ', icon: HardHat },
-              { id: 'requisitions', label: 'Material Requisitions', icon: Boxes },
+              { id: 'requisitions', label: 'Requisition', icon: Boxes },
               { id: 'fleet', label: 'Plant & Heavy Fleet', icon: Truck },
               { id: 'contracts', label: 'FIDIC Contracts', icon: FileText }
             ].map(tab => {

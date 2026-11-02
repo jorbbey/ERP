@@ -27,8 +27,7 @@ import {
   EyeOff,
   CheckCircle2,
   AlertCircle,
-  Clock,
-  ShieldCheck
+  Clock
 } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
@@ -387,17 +386,6 @@ export const LoginPage: React.FC = () => {
           /* FORM: Company Registration & Onboarding */
           <form onSubmit={handleRegisterCompany}>
             <Stack gap={3.5}>
-              {/* Trial Callout Banner */}
-              <Box p={3} bg="#eff6ff" borderRadius="10px" border="1px solid #bfdbfe" fontSize="xs">
-                <Flex align="center" gap={2} mb={1}>
-                  <ShieldCheck size={16} color="#2563eb" />
-                  <Text fontWeight="bold" color="#1d4ed8">14-Day Enterprise Trial Included</Text>
-                </Flex>
-                <Text color="#3b82f6" fontSize="11px">
-                  Register your construction company workspace. You receive full access to FIDIC Contracts, Stores & Inventory, Biometric HR, 3-Way PO Matching, Equipment, and RMC batching.
-                </Text>
-              </Box>
-
               <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
                 <Box>
                   <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1} display="flex" alignItems="center" gap={1.5}>

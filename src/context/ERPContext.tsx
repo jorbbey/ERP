@@ -312,6 +312,7 @@ interface ERPContextType {
   purchaseOrders: PurchaseOrder[];
   createPurchaseOrder: (p: Omit<PurchaseOrder, 'id' | 'poNumber' | 'status' | 'orderDate'>) => void;
   updatePOStatus: (id: number, status: PurchaseOrder['status'], rejectionReason?: string) => void;
+  addPOMessage: (id: number, message: string) => void;
   goodsReceivedNotes: GoodsReceivedNote[];
   createGRN: (data: Parameters<typeof grnService.createGRN>[0]) => { success: boolean; error?: string };
 
@@ -465,7 +466,13 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Entities
   const [employees, setEmployees] = useState<Employee[]>(() => erpStorage.getEmployees());
   const [departments, setDepartments] = useState<Department[]>(() => erpStorage.getDepartments());
-  const [projects, setProjects] = useState<Project[]>(() => erpStorage.getProjects());
+  const [projects, setProjects] = useState<Project[]>(() => {
+    const loaded = erpStorage.getProjects() || [];
+    return loaded.map(p => ({
+      ...p,
+      assignedEngineers: (p.assignedEngineers && p.assignedEngineers.length > 0) ? p.assignedEngineers : [p.manager || 'Resident Engineer']
+    }));
+  });
   const [projectBudgets, setProjectBudgets] = useState<ProjectBudget[]>(() => erpStorage.getProjectBudgets());
   const [projectSchedules, setProjectSchedules] = useState<ProjectScheduleTask[]>(() => erpStorage.getProjectSchedules());
   const [delayLogs, setDelayLogs] = useState<ProjectDelayLog[]>(() => erpStorage.getDelayLogs());
@@ -1465,7 +1472,8 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ...pData,
       id: Date.now(),
       spent: 0,
-      progressPercent: 0
+      progressPercent: 0,
+      assignedEngineers: pData.assignedEngineers && pData.assignedEngineers.length > 0 ? pData.assignedEngineers : [pData.manager || currentUserName]
     };
     const updated = [newProj, ...projects];
     setProjects(updated);
@@ -2374,12 +2382,49 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Procurement (Purchase Orders & GRNs)
   const createPurchaseOrder = (pData: any) => {
-    purchaseOrderService.createPurchaseOrder(pData);
+    const newPO = purchaseOrderService.createPurchaseOrder({
+      ...pData,
+      actorName: currentUserName,
+      actorRole: activeRole
+    });
     setPurchaseOrders(erpStorage.getPurchaseOrders());
+    setRequisitions(erpStorage.getRequisitions());
+
+    // Cross-module update: Project activity & tracking
+    if (newPO.projectId) {
+      addProjectActivity({
+        projectId: newPO.projectId,
+        user: currentUserName,
+        role: activeRole,
+        activityType: 'Procurement',
+        description: `Raised Purchase Order ${newPO.poNumber} for vendor ${newPO.supplierName} (${activeCompany.currency} ${newPO.totalAmount.toLocaleString()})`
+      });
+    }
+
+    addSystemLog({
+      module: 'Procurement',
+      action: 'Create Purchase Order',
+      description: `Purchase order ${newPO.poNumber} issued to ${newPO.supplierName}.`
+    });
   };
 
   const updatePOStatus = (id: number, status: PurchaseOrder['status'], rejectionReason?: string) => {
-    purchaseOrderService.updatePOStatus(id, status, currentUserName, rejectionReason);
+    const po = purchaseOrderService.updatePOStatus(id, status, currentUserName, activeRole, rejectionReason);
+    setPurchaseOrders(erpStorage.getPurchaseOrders());
+
+    if (po && po.projectId) {
+      addProjectActivity({
+        projectId: po.projectId,
+        user: currentUserName,
+        role: activeRole,
+        activityType: 'Procurement',
+        description: `Purchase Order ${po.poNumber} status updated to: ${status.replace('_', ' ').toUpperCase()}`
+      });
+    }
+  };
+
+  const addPOMessage = (id: number, message: string) => {
+    purchaseOrderService.addPOMessage(id, currentUserName, activeRole, message);
     setPurchaseOrders(erpStorage.getPurchaseOrders());
   };
 
@@ -2391,6 +2436,42 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setStockMovements(erpStorage.getStockMovements());
       setPurchaseOrders(erpStorage.getPurchaseOrders());
       setWarehouses(warehouseService.getWarehouses());
+
+      // Cross-module update: Link GRN to project audit & linked requisition
+      const targetPO = purchaseOrderService.getPOById(data.purchaseOrderId);
+      if (targetPO) {
+        if (targetPO.projectId) {
+          addProjectActivity({
+            projectId: targetPO.projectId,
+            user: currentUserName,
+            role: activeRole,
+            activityType: 'Procurement',
+            description: `Received goods on site/yard against ${data.poNumber}: ${res.grn?.grnNumber || 'GRN logged'}`
+          });
+        }
+
+        // If this PO was fulfilling a Requisition, check if fully received
+        if (targetPO.requisitionId || targetPO.requisitionNo) {
+          const allReqs = erpStorage.getRequisitions();
+          const targetReq = allReqs.find(r => r.id === targetPO.requisitionId || r.requisitionNo === targetPO.requisitionNo);
+          if (targetReq) {
+            if (targetPO.status === 'received') {
+              targetReq.status = 'Ready for Dispatch';
+            }
+            if (!targetReq.messages) targetReq.messages = [];
+            targetReq.messages.push({
+              id: Date.now(),
+              userName: 'Warehouse Logistics',
+              role: 'Store Officer',
+              message: `Goods received against ${data.poNumber} (${res.grn?.grnNumber}). Stock is now verified and available in warehouse for dispatch.`,
+              createdAt: `${new Date().toISOString().split('T')[0]} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+              isSystemEvent: true
+            });
+            erpStorage.saveRequisitions(allReqs);
+            setRequisitions(erpStorage.getRequisitions());
+          }
+        }
+      }
     }
     return res;
   };
@@ -2967,6 +3048,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         purchaseOrders,
         createPurchaseOrder,
         updatePOStatus,
+        addPOMessage,
         goodsReceivedNotes,
         createGRN,
         employees,

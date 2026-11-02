@@ -90,7 +90,7 @@ export const EnterpriseSearchModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const quickModules = [
     { label: 'Civil Projects & Sites', path: '/projects', icon: HardHat, cat: 'Projects' },
     { label: 'Stores & Material Inventory', path: '/inventory', icon: Boxes, cat: 'Supply' },
-    { label: 'Material Requisitions', path: '/requisitions', icon: ClipboardList, cat: 'Supply' },
+    { label: 'Requisition', path: '/requisitions', icon: ClipboardList, cat: 'Supply' },
     { label: 'Procurement & Purchase Orders', path: '/procurement', icon: ShoppingCart, cat: 'Supply' },
     { label: 'Ready-Mix Concrete Batching', path: '/rmc', icon: Truck, cat: 'Plant' },
     { label: 'Workforce & Biometrics', path: '/hr', icon: Users, cat: 'HR' },
@@ -307,7 +307,7 @@ export const EnterpriseSearchModal: React.FC<Props> = ({ isOpen, onClose }) => {
           {matchedRequisitions.length > 0 && (
             <Box mb={3}>
               <Text fontSize="11px" fontWeight="bold" textTransform="uppercase" color="#94a3b8" letterSpacing="0.05em" px={3} py={1}>
-                Field Material Requisitions
+                Requisitions
               </Text>
               <Stack gap={1}>
                 {matchedRequisitions.map(r => (

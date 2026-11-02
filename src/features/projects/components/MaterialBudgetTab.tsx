@@ -24,8 +24,9 @@ interface MaterialBudgetTabProps {
 export const MaterialBudgetTab: React.FC<MaterialBudgetTabProps> = ({ project }) => {
   const { materialBudgets, addMaterialBudget, updateMaterialBudget, deleteMaterialBudget, activeCompany } = useERP();
 
+  const currency = activeCompany?.currency || '₦';
   const currentMaterials = materialBudgets.filter(m => m.projectId === project.id);
-  const totalMaterialCost = currentMaterials.reduce((sum, m) => sum + (m.quantity * m.unitCost), 0);
+  const totalMaterialCost = currentMaterials.reduce((sum, m) => sum + ((Number(m?.quantity) || 0) * (Number(m?.unitCost) || 0)), 0);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<ProjectMaterialBudget | null>(null);
@@ -133,7 +134,7 @@ export const MaterialBudgetTab: React.FC<MaterialBudgetTabProps> = ({ project })
                 Total Material Budget
               </Text>
               <Text fontSize="xl" fontWeight="black" color="#2563eb" mt={1}>
-                {activeCompany.currency} {totalMaterialCost.toLocaleString()}
+                {currency} {(totalMaterialCost ?? 0).toLocaleString()}
               </Text>
             </Box>
             <Box p={2.5} bg="#eff6ff" color="#2563eb" borderRadius="10px">
@@ -211,8 +212,8 @@ export const MaterialBudgetTab: React.FC<MaterialBudgetTabProps> = ({ project })
                   <Table.ColumnHeader color="#475569">Category</Table.ColumnHeader>
                   <Table.ColumnHeader color="#475569">Unit</Table.ColumnHeader>
                   <Table.ColumnHeader color="#475569" textAlign="right">Quantity</Table.ColumnHeader>
-                  <Table.ColumnHeader color="#475569" textAlign="right">Unit Cost ({activeCompany.currency})</Table.ColumnHeader>
-                  <Table.ColumnHeader color="#475569" textAlign="right">Total Cost ({activeCompany.currency})</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569" textAlign="right">Unit Cost ({currency})</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569" textAlign="right">Total Cost ({currency})</Table.ColumnHeader>
                   <Table.ColumnHeader color="#475569">Supplier</Table.ColumnHeader>
                   <Table.ColumnHeader color="#475569" textAlign="right">Actions</Table.ColumnHeader>
                 </Table.Row>
@@ -232,13 +233,13 @@ export const MaterialBudgetTab: React.FC<MaterialBudgetTabProps> = ({ project })
                       {item.unit}
                     </Table.Cell>
                     <Table.Cell fontSize="xs" color="#334155" textAlign="right">
-                      {item.quantity.toLocaleString()}
+                      {(Number(item?.quantity) || 0).toLocaleString()}
                     </Table.Cell>
                     <Table.Cell fontSize="xs" color="#334155" textAlign="right">
-                      {activeCompany.currency} {item.unitCost.toLocaleString()}
+                      {currency} {(Number(item?.unitCost) || 0).toLocaleString()}
                     </Table.Cell>
                     <Table.Cell fontSize="xs" fontWeight="bold" color="#2563eb" textAlign="right">
-                      {activeCompany.currency} {(item.quantity * item.unitCost).toLocaleString()}
+                      {currency} {((Number(item?.quantity) || 0) * (Number(item?.unitCost) || 0)).toLocaleString()}
                     </Table.Cell>
                     <Table.Cell fontSize="xs" color="#64748b">
                       {item.supplier || 'Site Direct'}
@@ -266,7 +267,7 @@ export const MaterialBudgetTab: React.FC<MaterialBudgetTabProps> = ({ project })
             TOTAL MATERIAL BUDGET ALLOCATION ({currentMaterials.length} Items)
           </Text>
           <Text fontSize="base" fontWeight="black" color="#2563eb">
-            {activeCompany.currency} {totalMaterialCost.toLocaleString()}
+            {currency} {(totalMaterialCost ?? 0).toLocaleString()}
           </Text>
         </Flex>
       </Card.Root>
@@ -341,7 +342,7 @@ export const MaterialBudgetTab: React.FC<MaterialBudgetTabProps> = ({ project })
                     />
                   </Box>
                   <Box>
-                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Unit Cost ({activeCompany.currency}) *</Text>
+                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Unit Cost ({currency}) *</Text>
                     <Input
                       size="sm"
                       type="number"
@@ -357,7 +358,7 @@ export const MaterialBudgetTab: React.FC<MaterialBudgetTabProps> = ({ project })
                   <Flex justify="space-between" align="center">
                     <Text fontSize="xs" color="#1e40af" fontWeight="medium">Calculated Line Total:</Text>
                     <Text fontSize="sm" fontWeight="bold" color="#1d4ed8">
-                      {activeCompany.currency} {(Number(form.quantity || 0) * Number(form.unitCost || 0)).toLocaleString()}
+                      {currency} {(Number(form.quantity || 0) * Number(form.unitCost || 0)).toLocaleString()}
                     </Text>
                   </Flex>
                 </Box>
@@ -454,7 +455,7 @@ export const MaterialBudgetTab: React.FC<MaterialBudgetTabProps> = ({ project })
                     />
                   </Box>
                   <Box>
-                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Unit Cost ({activeCompany.currency}) *</Text>
+                    <Text fontSize="xs" fontWeight="bold" color="#334155" mb={1}>Unit Cost ({currency}) *</Text>
                     <Input
                       size="sm"
                       type="number"
@@ -470,7 +471,7 @@ export const MaterialBudgetTab: React.FC<MaterialBudgetTabProps> = ({ project })
                   <Flex justify="space-between" align="center">
                     <Text fontSize="xs" color="#1e40af" fontWeight="medium">Calculated Line Total:</Text>
                     <Text fontSize="sm" fontWeight="bold" color="#1d4ed8">
-                      {activeCompany.currency} {(Number(editForm.quantity || 0) * Number(editForm.unitCost || 0)).toLocaleString()}
+                      {currency} {(Number(editForm.quantity || 0) * Number(editForm.unitCost || 0)).toLocaleString()}
                     </Text>
                   </Flex>
                 </Box>

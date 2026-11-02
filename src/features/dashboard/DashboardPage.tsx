@@ -72,7 +72,7 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <Stack gap={6}>
-      {/* 1. Executive Operations Banner */}
+      {/* 1. Company Overview Banner */}
       <Card.Root bg="#ffffff" borderRadius="16px" boxShadow="0 1px 3px 0 rgba(0, 0, 0, 0.05)" border="1px solid #e2e8f0" p={{ base: 4, md: 6 }}>
         <Flex direction={{ base: 'column', lg: 'row' }} justify="space-between" align={{ lg: 'center' }} gap={4}>
           <Box>
@@ -81,14 +81,14 @@ export const DashboardPage: React.FC = () => {
                 <Building2 size={20} />
               </Box>
               <Heading size="lg" color="#0f172a" fontWeight="bold">
-                Executive Construction Command Center
+                Company Overview & Operations
               </Heading>
               <Badge size="sm" colorPalette="blue" variant="solid">
                 {activeCompany.code}
               </Badge>
             </Flex>
             <Text fontSize="xs" color="#64748b" maxW="720px">
-              Real-time site execution, physical milestone progress, CapEx consumption, stores replenishment, and plant batching across active holdings.
+              Welcome! Here is an easy, real-time snapshot of your active job sites, material requests waiting for approval, warehouse inventory, and workforce.
             </Text>
           </Box>
 
@@ -105,7 +105,7 @@ export const DashboardPage: React.FC = () => {
               fontWeight="semibold"
               whiteSpace="nowrap"
             >
-              <PlusCircle size={16} /> New Requisition
+              <PlusCircle size={16} /> Request Materials
             </Button>
             <Button 
               size="sm" 
@@ -119,7 +119,21 @@ export const DashboardPage: React.FC = () => {
               fontWeight="semibold"
               whiteSpace="nowrap"
             >
-              <HardHat size={16} /> All Projects
+              <HardHat size={16} /> View Job Sites
+            </Button>
+            <Button 
+              size="sm" 
+              h="38px"
+              px={4}
+              variant="outline"
+              borderColor="#cbd5e1"
+              color="#0f172a"
+              _hover={{ bg: '#f8fafc', borderColor: '#94a3b8' }}
+              onClick={() => navigate('/inventory')}
+              fontWeight="semibold"
+              whiteSpace="nowrap"
+            >
+              <Boxes size={16} /> Warehouse Stock
             </Button>
             <Button 
               size="sm" 
@@ -133,7 +147,7 @@ export const DashboardPage: React.FC = () => {
               fontWeight="semibold"
               whiteSpace="nowrap"
             >
-              <Bot size={16} /> AI Assistant
+              <Bot size={16} /> ERP Assistant
             </Button>
           </Flex>
         </Flex>
@@ -141,11 +155,11 @@ export const DashboardPage: React.FC = () => {
 
       {/* 2. Primary KPI Tiles (6-Card Grid) */}
       <SimpleGrid columns={{ base: 1, sm: 2, lg: 3, xl: 6 }} gap={3.5}>
-        {/* Tile 1: Active Civil Sites */}
+        {/* Tile 1: Active Construction Sites */}
         <Card.Root bg="#ffffff" borderRadius="14px" p={4} border="1px solid #e2e8f0" boxShadow="xs">
           <Flex justify="space-between" align="center">
             <Text fontSize="10px" fontWeight="bold" color="#64748b" textTransform="uppercase" letterSpacing="0.04em">
-              Active Sites
+              Active Job Sites
             </Text>
             <Box p={1.5} bg="#eff6ff" color="#2563eb" borderRadius="8px">
               <HardHat size={16} />
@@ -155,16 +169,16 @@ export const DashboardPage: React.FC = () => {
             {activeProjectsCount}
           </Text>
           <Flex align="center" justify="space-between" mt={1}>
-            <Text fontSize="11px" color="#64748b">of {projects.length} portfolios</Text>
+            <Text fontSize="11px" color="#64748b">of {projects.length} total projects</Text>
             <Badge size="xs" colorPalette="green" variant="subtle">On Track</Badge>
           </Flex>
         </Card.Root>
 
-        {/* Tile 2: CapEx Contract Book */}
+        {/* Tile 2: Project Budgets */}
         <Card.Root bg="#ffffff" borderRadius="14px" p={4} border="1px solid #e2e8f0" boxShadow="xs">
           <Flex justify="space-between" align="center">
             <Text fontSize="10px" fontWeight="bold" color="#64748b" textTransform="uppercase" letterSpacing="0.04em">
-              Contract Book
+              Total Budgets
             </Text>
             <Box p={1.5} bg="#ecfdf5" color="#059669" borderRadius="8px">
               <Wallet size={16} />
@@ -175,7 +189,7 @@ export const DashboardPage: React.FC = () => {
           </Text>
           <Flex align="center" justify="space-between" mt={1}>
             <Text fontSize="11px" color="#64748b">{currency} {(totalSpent / 1000000).toFixed(1)}M Spent</Text>
-            <Text fontSize="11px" fontWeight="bold" color="#059669">{budgetUtilization}%</Text>
+            <Text fontSize="11px" fontWeight="bold" color="#059669">{budgetUtilization}% used</Text>
           </Flex>
         </Card.Root>
 
@@ -183,20 +197,20 @@ export const DashboardPage: React.FC = () => {
         <Card.Root bg="#ffffff" borderRadius="14px" p={4} border="1px solid #e2e8f0" boxShadow="xs">
           <Flex justify="space-between" align="center">
             <Text fontSize="10px" fontWeight="bold" color="#64748b" textTransform="uppercase" letterSpacing="0.04em">
-              Pending Reqs
+              Material Requests
             </Text>
             <Box p={1.5} bg="#fffbeb" color="#d97706" borderRadius="8px">
               <ClipboardList size={16} />
             </Box>
           </Flex>
           <Text fontSize="2xl" fontWeight="black" color="#d97706" mt={2}>
-            {pendingReqs.length}
+            {pendingReqs.length} Waiting
           </Text>
           <Flex align="center" justify="space-between" mt={1}>
             <Text fontSize="11px" color="#64748b">
-              {pendingReqs.filter(r => r.priority === 'Urgent').length} Urgent
+              {pendingReqs.filter(r => r.priority === 'Urgent').length} marked urgent
             </Text>
-            <Badge size="xs" colorPalette="orange" variant="solid">Needs Sign-off</Badge>
+            <Badge size="xs" colorPalette="orange" variant="solid">Needs Review</Badge>
           </Flex>
         </Card.Root>
 
@@ -204,38 +218,38 @@ export const DashboardPage: React.FC = () => {
         <Card.Root bg="#ffffff" borderRadius="14px" p={4} border="1px solid #e2e8f0" boxShadow="xs">
           <Flex justify="space-between" align="center">
             <Text fontSize="10px" fontWeight="bold" color="#64748b" textTransform="uppercase" letterSpacing="0.04em">
-              Low Stock Alerts
+              Low Stock Alert
             </Text>
             <Box p={1.5} bg={lowStockItems.length > 0 ? "#fef2f2" : "#f8fafc"} color={lowStockItems.length > 0 ? "#dc2626" : "#64748b"} borderRadius="8px">
               <Boxes size={16} />
             </Box>
           </Flex>
           <Text fontSize="2xl" fontWeight="black" color={lowStockItems.length > 0 ? "#dc2626" : "#0f172a"} mt={2}>
-            {lowStockItems.length}
+            {lowStockItems.length} Items Low
           </Text>
           <Flex align="center" justify="space-between" mt={1}>
-            <Text fontSize="11px" color="#64748b">{inventory.length} total SKUs</Text>
+            <Text fontSize="11px" color="#64748b">{inventory.length} total materials</Text>
             <Badge size="xs" colorPalette={lowStockItems.length > 0 ? "red" : "green"} variant="subtle">
-              {lowStockItems.length > 0 ? "Replenish" : "Optimal"}
+              {lowStockItems.length > 0 ? "Reorder Soon" : "Stock Healthy"}
             </Badge>
           </Flex>
         </Card.Root>
 
-        {/* Tile 5: Plant Fleet Telematics */}
+        {/* Tile 5: Plant Fleet */}
         <Card.Root bg="#ffffff" borderRadius="14px" p={4} border="1px solid #e2e8f0" boxShadow="xs">
           <Flex justify="space-between" align="center">
             <Text fontSize="10px" fontWeight="bold" color="#64748b" textTransform="uppercase" letterSpacing="0.04em">
-              Heavy Plant
+              Machinery & Trucks
             </Text>
             <Box p={1.5} bg="#fef3c7" color="#d97706" borderRadius="8px">
               <Truck size={16} />
             </Box>
           </Flex>
           <Text fontSize="2xl" fontWeight="black" color="#0f172a" mt={2}>
-            {equipment?.length || 24}
+            {equipment?.length || 24} Units
           </Text>
           <Flex align="center" justify="space-between" mt={1}>
-            <Text fontSize="11px" color="#64748b">Plant Assets</Text>
+            <Text fontSize="11px" color="#64748b">Fleet Equipment</Text>
             <Text fontSize="11px" color="#16a34a" fontWeight="medium">94% Active</Text>
           </Flex>
         </Card.Root>
@@ -244,18 +258,18 @@ export const DashboardPage: React.FC = () => {
         <Card.Root bg="#ffffff" borderRadius="14px" p={4} border="1px solid #e2e8f0" boxShadow="xs">
           <Flex justify="space-between" align="center">
             <Text fontSize="10px" fontWeight="bold" color="#64748b" textTransform="uppercase" letterSpacing="0.04em">
-              Site Workforce
+              Workforce on Site
             </Text>
             <Box p={1.5} bg="#f3e8ff" color="#7c3aed" borderRadius="8px">
               <Users size={16} />
             </Box>
           </Flex>
           <Text fontSize="2xl" fontWeight="black" color="#0f172a" mt={2}>
-            {employees.length}
+            {employees.length} Staff
           </Text>
           <Flex align="center" justify="space-between" mt={1}>
-            <Text fontSize="11px" color="#64748b">Personnel</Text>
-            <Text fontSize="11px" color="#16a34a" fontWeight="medium">Active on Site</Text>
+            <Text fontSize="11px" color="#64748b">Active Workers</Text>
+            <Text fontSize="11px" color="#16a34a" fontWeight="medium">Checked In</Text>
           </Flex>
         </Card.Root>
       </SimpleGrid>
@@ -267,9 +281,9 @@ export const DashboardPage: React.FC = () => {
           <Flex direction={{ base: 'column', sm: 'row' }} justify="space-between" align={{ base: 'flex-start', sm: 'center' }} gap={2} mb={4}>
             <Box>
               <Heading size="md" color="#0f172a" fontWeight="bold">
-                Civil Infrastructure Projects Execution
+                Current Construction Projects
               </Heading>
-              <Text fontSize="xs" color="#64748b">Physical milestone completion vs. target contract budget</Text>
+              <Text fontSize="xs" color="#64748b">Real-world site progress, location, and money spent compared to agreed budget</Text>
             </Box>
             <Button 
               size="xs" 
@@ -282,7 +296,7 @@ export const DashboardPage: React.FC = () => {
               whiteSpace="nowrap"
               flexShrink={0}
             >
-              Open Projects Catalog <ArrowUpRight size={14} />
+              View All Projects →
             </Button>
           </Flex>
 
@@ -333,8 +347,8 @@ export const DashboardPage: React.FC = () => {
                   {/* Progress Gauge */}
                   <Box mt={2.5}>
                     <Flex justify="space-between" fontSize="10px" color="#64748b" mb={1}>
-                      <Text>Milestone Progress</Text>
-                      <Text>{project.progressPercent}% Target</Text>
+                      <Text>Work Completed</Text>
+                      <Text>{project.progressPercent}%</Text>
                     </Flex>
                     <Box w="100%" h="6px" bg="#e2e8f0" borderRadius="full" overflow="hidden">
                       <Box 
@@ -357,7 +371,7 @@ export const DashboardPage: React.FC = () => {
             <Flex justify="space-between" align="center" pb={3} borderBottom="1px solid #e2e8f0">
               <Flex align="center" gap={2}>
                 <Clock size={16} color="#d97706" />
-                <Heading size="sm" color="#0f172a" fontWeight="bold">Pending Approvals</Heading>
+                <Heading size="sm" color="#0f172a" fontWeight="bold">Material Requests to Review</Heading>
               </Flex>
               <Badge colorPalette="orange" size="sm" variant="solid">
                 {pendingReqs.length}
@@ -368,7 +382,7 @@ export const DashboardPage: React.FC = () => {
               {pendingReqs.length === 0 ? (
                 <Box py={8} textAlign="center" color="#64748b" fontSize="xs">
                   <CheckCircle2 size={32} color="#10b981" style={{ margin: '0 auto 8px' }} />
-                  All material requisitions have been approved!
+                  All material requests have been reviewed and approved!
                 </Box>
               ) : (
                 pendingReqs.slice(0, 3).map((req) => (
@@ -385,7 +399,7 @@ export const DashboardPage: React.FC = () => {
                       {req.projectName}
                     </Text>
                     <Text fontSize="11px" color="#64748b" mt={0.5}>
-                      Req: {req.requestedBy} • {req.totalEstimatedAmount !== undefined ? `${currency} ${req.totalEstimatedAmount.toLocaleString()}` : 'Unpriced'}
+                      Requested by: {req.requestedBy} • {req.totalEstimatedAmount !== undefined ? `${currency} ${req.totalEstimatedAmount.toLocaleString()}` : 'Unpriced'}
                     </Text>
 
                     {canApprove && (
@@ -439,7 +453,7 @@ export const DashboardPage: React.FC = () => {
             color="#0f172a"
             whiteSpace="nowrap"
           >
-            Manage Requisition Chain →
+            Manage Requisitions →
           </Button>
         </Card.Root>
       </SimpleGrid>
@@ -451,10 +465,10 @@ export const DashboardPage: React.FC = () => {
           <Flex justify="space-between" align="center" pb={3} borderBottom="1px solid #e2e8f0">
             <Flex align="center" gap={2}>
               <Truck size={17} color="#2563eb" />
-              <Heading size="sm" color="#0f172a" fontWeight="bold">Ready-Mix Concrete Dispatches</Heading>
+              <Heading size="sm" color="#0f172a" fontWeight="bold">Concrete Deliveries (RMC)</Heading>
             </Flex>
             <Button size="xs" h="28px" px={2.5} variant="ghost" color="#2563eb" onClick={() => navigate('/rmc')} whiteSpace="nowrap" flexShrink={0}>
-              View RMC →
+              View Batches →
             </Button>
           </Flex>
 
@@ -490,7 +504,7 @@ export const DashboardPage: React.FC = () => {
           <Flex justify="space-between" align="center" pb={3} borderBottom="1px solid #e2e8f0">
             <Flex align="center" gap={2}>
               <AlertTriangle size={17} color="#ef4444" />
-              <Heading size="sm" color="#0f172a" fontWeight="bold">Material Reorder Alerts</Heading>
+              <Heading size="sm" color="#0f172a" fontWeight="bold">Materials Running Low</Heading>
             </Flex>
             <Button size="xs" h="28px" px={2.5} variant="ghost" color="#2563eb" onClick={() => navigate('/inventory')} whiteSpace="nowrap" flexShrink={0}>
               All Stores →
@@ -501,7 +515,7 @@ export const DashboardPage: React.FC = () => {
             {lowStockItems.length === 0 ? (
               <Box py={8} textAlign="center" color="#64748b" fontSize="xs">
                 <CheckCircle2 size={28} color="#10b981" style={{ margin: '0 auto 6px' }} />
-                No materials currently below minimum reorder thresholds.
+                No materials currently below minimum safety stock levels.
               </Box>
             ) : (
               lowStockItems.slice(0, 3).map((item) => (
@@ -518,7 +532,7 @@ export const DashboardPage: React.FC = () => {
                         {item.currentStock} {item.unit}
                       </Text>
                       <Text fontSize="10px" color="#ef4444">
-                        Min: {item.minLevel} {item.unit}
+                        Min Safety: {item.minLevel} {item.unit}
                       </Text>
                     </Box>
                   </Flex>
@@ -533,7 +547,7 @@ export const DashboardPage: React.FC = () => {
           <Flex justify="space-between" align="center" pb={3} borderBottom="1px solid #e2e8f0">
             <Flex align="center" gap={2}>
               <Activity size={17} color="#2563eb" />
-              <Heading size="sm" color="#0f172a" fontWeight="bold">Field Activity Trail</Heading>
+              <Heading size="sm" color="#0f172a" fontWeight="bold">Recent Operations Log</Heading>
             </Flex>
           </Flex>
 

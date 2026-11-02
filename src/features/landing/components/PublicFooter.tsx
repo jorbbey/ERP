@@ -123,7 +123,7 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ onOpenDemo }) => {
             </Text>
             <Stack gap={2.5} fontSize="xs" color="#94a3b8">
               <Box as="button" textAlign="left" onClick={() => handleAuthOrNav('/projects')} _hover={{ color: '#60a5fa' }} cursor="pointer">Civil Projects & BOQ</Box>
-              <Box as="button" textAlign="left" onClick={() => handleAuthOrNav('/requisitions')} _hover={{ color: '#60a5fa' }} cursor="pointer">Material Requisitions</Box>
+              <Box as="button" textAlign="left" onClick={() => handleAuthOrNav('/requisitions')} _hover={{ color: '#60a5fa' }} cursor="pointer">Requisition</Box>
               <Box as="button" textAlign="left" onClick={() => handleAuthOrNav('/inventory')} _hover={{ color: '#60a5fa' }} cursor="pointer">Stores & Inventories</Box>
               <Box as="button" textAlign="left" onClick={() => handleAuthOrNav('/procurement')} _hover={{ color: '#60a5fa' }} cursor="pointer">3-Way PO Matching</Box>
               <Box as="button" textAlign="left" onClick={() => handleAuthOrNav('/rmc')} _hover={{ color: '#60a5fa' }} cursor="pointer">Ready-Mix Concrete</Box>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Flex,
@@ -52,9 +53,11 @@ import {
   Truck,
   User,
   Users,
-  FileText
+  FileText,
+  ShoppingCart
 } from 'lucide-react';
 import { ExcelImportModal, TemplateColumn } from '../../components/common/ExcelImportModal';
+import { PageActionGuide } from '../../components/common/PageActionGuide';
 
 const inventoryTemplateColumns: TemplateColumn[] = [
   { key: 'itemCode', label: 'Item Code / SKU', required: true, type: 'string', description: 'Unique material catalog SKU code (e.g. MAT-101)', example: 'MAT-105' },
@@ -88,6 +91,7 @@ const sampleInventoryData = [
 ];
 
 export const InventoryPage: React.FC = () => {
+  const navigate = useNavigate();
   const {
     inventory,
     addInventoryItem,
@@ -741,6 +745,36 @@ export const InventoryPage: React.FC = () => {
         </Flex>
       </Card.Root>
 
+      {/* Plain-English Guided Workflow */}
+      <PageActionGuide
+        storageKey="inventory_page_guide"
+        title="How Warehouse Stores & Stock Management Works"
+        goalDescription="Track what materials you have in stock across all warehouses. Stock is clearly split into Free Stock (available for new requisitions) and Allocated Stock (reserved for approved project sites awaiting truck dispatch)."
+        steps={[
+          {
+            stepNumber: 1,
+            title: "Register Material SKUs",
+            description: "Click 'Add Material SKU' to define items (cement, rebar, pipes), units (Bags, Tonnes), and minimum safety reorder thresholds."
+          },
+          {
+            stepNumber: 2,
+            title: "Receive Stock (GRN)",
+            description: "When supplier trucks arrive with deliveries, record a Goods Received Note (GRN) to increase Free Stock in your store."
+          },
+          {
+            stepNumber: 3,
+            title: "Stock Reservation",
+            description: "When an engineer's material request is approved, items automatically shift from Free Stock to Allocated Stock."
+          },
+          {
+            stepNumber: 4,
+            title: "Dispatch to Site",
+            description: "Go to the 'Dispatch' tab to load trucks, issue waybills, and deduct materials from Allocated Stock upon physical exit."
+          }
+        ]}
+        tip="Difference between Free and Allocated stock: Free Stock is available for anyone to request today. Allocated Stock has already been promised to a site and is waiting for transport."
+      />
+
       {/* KPI Metrics Row */}
       <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} gap={4}>
         <Card.Root bg="white" borderRadius="14px" p={4} border="1px solid #e2e8f0" boxShadow="xs">
@@ -810,6 +844,40 @@ export const InventoryPage: React.FC = () => {
       {/* TAB 1: STOCK CATALOG */}
       {activeTab === 'items' && (
         <Stack gap={4}>
+          {/* Low Stock Replenishment Alert Banner */}
+          {inventory.some(i => {
+            const stockNum = Number(i.currentStock) || 0;
+            const allocatedNum = Number(i.allocatedStock) || 0;
+            const freeNum = i.freeStock !== undefined ? Number(i.freeStock) : Math.max(0, stockNum - allocatedNum);
+            return freeNum <= (Number(i.minLevel) || 0);
+          }) && (
+            <Card.Root bg="#fffbeb" border="1px solid #fde68a" borderRadius="12px" p={3.5}>
+              <Flex justify="space-between" align={{ base: 'flex-start', sm: 'center' }} direction={{ base: 'column', sm: 'row' }} gap={3}>
+                <Flex align="center" gap={2.5}>
+                  <Box p={2} bg="#fef3c7" borderRadius="8px" color="#d97706">
+                    <AlertTriangle size={18} />
+                  </Box>
+                  <Box>
+                    <Text fontWeight="bold" fontSize="xs" color="#92400e">
+                      Stock Buffer Alert: Materials Need Replenishment
+                    </Text>
+                    <Text fontSize="11px" color="#b45309">
+                      One or more warehouse catalog materials are below safety buffers. Raise a purchase order to replenish supplier stock.
+                    </Text>
+                  </Box>
+                </Flex>
+                <Button
+                  size="xs"
+                  colorPalette="orange"
+                  fontWeight="semibold"
+                  onClick={() => navigate('/procurement')}
+                >
+                  <ShoppingCart size={13} /> Raise Reorder PO in Procurement
+                </Button>
+              </Flex>
+            </Card.Root>
+          )}
+
           {/* Search & Filter Toolbar */}
           <Card.Root bg="white" borderRadius="14px" p={4} border="1px solid #e2e8f0" boxShadow="xs">
             <Flex direction={{ base: 'column', md: 'row' }} justify="space-between" align={{ md: 'center' }} gap={3}>
@@ -964,6 +1032,16 @@ export const InventoryPage: React.FC = () => {
                           </Table.Cell>
                           <Table.Cell fontSize="xs" textAlign="right">
                             <Flex justify="flex-end" gap={1}>
+                              {(isLow || isOut) && (
+                                <Button
+                                  size="xs"
+                                  colorPalette="orange"
+                                  onClick={() => navigate('/procurement')}
+                                  title="Order replacement stock in Procurement"
+                                >
+                                  <ShoppingCart size={12} /> Reorder
+                                </Button>
+                              )}
                               <Button
                                 size="xs"
                                 variant="ghost"

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Box,
   Flex,
@@ -15,6 +16,7 @@ import { PurchaseOrdersTab } from './components/PurchaseOrdersTab';
 import { GoodsReceivedNotesTab } from './components/GoodsReceivedNotesTab';
 import { SuppliersTab } from './components/SuppliersTab';
 import { ProcurementAnalyticsTab } from './components/ProcurementAnalyticsTab';
+import { PageActionGuide } from '../../components/common/PageActionGuide';
 import {
   ShoppingCart,
   PackageCheck,
@@ -25,6 +27,8 @@ import {
 } from 'lucide-react';
 
 export const ProcurementPage: React.FC = () => {
+  const location = useLocation();
+  const prefillRequisitionId = (location.state as any)?.prefillRequisitionId;
   const { purchaseOrders, goodsReceivedNotes, suppliers } = useERP();
 
   const [activeTab, setActiveTab] = useState<'pos' | 'grn' | 'suppliers' | 'analytics'>('pos');
@@ -118,9 +122,42 @@ export const ProcurementPage: React.FC = () => {
         </Flex>
       </Card.Root>
 
+      {/* Plain-English Guided Workflow */}
+      <PageActionGuide
+        storageKey="procurement_page_guide"
+        title="How Purchasing & Supplier Orders Work"
+        goalDescription="Procurement is how your company orders bulk construction materials from external suppliers. It connects formal Purchase Orders (what you ordered) to Goods Received Notes (what actually arrived at your warehouse or site)."
+        steps={[
+          {
+            stepNumber: 1,
+            title: "Create Purchase Order (PO)",
+            description: "Issue a Purchase Order specifying vendor, items, agreed pricing, and expected delivery date."
+          },
+          {
+            stepNumber: 2,
+            title: "Vendor Delivers Goods",
+            description: "The supplier delivers materials to your site or warehouse along with their delivery note."
+          },
+          {
+            stepNumber: 3,
+            title: "Record Goods Received Note (GRN)",
+            description: "Inspect items, check condition, and log received quantities to automatically update warehouse stock."
+          },
+          {
+            stepNumber: 4,
+            title: "3-Way Match & Pay",
+            description: "Finance matches the PO, GRN, and vendor invoice before releasing payment to prevent overbilling."
+          }
+        ]}
+        tip="Want to receive goods against an active order? In the Purchase Orders tab, click 'Receive Delivery (GRN)' on any approved PO."
+      />
+
       {/* Tab Panels */}
       {activeTab === 'pos' && (
-        <PurchaseOrdersTab onOpenCreateGRNForPO={handleOpenCreateGRNForPO} />
+        <PurchaseOrdersTab
+          onOpenCreateGRNForPO={handleOpenCreateGRNForPO}
+          prefillRequisitionId={prefillRequisitionId}
+        />
       )}
 
       {activeTab === 'grn' && (
