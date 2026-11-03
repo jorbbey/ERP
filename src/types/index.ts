@@ -366,7 +366,7 @@ export interface ProjectActivity {
   timestamp: string;
   user: string;
   role: string;
-  activityType: 'Progress Update' | 'BOQ Change' | 'Daily Log' | 'RFI' | 'Milestone' | 'Safety' | 'Document' | 'Project Created' | 'Project Updated';
+  activityType: 'Progress Update' | 'BOQ Change' | 'Daily Log' | 'RFI' | 'Milestone' | 'Safety' | 'Document' | 'Project Created' | 'Project Updated' | 'Procurement';
   description: string;
 }
 

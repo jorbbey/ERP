@@ -168,6 +168,7 @@ export const purchaseOrderService = {
         if (!targetReq.messages) targetReq.messages = [];
         targetReq.messages.push({
           id: Date.now(),
+          requisitionId: targetReq.id,
           userName: 'Procurement Desk',
           role: 'Procurement Officer',
           message: `Official Purchase Order ${poNumber} has been issued to ${data.supplierName} for required materials.`,

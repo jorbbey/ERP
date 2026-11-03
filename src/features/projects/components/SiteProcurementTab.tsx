@@ -152,6 +152,7 @@ export const SiteProcurementTab: React.FC<SiteProcurementTabProps> = ({ project 
                   <Table.ColumnHeader color="#475569" textAlign="right">Estimated Value</Table.ColumnHeader>
                   <Table.ColumnHeader color="#475569">Priority</Table.ColumnHeader>
                   <Table.ColumnHeader color="#475569">Status</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569" textAlign="right">Actions</Table.ColumnHeader>
                 </Table.Row>
               </Table.Header>
               <Table.Body>
@@ -178,17 +179,47 @@ export const SiteProcurementTab: React.FC<SiteProcurementTabProps> = ({ project 
                       </Badge>
                     </Table.Cell>
                     <Table.Cell>
-                      <Badge
-                        size="xs"
-                        colorPalette={
-                          req.status === 'Delivered' ? 'green' :
-                          req.status === 'Dispatched' ? 'purple' :
-                          req.status === 'Approved' ? 'blue' :
-                          req.status === 'Rejected' ? 'red' : 'yellow'
-                        }
-                      >
-                        {req.status}
-                      </Badge>
+                      <Flex align="center" gap={1.5} wrap="wrap">
+                        <Badge
+                          size="xs"
+                          colorPalette={
+                            req.status === 'Delivered' ? 'green' :
+                            req.status === 'Dispatched' ? 'purple' :
+                            req.status === 'Approved' ? 'blue' :
+                            req.status === 'Rejected' ? 'red' : 'yellow'
+                          }
+                        >
+                          {req.status}
+                        </Badge>
+                        {req.purchaseOrderNo && (
+                          <Badge size="xs" colorPalette="purple" variant="subtle">
+                            PO: {req.purchaseOrderNo}
+                          </Badge>
+                        )}
+                      </Flex>
+                    </Table.Cell>
+                    <Table.Cell textAlign="right">
+                      <Flex justify="flex-end" gap={1}>
+                        {!req.purchaseOrderNo && (req.status === 'Approved' || req.status === 'Ready for Dispatch' || req.status === 'Pending Review') && (
+                          <Button
+                            size="xs"
+                            colorPalette="purple"
+                            variant="subtle"
+                            onClick={() => navigate('/procurement', { state: { prefillRequisitionId: req.id } })}
+                            title="Generate PO in Procurement"
+                          >
+                            <ShoppingCart size={11} style={{ marginRight: 2 }} /> Raise PO
+                          </Button>
+                        )}
+                        <Button
+                          size="xs"
+                          variant="ghost"
+                          colorPalette="blue"
+                          onClick={() => navigate('/requisitions')}
+                        >
+                          View
+                        </Button>
+                      </Flex>
                     </Table.Cell>
                   </Table.Row>
                 ))}
@@ -229,13 +260,19 @@ export const SiteProcurementTab: React.FC<SiteProcurementTabProps> = ({ project 
                   <Table.ColumnHeader color="#475569">Expected Delivery</Table.ColumnHeader>
                   <Table.ColumnHeader color="#475569" textAlign="right">Total Sum</Table.ColumnHeader>
                   <Table.ColumnHeader color="#475569">Status</Table.ColumnHeader>
+                  <Table.ColumnHeader color="#475569" textAlign="right">Actions</Table.ColumnHeader>
                 </Table.Row>
               </Table.Header>
               <Table.Body>
                 {currentPOs.map((po) => (
                   <Table.Row key={po.id}>
                     <Table.Cell fontSize="xs" fontWeight="bold" color="#0f172a">
-                      {po.poNumber}
+                      <Text>{po.poNumber}</Text>
+                      {po.requisitionNo && (
+                        <Badge size="xs" colorPalette="purple" variant="subtle" mt={0.5}>
+                          Req: {po.requisitionNo}
+                        </Badge>
+                      )}
                     </Table.Cell>
                     <Table.Cell fontSize="xs" color="#0f172a">
                       {po.supplierName}
@@ -260,6 +297,16 @@ export const SiteProcurementTab: React.FC<SiteProcurementTabProps> = ({ project 
                       >
                         {po.status.replace('_', ' ')}
                       </Badge>
+                    </Table.Cell>
+                    <Table.Cell textAlign="right">
+                      <Button
+                        size="xs"
+                        variant="ghost"
+                        colorPalette="blue"
+                        onClick={() => navigate('/procurement')}
+                      >
+                        View PO
+                      </Button>
                     </Table.Cell>
                   </Table.Row>
                 ))}

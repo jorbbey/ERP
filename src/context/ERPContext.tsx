@@ -2461,6 +2461,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             if (!targetReq.messages) targetReq.messages = [];
             targetReq.messages.push({
               id: Date.now(),
+              requisitionId: targetReq.id,
               userName: 'Warehouse Logistics',
               role: 'Store Officer',
               message: `Goods received against ${data.poNumber} (${res.grn?.grnNumber}). Stock is now verified and available in warehouse for dispatch.`,

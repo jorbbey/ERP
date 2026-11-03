@@ -257,18 +257,18 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({
       }));
 
       if (req.items && req.items.length > 0) {
-        const mappedItems = req.items.map(ri => {
+        const mappedItems = req.items.map((ri: any) => {
           const matchingInv = inventory.find(i => 
-            (ri.itemId && i.id === ri.itemId) || 
+            (ri.inventoryItemId && i.id === ri.inventoryItemId) || 
             (i.name && ri.itemName && i.name.toLowerCase() === ri.itemName.toLowerCase())
           );
           return {
-            inventoryItemId: matchingInv?.id || ri.itemId || inventory[0]?.id || 1,
-            itemCode: matchingInv?.itemCode || 'MAT-REQ',
-            description: ri.itemName || (ri as any).description || 'Requested Material',
-            quantity: ri.quantity || 1,
+            inventoryItemId: matchingInv?.id || ri.inventoryItemId || inventory[0]?.id || 1,
+            itemCode: matchingInv?.itemCode || ri.itemCode || 'MAT-REQ',
+            description: ri.itemName || ri.description || 'Requested Material',
+            quantity: ri.quantityRequired || ri.quantity || 1,
             unit: ri.unit || matchingInv?.unit || 'Units',
-            unitPrice: ri.estimatedRate || matchingInv?.costPrice || 50,
+            unitPrice: ri.price || ri.estimatedRate || matchingInv?.costPrice || 50,
             discountPercent: 0,
             taxPercent: 5
           };
@@ -601,7 +601,7 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({
         const handleSendChat = (e: React.FormEvent) => {
           e.preventDefault();
           if (!poChatMessage.trim()) return;
-          addPOMessage(activePO.id, currentUserName, activeRole, poChatMessage.trim());
+          addPOMessage(activePO.id, poChatMessage.trim());
           setPoChatMessage('');
         };
 
@@ -844,11 +844,11 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({
                               </Text>
                             </Box>
                           </Flex>
-                          <Badge size="xs" colorPalette="gray">{step.date}</Badge>
+                          <Badge size="xs" colorPalette="gray">{step.timestamp || (step as any).date}</Badge>
                         </Flex>
-                        {step.notes && (
+                        {(step.comments || (step as any).notes) && (
                           <Box mt={2} p={2} bg="white" borderRadius="6px" border="1px solid #f1f5f9" fontSize="11px" color="#475569">
-                            {step.notes}
+                            {step.comments || (step as any).notes}
                           </Box>
                         )}
                       </Card.Root>
@@ -879,7 +879,7 @@ export const PurchaseOrdersTab: React.FC<PurchaseOrdersTabProps> = ({
                                 <Text fontWeight="bold" color="#0f172a">{msg.userName}</Text>
                                 <Badge size="xs" colorPalette="blue" variant="subtle">{msg.role}</Badge>
                               </Flex>
-                              <Text fontSize="10px" color="#94a3b8">{msg.timestamp}</Text>
+                              <Text fontSize="10px" color="#94a3b8">{msg.createdAt || (msg as any).timestamp}</Text>
                             </Flex>
                             <Text color="#334155">{msg.message}</Text>
                           </Box>
